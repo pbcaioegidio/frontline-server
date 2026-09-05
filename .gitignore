@@ -50,7 +50,7 @@ servidor/binary/
 servidor/linux/out/
 
 # --- Cursor / OS ---
-.cursor/plans/*.plan.md.bak
+.cursor/
 Thumbs.db
 desktop.ini
 .DS_Store

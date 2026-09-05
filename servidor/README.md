@@ -1,93 +1,100 @@
-# PRISMBLEED
+# Servidor FrontLine (PRISMBLEED)
 
-Servidor para o client Point Blank 122 BR. Auth, Game e Match compartilham código .NET 8 e podem rodar no Windows ou Linux. No Windows use o monitor WinForms `FLMonitor.exe`; no Linux, use o host console `PRISMBLEED.Server`.
+Auth, Game e Match em **.NET 8**, compartilhados no mesmo host. No Windows use o monitor WinForms `FLMonitor`; no Linux/Docker, o console `PRISMBLEED.Server`.
+
+---
 
 ## Requisitos
 
-- Windows local: .NET 8 SDK.
-- Linux: WSL Ubuntu 22.04 e Docker instalado dentro do WSL. Todos os scripts Docker deste repositório entram pelo WSL.
-- PostgreSQL externo com o schema e migrations existentes do projeto.
-- Diretórios de runtime `Config`, `Data` e `Logs`. Eles não são embutidos na imagem Docker.
+| Ambiente | Precisa |
+|----------|---------|
+| Windows | .NET 8 SDK |
+| Linux / VPS | Docker (ou publish self-contained) · PostgreSQL |
+| Runtime | pastas `Config`, `Data`, `Logs` (não vão na imagem Docker) |
+
+---
 
 ## Windows
 
-Execute `build-debug.bat`. O script publica:
+```bat
+build-debug.bat
+```
 
-- monitor WinForms em `binary\Debug`;
-- host console compartilhado em `binary\Debug\console`.
+Gera:
 
-Para o fluxo normal no Windows, abra `binary\Debug\FLMonitor.exe` (console + painel). O host só-console (sem WinForms) fica em:
+- monitor: `binary\Debug\FLMonitor.exe`
+- console: `binary\Debug\console\PRISMBLEED.Server.exe`
 
 ```powershell
 binary\Debug\console\PRISMBLEED.Server.exe --content-root binary\Debug
 ```
 
-Use o PRISMBLEED console quando quiser logs sem a janela do monitor (ex.: Linux/Docker ou debug headless). No dia a dia Windows, prefira o **FLMonitor**.
+No dia a dia no Windows, prefira o **FLMonitor**.
 
-## Linux e Docker via WSL
+---
 
-O build da imagem é sempre executado dentro do WSL:
+## Linux e Docker (WSL)
+
+Build e teste sempre pelo WSL:
 
 ```powershell
 .\scripts\build-linux-wsl.ps1
 .\scripts\test-linux-wsl.ps1
 ```
 
-O Dockerfile publica apenas os projetos gerenciados e não inclui `CryptoLib`, credenciais, `Config`, `Data` ou `Logs`.
+Compose:
 
-Para Compose, copie `.env.example` para `.env`, preencha apenas localmente e prepare os diretórios de runtime:
-
-```text
-runtime/
-  Config/
-  Data/
-  Logs/
-```
-
-No ambiente local já configurado, o Compose usa diretamente a rede Docker `bridge` existente e acessa o PostgreSQL publicado no host em `5433`; não é necessário criar outra network. Depois, execute:
+1. Copie `.env.example` → `.env` (só local; não commit)
+2. Prepare `runtime/Config`, `runtime/Data`, `runtime/Logs`
+3. Suba:
 
 ```powershell
 .\scripts\compose-up-wsl.ps1
-```
-
-Para encerrar e remover somente o container do servidor:
-
-```powershell
 .\scripts\compose-down-wsl.ps1
 ```
 
-As portas publicadas por padrão são Auth TCP `39190`, os canais Game TCP `39191`–`39193`, Match UDP `40009` e RCON TCP `30000`. Em produção **não publique RCON** na internet — mantenha `RconIp=127.0.0.1` e veja o guia [`linux/SECURITY.md`](linux/SECURITY.md) + script [`linux/harden-firewall.sh`](linux/harden-firewall.sh). As portas do host podem ser isoladas com `PB_AUTH_PORT`, `PB_GAME_PORT_1`–`3`, `PB_MATCH_PORT` e `PB_RCON_PORT` no `.env`.
+Portas padrão: Auth `39190`, Game `39191`–`39193`, Match UDP `40009`, RCON `30000`.
+
+Em produção: **não exponha RCON**. Guia: [`linux/SECURITY.md`](linux/SECURITY.md) · script [`linux/harden-firewall.sh`](linux/harden-firewall.sh).
+
+Ajuste no `.env`: `PB_AUTH_PORT`, `PB_GAME_PORT_*`, `PB_MATCH_PORT`, `PB_RCON_PORT`.
+
+---
 
 ## Configuração
 
-O host resolve caminhos relativos a partir de `PB_CONTENT_ROOT` ou de `--content-root`. Assim, os caminhos existentes em `Config`, `Data` e `Logs` continuam válidos nos dois sistemas.
+Caminhos relativos usam `PB_CONTENT_ROOT` ou `--content-root`.
 
-As credenciais do banco podem vir do INI existente ou, preferencialmente em deploy, das variáveis:
+Banco (preferência em deploy):
 
-- `PB_DB_HOST`
-- `PB_DB_PORT`
-- `PB_DB_NAME`
-- `PB_DB_USER`
-- `PB_DB_PASS`
+| Variável | Uso |
+|----------|-----|
+| `PB_DB_HOST` | Host PostgreSQL |
+| `PB_DB_PORT` | Porta |
+| `PB_DB_NAME` | Nome do DB |
+| `PB_DB_USER` / `PB_DB_PASS` | Credenciais |
 
-Em container, `PB_BIND_HOST=0.0.0.0` substitui apenas o endereço local de bind para tornar as portas publicáveis. `PB_ADVERTISE_HOST` define o IP devolvido ao client nos canais Game e no Match; localmente ele está configurado como `127.0.0.1` para o client Windows. O Compose também fixa o bind interno do RCON com `PB_RCON_BIND_HOST` e `PB_RCON_BIND_PORT`, mantendo `PB_RCON_PORT` apenas como porta publicada no host.
+- `PB_BIND_HOST=0.0.0.0` — bind interno no container  
+- `PB_ADVERTISE_HOST` — IP anunciado ao client (local: `127.0.0.1`; VPS: IP público)
 
-Variáveis de ambiente têm precedência e não devem ser commitadas. O arquivo `.env` está ignorado pelo Git.
+---
 
-## Publicação linux-x64 e systemd
-
-Gere um executável Linux self-contained, também via Docker no WSL:
+## Publish Linux + systemd
 
 ```powershell
 .\scripts\publish-linux-wsl.ps1
 ```
 
-O resultado fica em `artifacts\linux-x64`. Copie seu conteúdo para `/opt/prismbleed`, coloque os diretórios `Config`, `Data` e `Logs` no mesmo local, instale `deploy/prismbleed.service` em `/etc/systemd/system/` e salve as variáveis `PB_DB_*` em `/etc/prismbleed/server.env` com permissões restritas.
+Saída em `artifacts\linux-x64` (ou arm64 no fluxo ARM). Copie para `/opt/prismbleed`, coloque `Config` / `Data` / `Logs`, instale `deploy/prismbleed.service` e salve `PB_DB_*` em `/etc/prismbleed/server.env`.
+
+---
 
 ## Encerramento
 
-O host console trata Ctrl+C, SIGINT e SIGTERM, fecha os sockets de Auth/Game/Match e encerra filhos quando `ProcessSplit` estiver ativo. O Compose e a unidade systemd usam SIGTERM com janela de 20 segundos.
+Ctrl+C / SIGINT / SIGTERM fecham Auth/Game/Match (e filhos se `ProcessSplit`). Compose e systemd usam SIGTERM com ~20 s de graça.
+
+---
 
 ## TestBot
 
-`Server.TestBot` continua sendo o cliente headless para validar login, opcodes e handlers ponta a ponta. Ele exige um runtime completo e uma configuração de banco válida antes da execução.
+`Server.TestBot` — client headless para login, opcodes e handlers. Precisa de runtime + DB válidos.

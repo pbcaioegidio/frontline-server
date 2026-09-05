@@ -1,4 +1,6 @@
-# Deploy e segurança VPS (Fase 1)
+# Segurança na VPS
+
+Guia de exposição de portas, Socket/Evidence e checklist antes de abrir para jogadores.
 
 ## O que NÃO abrir na internet
 
