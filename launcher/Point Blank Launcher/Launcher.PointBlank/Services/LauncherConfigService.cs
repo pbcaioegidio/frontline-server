@@ -37,5 +37,16 @@ namespace Launcher.PointBlank.Services
                     : "0"
             };
         }
+
+        public void Save(LauncherConfig config)
+        {
+            string encryptedPath = Path.Combine(_folderPath, EncryptedFileName);
+            string xml =
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+                "<LauncherConfig>\r\n" +
+                "  <LauncherVersion>" + (config?.LauncherVersion ?? "0") + "</LauncherVersion>\r\n" +
+                "</LauncherConfig>\r\n";
+            ConfigCryptoService.EncryptFile(encryptedPath, xml);
+        }
     }
 }

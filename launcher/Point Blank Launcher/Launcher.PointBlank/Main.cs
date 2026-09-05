@@ -797,7 +797,38 @@ namespace Launcher.PointBlank
                 });
 
                 PatchDownloadService downloadService = new PatchDownloadService(Application.StartupPath, _connection);
-                await downloadService.DownloadFilesAsync(filesToUpdate, progress);
+                bool needsRestart = await downloadService.DownloadFilesAsync(filesToUpdate, progress);
+
+                // Marca versão local = server para não pedir Update de novo após reinício
+                try
+                {
+                    if (_connectionResult != null && !string.IsNullOrEmpty(_connectionResult.LauncherVersion))
+                    {
+                        var cfgSvc = LauncherConfigService.FromFolder(Application.StartupPath);
+                        cfgSvc.Save(new LauncherConfig { LauncherVersion = _connectionResult.LauncherVersion });
+                    }
+                    if (_connectionResult != null && !string.IsNullOrEmpty(_connectionResult.ClientVersion))
+                    {
+                        // ClientVersion fica em config.zpt — só bump de launcher.svl aqui
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Aviso ao gravar LauncherVersion local: " + ex.Message);
+                }
+
+                if (needsRestart)
+                {
+                    TEXT_STATUS.Text = "Reiniciando para aplicar o launcher...";
+                    Logger.Log("Logger: Auto-update do FLLauncher — reiniciando.");
+                    MessageBox.Show(
+                        "O launcher foi baixado.\nVai fechar e abrir de novo para aplicar a atualização.",
+                        "FRONTLINE",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    SelfUpdateHelper.StartRestartAndExit(Application.StartupPath);
+                    return;
+                }
 
                 FileBar.Width = 463;
                 TotalBar.Width = 463;

@@ -72,6 +72,9 @@ namespace Launcher.PointBlank.Services
             if (StartsWithFolder(local, "_fl_publish_tmp")) return true;
             if (StartsWithFolder(local, "tools")) return true;
             if (name.StartsWith("FLLauncher.exe.bak", StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.EndsWith(".new", StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.Equals("_apply_launcher_update.cmd", StringComparison.OrdinalIgnoreCase)) return true;
+            if (StartsWithFolder(local, "_DownloadPatchFiles")) return true;
             if (name.Equals("V3PreCommon.pbc", StringComparison.OrdinalIgnoreCase)) return true;
             return false;
         }

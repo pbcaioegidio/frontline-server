@@ -17,10 +17,11 @@ namespace Launcher.PointBlank.Services
             _clientPath = clientPath;
             _connection = connection;
         }
-        public async Task DownloadFilesAsync(
+        public async Task<bool> DownloadFilesAsync(
             List<UpdateFile> filesToUpdate,
             IProgress<UpdateDownloadProgress> progress = null)
         {
+            bool needsRestart = false;
             string downloadFolder = Path.Combine(_clientPath, "_DownloadPatchFiles");
             Directory.CreateDirectory(downloadFolder);
             int totalFiles = filesToUpdate.Count;
@@ -77,14 +78,28 @@ namespace Launcher.PointBlank.Services
                 }
                 else
                 {
-                    if (File.Exists(destPath))
-                        File.Delete(destPath);
-                    File.Move(downloadedFile, destPath);
+                    // EXE em execução (FLLauncher): grava .new e aplica após reiniciar
+                    if (SelfUpdateHelper.NeedsDeferredReplace(destPath))
+                    {
+                        string deferred = SelfUpdateHelper.DeferredPath(destPath);
+                        if (File.Exists(deferred))
+                            File.Delete(deferred);
+                        File.Move(downloadedFile, deferred);
+                        needsRestart = true;
+                    }
+                    else
+                    {
+                        if (File.Exists(destPath))
+                            File.Delete(destPath);
+                        File.Move(downloadedFile, destPath);
+                    }
                 }
             }
             if (Directory.Exists(downloadFolder) &&
                 Directory.GetFiles(downloadFolder, "*", SearchOption.AllDirectories).Length == 0)
                 Directory.Delete(downloadFolder, recursive: true);
+
+            return needsRestart;
         }
     }
 }
