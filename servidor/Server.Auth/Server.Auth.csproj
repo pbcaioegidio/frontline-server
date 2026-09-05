@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Server.Auth</AssemblyName>
+    <RootNamespace>Server.Auth</RootNamespace>
+    <Version>1.1.25163.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+    <ItemGroup>
+    <Compile Remove="AssemblyInfo.cs;Properties\AssemblyInfo.cs;Data\Sync\authsync_deobfuscated.cs;Data\Sync\authsync_refactored.cs;Network\authclientpacket_deobfuscated.cs;Network\authserverpacket_deobfuscated.cs" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Npgsql" Version="8.0.4" />
+    <ProjectReference Include="..\Plugin.Core\Plugin.Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,11 @@
+.git
+.vs
+**/bin
+**/obj
+binary
+Debug
+Logs
+packages
+server.zip
+*.user
+*.suo

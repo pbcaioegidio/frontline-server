@@ -1,0 +1,16 @@
+namespace Launcher.PointBlank.Utils
+{
+    public enum UpdaterState
+    {
+        UPDATER_STATE_UNKNOWN,
+        UPDATER_STATE_START,
+        UPDATER_STATE_PRE_CONNECT,
+        UPDATER_STATE_PRE_UPDATER_VERSION_ACK,
+        UPDATER_STATE_PRE_CLIENT_VERSION,
+        UPDATER_STATE_PATCH_END,
+        UPDATER_STATE_PATCH_START,
+        UPDATER_STATE_FILE_CHECK,
+        UPDATER_STATE_LOGIN,
+        UPDATER_STATE_GAME_START
+    }
+}

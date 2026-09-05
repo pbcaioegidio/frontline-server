@@ -1,0 +1,19 @@
+0x0054C68A = [Config FrontLine]
+0x0054CC8C = [Opções Avançadas]
+0x0054CCD0 = [GRÁFICO]
+0x0054C730 = [Resolução]
+0x0054CA70 = [Mínimo]
+0x0054CB14 = [Máximo]
+0x0054C6DC = [OK]
+0x0054C8E4 = [Sinc. Vertical]
+0x0054CF60 = [Tela Cheia]
+remain 0x54C68A Config FrontLine
+remain 0x54C6B2 Tahoma
+remain 0x54C9A0 msctls_trackbar32
+remain 0x54CD44 msctls_trackbar32
+remain 0x54D006 New
+found 'Bloom' @ 0x54CE22
+found 'Low' @ 0x54CA9C
+found 'PhysX' @ 0x54CBE4
+global 'DX11' @ 0x3C5C54
+global 'DX9' @ 0x3C7768

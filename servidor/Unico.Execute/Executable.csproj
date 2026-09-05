@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseSystemDrawing>true</UseSystemDrawing>
+    <AssemblyName>FLMonitor</AssemblyName>
+    <RootNamespace>Executable</RootNamespace>
+    <StartupObject>Executable.Program</StartupObject>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>FLMonitor.ico</ApplicationIcon>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Product>FrontLine Monitor</Product>
+    <AssemblyTitle>FrontLine Monitor</AssemblyTitle>
+    <Description>Monitor do servidor FrontLine — Auth, Game e Match (PB 122 BR)</Description>
+    <Company>FrontLine</Company>
+    <Authors>FrontLine</Authors>
+    <Copyright>Copyright © FrontLine 2026</Copyright>
+    <NeutralLanguage>pt-BR</NeutralLanguage>
+    <Version>1.0.6</Version>
+    <AssemblyVersion>1.0.6.0</AssemblyVersion>
+    <FileVersion>1.0.6.0</FileVersion>
+    <InformationalVersion>1.0.6</InformationalVersion>
+    <Platforms>AnyCPU;x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <ProjectReference Include="..\Plugin.Core\Plugin.Core.csproj" />
+    <ProjectReference Include="..\Server.Auth\Server.Auth.csproj" />
+    <ProjectReference Include="..\Server.Game\Server.Game.csproj" />
+    <ProjectReference Include="..\Server.Match\Server.Match.csproj" />
+    <None Include="FLMonitor.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

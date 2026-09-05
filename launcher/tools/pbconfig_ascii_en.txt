@@ -1,0 +1,25 @@
+A Lowest=0x54F3A5 U=MISS
+A Highest=MISS U=MISS
+A Middle=0x54F361 U=0x4172F6
+A None=0x3B9218 U=MISS
+A AUTO=0x3B91E0 U=MISS
+A DX11(BETA)=0x3B91F4 U=MISS
+A Point Blank Configuration=MISS U=MISS
+A Point Blank=0x3B8EA0 U=MISS
+A High=0x40B62A U=MISS
+A Low=0x40B63E U=0x54CA9C
+A Save=0x3B9F4E U=0x3B9264
+--- region ---
+&w'|||||Mínimo||||||||Rw||||||Low|||||||||tw||||||Med||||||||||w||||||Alto|||||||||w'|||||Máximo |||||||||âw'|||||Manual||||||||&|5|||||Rastro Bala ||||||||&|;|||||Efeito Terreno||||||||&Â"|||||PhysX|||||||||&úF||||||||||||||ü||||||Brilho  |||||||||-||||||
+Middle@0x4172F6 prev=112
+ProductName U=0x54EFAE
+ProductName..TODO: <.. ..>...6..ProductVersion.1.0.0.1...D..
+FileDescription U=0x54EE3A
+FileDescription..TODO: <.. ..>...2..FileVersion..1.0.0.1...<
+InternalName U=0x54EEB6
+InternalName.PBConfig.exe..x*.LegalCopyright.TODO: (c) <.. .
+OriginalFilename U=0x54EF6A
+OriginalFilename.PBConfig.exe..>..ProductName..TODO: <.. ..>
+PointBlank U=MISS
+PBConfig U=0x3B8ED2
+PBConfigDlg::_UpdateResList..pInfo != nullptr...............

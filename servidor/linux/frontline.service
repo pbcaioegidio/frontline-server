@@ -1,0 +1,19 @@
+[Unit]
+Description=FrontLine Server (Auth, Game, Match)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/frontline
+ExecStart=/opt/frontline/FLMonitor
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=30
+# Banco: ajuste PB_DB_* ou Config/Settings.ini
+# Environment=PB_DB_HOST=127.0.0.1
+# Environment=PB_BIND_HOST=0.0.0.0
+
+[Install]
+WantedBy=multi-user.target

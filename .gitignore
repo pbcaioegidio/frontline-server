@@ -1,0 +1,61 @@
+# --- Segredos ---
+.env
+.env.*
+!.env.example
+**/Evidence/
+filelist-private.pem
+**/filelist-private.pem
+*.pem
+!**/certs/public*.pem
+!**/public.pem
+RconPassword*
+**/Config/Secrets.ini
+**/Secrets.ini
+*.pfx
+*.key
+
+# --- Client completo (packs ~GB; patch via Socket) ---
+/client/
+/PB Sea*/
+/PointBlank*/
+/PointBlank Ice*/
+/PointBlankIce/
+/PointBlank Latino*/
+*.rar
+*.zip
+*.7z
+
+# --- Build / IDE ---
+**/[Bb]in/
+**/[Oo]bj/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/.vs/
+**/publish/
+*.user
+*.suo
+*.pdb
+*.log
+**/node_modules/
+
+# --- Artefatos locais ---
+client/_fl_publish_tmp/
+**/_backup*/
+**/_fl_backup/
+**/ufl-md5.txt
+**/UserFileList.dat
+**/UserFileList.sig
+**/Evidence/
+servidor/binary/
+servidor/linux/out/
+
+# --- Cursor / OS ---
+.cursor/plans/*.plan.md.bak
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Publicacoes locais do launcher (EXEs gigantes)
+**/_publish/
+**/*.exe
+!servidor/**/*.exe

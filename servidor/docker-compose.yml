@@ -1,0 +1,34 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prismbleed-server:net8
+    network_mode: bridge
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 20s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PB_CONTENT_ROOT: /app
+      PB_BIND_HOST: 0.0.0.0
+      PB_ADVERTISE_HOST: ${PB_ADVERTISE_HOST:-127.0.0.1}
+      PB_RCON_BIND_HOST: 0.0.0.0
+      PB_RCON_BIND_PORT: 30000
+      PB_DB_HOST: ${PB_DB_HOST:-host.docker.internal}
+      PB_DB_PORT: ${PB_DB_PORT:-5433}
+      PB_DB_NAME: ${PB_DB_NAME:-pb}
+      PB_DB_USER: ${PB_DB_USER:-}
+      PB_DB_PASS: ${PB_DB_PASS:-}
+    ports:
+      - "${PB_AUTH_PORT:-39190}:39190/tcp"
+      - "${PB_GAME_PORT_1:-39191}:39191/tcp"
+      - "${PB_GAME_PORT_2:-39192}:39192/tcp"
+      - "${PB_GAME_PORT_3:-39193}:39193/tcp"
+      - "${PB_MATCH_PORT:-40009}:40009/udp"
+      - "${PB_RCON_PORT:-30000}:30000/tcp"
+    volumes:
+      - ${PB_CONFIG_DIR:-./runtime/Config}:/app/Config:ro
+      - ${PB_DATA_DIR:-./runtime/Data}:/app/Data:ro
+      - ${PB_LOG_DIR:-./runtime/Logs}:/app/Logs

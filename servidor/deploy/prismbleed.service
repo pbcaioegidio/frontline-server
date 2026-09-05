@@ -1,0 +1,24 @@
+[Unit]
+Description=PRISMBLEED Point Blank server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=prismbleed
+Group=prismbleed
+WorkingDirectory=/opt/prismbleed
+Environment=PB_CONTENT_ROOT=/opt/prismbleed
+EnvironmentFile=-/etc/prismbleed/server.env
+ExecStart=/opt/prismbleed/PRISMBLEED.Server
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/prismbleed/Logs
+
+[Install]
+WantedBy=multi-user.target
