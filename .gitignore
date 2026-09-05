@@ -59,3 +59,7 @@ desktop.ini
 **/_publish/
 **/*.exe
 !servidor/**/*.exe
+
+# Notas locais com credenciais
+NOTAS-FRONTLINE.md
+
