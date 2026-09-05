@@ -43,6 +43,7 @@ namespace Server.Auth
                 MainSocket.DontFragment = false;
                 MainSocket.NoDelay = true;
                 MainSocket.Bind(Local);
+                Bitwise.WarmupRsaPool(Bitwise.CRYPTO[2], 32);
                 MainSocket.Listen(ConfigLoader.BackLog);
                 CLogger.Print($"Endereco Auth {Host}:{Port}", LoggerType.Info);
                 Thread OnDuty = new Thread(ReadCallBack)

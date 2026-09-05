@@ -105,7 +105,9 @@ namespace Server.Auth
                 _nextSessionSeed = SessionSeed;
                 SessionShift = ((SessionId + Bitwise.CRYPTO[0]) % 7 + 1);
 
-                CLogger.QueueWork(ServerKind.Auth, SendConnectAck);
+                // ACK tem que ir pro fio ANTES do receive/timeout em outra thread —
+                // QueueWork+BeginSend perdia a corrida (logava CONNECT_ACK e mandava FIN sem payload).
+                SendConnectAck();
                 CLogger.QueueWork(ServerKind.Auth, StartReceive);
                 CLogger.QueueWork(ServerKind.Auth, CheckConnectionTimeout);
             }
@@ -119,7 +121,7 @@ namespace Server.Auth
 
         private void CheckConnectionTimeout()
         {
-            Thread.Sleep(10000);
+            Thread.Sleep(30000);
             // A peer that already hung up is not a stalled client: port probes (the panel status
             // poll) connect and drop instantly, and warning on those floods the console.
             if (_connectionClosed || Client == null) return;
@@ -308,7 +310,13 @@ namespace Server.Auth
                 ushort opcode = BitConverter.ToUInt16(payload, 0);
                 CLogger.Packet(ServerKind.Auth, Direction.Out, opcode, Packet.GetType().Name, ConnRegistry.IdFor(Client?.RemoteEndPoint?.ToString()), payload.Length, payload, Packet.Schema);
 
-                BeginSend(frame);
+                // CONNECT_ACK (e demais plain): Send bloqueante pra garantir bytes no TCP
+                if (Client != null && Client.Connected && frame.Length > 0)
+                {
+                    int sent = 0;
+                    while (sent < frame.Length)
+                        sent += Client.Send(frame, sent, frame.Length - sent, SocketFlags.None);
+                }
                 Packet.Dispose();
             }
             catch (SocketException) { try { Packet?.Dispose(); } catch { } }
@@ -359,7 +367,15 @@ namespace Server.Auth
             {
                 _lastActivity = DateTime.Now;
                 int bytesCount = state.WorkSocket.EndReceive(Result);
-                if (bytesCount <= 0) { Close(0, true); return; }
+                if (bytesCount <= 0)
+                {
+                    if (FirstPacketId == 0)
+                        CLogger.Print($"[DIAG] client fechou antes do 1o pacote. IP: {GetIPAddress()}", LoggerType.Warning);
+                    Close(0, true);
+                    return;
+                }
+                if (FirstPacketId == 0)
+                    CLogger.Print($"[DIAG] 1o receive: {bytesCount}B hw=0x{(bytesCount >= 2 ? (state.Buffer[0] | (state.Buffer[1] << 8)) : 0):X4} IP: {GetIPAddress()}", LoggerType.Warning);
                 byte[] rawBuffer;
                 lock (_receiveLock)
                 {
@@ -378,6 +394,8 @@ namespace Server.Auth
                     int payloadLen = PacketFraming.PayloadLength(hw);
                     int frameLength = PacketFraming.WireLength(hw);
                     if (offset + frameLength > bytesCount) break;
+                    if (!enc && FirstPacketId == 0)
+                        CLogger.Print($"[DIAG] frame NAO cifrado hw=0x{hw:X4} payloadLen={payloadLen} IP: {GetIPAddress()}", LoggerType.Warning);
                     if (enc)
                     {
                         byte[] cmess = new byte[payloadLen];
@@ -385,6 +403,7 @@ namespace Server.Auth
                         var (decrypted, ok) = CMessCipher.Decrypt(ClientKey, cmess, CMessCipher.MODE_AUTH);
                         if (!ok || decrypted == null || decrypted.Length < 4)
                         {
+                            CLogger.Print($"[DIAG] decrypt FALHOU payloadLen={payloadLen} ok={ok} out={(decrypted == null ? -1 : decrypted.Length)} IP: {GetIPAddress()}", LoggerType.Warning);
                             Close(0, true);
                             return;
                         }

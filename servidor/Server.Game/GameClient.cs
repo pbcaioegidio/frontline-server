@@ -160,7 +160,8 @@ namespace Server.Game
             {
                 NextSessionSeed = SessionSeed;
                 SessionShift = ((SessionId + Bitwise.CRYPTO[0]) % 7 + 1);
-                CLogger.QueueWork(ServerKind.Game, Connect);
+                // CONNECT_ACK síncrono — evita corrida QueueWork+BeginSend (FIN sem payload)
+                Connect();
                 CLogger.QueueWork(ServerKind.Game, ReadPacket);
                 CLogger.QueueWork(ServerKind.Game, CheckConnectionTimeout);
             }
@@ -173,7 +174,7 @@ namespace Server.Game
 
         private void CheckConnectionTimeout()
         {
-            Thread.Sleep(10000);
+            Thread.Sleep(30000);
             // Same rule as Auth: a peer that already dropped (panel port probe) is not a stall.
             if (connectionClosed || Client == null || FirstPacketId != 0)
                 return;
@@ -353,7 +354,12 @@ namespace Server.Game
                     CLogger.Packet(ServerKind.Game, Direction.Out, opcode, Packet.GetType().Name, conn, payload.Length, payload);
                 }
 
-                BeginSend(frame);
+                if (Client != null && Client.Connected && frame.Length > 0)
+                {
+                    int sent = 0;
+                    while (sent < frame.Length)
+                        sent += Client.Send(frame, sent, frame.Length - sent, SocketFlags.None);
+                }
                 Packet.Dispose();
             }
             catch (SocketException) { try { Packet?.Dispose(); } catch { } }

@@ -30,6 +30,11 @@ namespace Plugin.Core.Utility
         #region Public Constants
 
         public static readonly int[] CRYPTO = new int[3] { 29890, 32759, 1360 };
+
+        private static readonly System.Collections.Concurrent.ConcurrentBag<(byte[] Mod, byte[] Exp)> RsaPool =
+            new System.Collections.Concurrent.ConcurrentBag<(byte[] Mod, byte[] Exp)>();
+        private static readonly object RsaGenLock = new object();
+        private static int _rsaPoolSeedLength;
         #endregion
 
         #region Static Constructor
@@ -284,20 +289,57 @@ namespace Plugin.Core.Utility
         }
 
 
+        public static void WarmupRsaPool(int seedLength, int count = 32)
+        {
+            _rsaPoolSeedLength = seedLength;
+            int made = 0;
+            for (int i = 0; i < count; i++)
+            {
+                try
+                {
+                    RsaPool.Add(GenerateRawRsaKey(seedLength));
+                    made++;
+                }
+                catch { break; }
+            }
+            Plugin.Core.CLogger.Print($"RSA pool aquecido: {made} chaves ({seedLength}-bit)", Plugin.Core.Enums.LoggerType.Info);
+        }
+
+        private static (byte[] Mod, byte[] Exp) GenerateRawRsaKey(int seedLength)
+        {
+            RsaKeyPairGenerator generator = new RsaKeyPairGenerator();
+            generator.Init(new KeyGenerationParameters(
+                new SecureRandom(new CryptoApiRandomGenerator()),
+                seedLength
+            ));
+            RsaKeyParameters publicKey = (RsaKeyParameters)generator.GenerateKeyPair().Public;
+            return (publicKey.Modulus.ToByteArrayUnsigned(), publicKey.Exponent.ToByteArrayUnsigned());
+        }
+
         public static List<byte[]> GenerateRSAKeyPair(int SessionId, int SecurityKey, int SeedLength)
         {
             List<byte[]> keyPair = new List<byte[]>();
 
-            RsaKeyPairGenerator generator = new RsaKeyPairGenerator();
-            generator.Init(new KeyGenerationParameters(
-                new SecureRandom(new CryptoApiRandomGenerator()),
-                SeedLength
-            ));
+            byte[] modulus;
+            byte[] exponent;
+            // Pool só se já aquecido; senão gera na hora (com lock pra não matar o ARM).
+            if (RsaPool.TryTake(out var pooled))
+            {
+                modulus = (byte[])pooled.Mod.Clone();
+                exponent = (byte[])pooled.Exp.Clone();
+            }
+            else
+            {
+                lock (RsaGenLock)
+                {
+                    var raw = GenerateRawRsaKey(SeedLength > 0 ? SeedLength : (_rsaPoolSeedLength > 0 ? _rsaPoolSeedLength : 1360));
+                    modulus = raw.Mod;
+                    exponent = raw.Exp;
+                }
+            }
 
-            RsaKeyParameters publicKey = (RsaKeyParameters)generator.GenerateKeyPair().Public;
-
-            keyPair.Add(publicKey.Modulus.ToByteArrayUnsigned());
-            keyPair.Add(publicKey.Exponent.ToByteArrayUnsigned());
+            keyPair.Add(modulus);
+            keyPair.Add(exponent);
 
             byte[] sessionBytes = BitConverter.GetBytes(SessionId + SecurityKey);
             Array.Copy(sessionBytes, 0, keyPair[0], 0, Math.Min(sessionBytes.Length, keyPair[0].Length));
