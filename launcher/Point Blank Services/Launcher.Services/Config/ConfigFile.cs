@@ -50,6 +50,23 @@ namespace Launcher.Server.Config
             config.DbUser = GetString(ini, "Database", "User", config.DbUser);
             config.DbPassword = GetString(ini, "Database", "Pass", config.DbPassword);
 
+            // Override de deploy (Docker/VPS) — não depende do config.ini com senha
+            string envHost = Environment.GetEnvironmentVariable("PB_DB_HOST");
+            string envPort = Environment.GetEnvironmentVariable("PB_DB_PORT");
+            string envName = Environment.GetEnvironmentVariable("PB_DB_NAME");
+            string envUser = Environment.GetEnvironmentVariable("PB_DB_USER");
+            string envPass = Environment.GetEnvironmentVariable("PB_DB_PASS");
+            if (!string.IsNullOrWhiteSpace(envHost))
+                config.DbHost = envHost.Trim();
+            if (!string.IsNullOrWhiteSpace(envPort) && int.TryParse(envPort.Trim(), out int dbPort))
+                config.DbPort = dbPort;
+            if (!string.IsNullOrWhiteSpace(envName))
+                config.DbName = envName.Trim();
+            if (!string.IsNullOrWhiteSpace(envUser))
+                config.DbUser = envUser.Trim();
+            if (!string.IsNullOrWhiteSpace(envPass))
+                config.DbPassword = envPass;
+
             return config;
         }
 

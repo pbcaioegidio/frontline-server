@@ -18,4 +18,4 @@ WORKDIR /app
 COPY --from=build /out/ ./
 ENV PB_CONTENT_ROOT=/app
 EXPOSE 30000/tcp 39190/tcp 39191/tcp 39192/tcp 39193/tcp 40009/udp
-ENTRYPOINT ["dotnet", "PRISMBLEED.Server.dll"]
+ENTRYPOINT ["dotnet", "FLMonitor.dll"]

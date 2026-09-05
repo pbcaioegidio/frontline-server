@@ -1,0 +1,81 @@
+# FrontLine VPS — Auth/Game/Match + Postgres + Socket
+# Uso: docker compose -f docker-compose.vps.yml --env-file .env up -d --build
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PB_DB_NAME:-pb}
+      POSTGRES_USER: ${PB_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${PB_DB_PASS:?defina PB_DB_PASS no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PB_DB_USER:-postgres} -d ${PB_DB_NAME:-pb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # Sem porta pública — só rede interna do compose
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: frontline-server:net8
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 20s
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PB_CONTENT_ROOT: /app
+      PB_BIND_HOST: 0.0.0.0
+      PB_ADVERTISE_HOST: ${PB_ADVERTISE_HOST:?defina PB_ADVERTISE_HOST}
+      PB_RCON_BIND_HOST: 127.0.0.1
+      PB_RCON_BIND_PORT: 30000
+      PB_DB_HOST: db
+      PB_DB_PORT: 5432
+      PB_DB_NAME: ${PB_DB_NAME:-pb}
+      PB_DB_USER: ${PB_DB_USER:-postgres}
+      PB_DB_PASS: ${PB_DB_PASS}
+    ports:
+      - "${PB_AUTH_PORT:-39190}:39190/tcp"
+      - "${PB_GAME_PORT_1:-39191}:39191/tcp"
+      - "${PB_GAME_PORT_2:-39192}:39192/tcp"
+      - "${PB_GAME_PORT_3:-39193}:39193/tcp"
+      - "${PB_MATCH_PORT:-40009}:40009/udp"
+      - "127.0.0.1:30000:30000/tcp"
+    volumes:
+      - ${PB_CONFIG_DIR:-./runtime/Config}:/app/Config:ro
+      - ${PB_DATA_DIR:-./runtime/Data}:/app/Data:ro
+      - ${PB_LOG_DIR:-./runtime/Logs}:/app/Logs
+
+  socket:
+    build:
+      context: ../launcher/Point Blank Services/Launcher.Services
+      dockerfile: Dockerfile
+    image: frontline-socket:net8
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FL_EVIDENCE_ROOT: /app/Evidence
+      PB_DB_HOST: db
+      PB_DB_PORT: 5432
+      PB_DB_NAME: ${PB_DB_NAME:-pb}
+      PB_DB_USER: ${PB_DB_USER:-postgres}
+      PB_DB_PASS: ${PB_DB_PASS}
+    ports:
+      - "${PB_SOCKET_PORT:-9000}:9000/tcp"
+    volumes:
+      - ./runtime/Socket/Config:/app/config:ro
+      - ./runtime/Socket/Data:/app/Data
+      - ./runtime/Socket/Info:/app/Info
+      - ./runtime/Socket/Evidence:/app/Evidence
+
+volumes:
+  pgdata:
