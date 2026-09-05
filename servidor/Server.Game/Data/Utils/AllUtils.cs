@@ -62,8 +62,12 @@ namespace Server.Game.Data.Utils
         /// <param name="player">Cuenta del jugador</param>
         public static void LoadPlayerInventory(Account player)
         {
+            List<ItemsModel> items = DaoManagerSQL.GetPlayerInventoryItems(player.PlayerId);
+            if (items == null)
+                throw new InvalidOperationException($"Falha ao ler o inventario do PlayerId={player.PlayerId} (erro de banco acima).");
+
             lock (player.Inventory.Items)
-                player.Inventory.Items.AddRange((IEnumerable<ItemsModel>)DaoManagerSQL.GetPlayerInventoryItems(player.PlayerId));
+                player.Inventory.Items.AddRange((IEnumerable<ItemsModel>)items);
         }
 
         /// <summary>

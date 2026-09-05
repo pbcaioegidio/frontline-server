@@ -46,7 +46,6 @@ namespace Server.Auth
         private DateTime _lastActivity = DateTime.Now;
         private readonly object _receiveLock = new object();
         private byte[] _receiveRemainder = new byte[0];
-        private readonly SafeHandle _handle = new SafeFileHandle(IntPtr.Zero, true);
         private readonly PacketRateLimiter _packetLimiter = new PacketRateLimiter(120);
 
         public AuthClient(int ServerId, Socket Client)
@@ -68,7 +67,6 @@ namespace Server.Auth
                 if (_disposed) return;
                 Player = null;
                 if (Client != null) { Client.Dispose(); Client = null; }
-                if (disposing) _handle.Dispose();
                 _disposed = true;
             }
             catch (Exception ex) { CLogger.Print(ex.Message, LoggerType.Error, ex); }

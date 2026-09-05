@@ -42,7 +42,6 @@ namespace Server.Game
         private readonly object syncLock = new object();
         private readonly object receiveLock = new object();
         private byte[] receiveRemainder = new byte[0];
-        private readonly SafeHandle Handle = new SafeFileHandle(IntPtr.Zero, true);
         private readonly PacketRateLimiter PacketLimiter = new PacketRateLimiter(180);
         public readonly byte[] ServerKey = new byte[16];
         public readonly byte[] ClientKey = new byte[16];
@@ -142,10 +141,6 @@ namespace Server.Game
                     Client = null;
                 }
                 PlayerId = 0;
-                if (disposing)
-                {
-                    Handle.Dispose();
-                }
                 Disposed = true;
             }
             catch (Exception Ex)

@@ -14,7 +14,6 @@ namespace Server.Auth.Network
 
         public AuthClientPacket()
         {
-            Handle = new SafeFileHandle(IntPtr.Zero, true);
             Disposed = false;
             SECURITY_KEY = Bitwise.CRYPTO[0];
             HASH_CODE = Bitwise.CRYPTO[1];
@@ -55,10 +54,6 @@ namespace Server.Auth.Network
                 }
                 MStream.Dispose();
                 BReader.Dispose();
-                if (disposing)
-                {
-                    Handle.Dispose();
-                }
                 Disposed = true;
             }
             catch (Exception Ex)

@@ -14,7 +14,6 @@ namespace Server.Auth.Network
         {
             MStream = new MemoryStream();
             BWriter = new BinaryWriter(MStream);
-            Handle = new SafeFileHandle(IntPtr.Zero, true);
             Disposed = false;
             SECURITY_KEY = Bitwise.CRYPTO[0];
             HASH_CODE = Bitwise.CRYPTO[1];
@@ -87,10 +86,6 @@ namespace Server.Auth.Network
                 }
                 MStream.Dispose();
                 BWriter.Dispose();
-                if (disposing)
-                {
-                    Handle.Dispose();
-                }
                 Disposed = true;
             }
             catch (Exception Ex)

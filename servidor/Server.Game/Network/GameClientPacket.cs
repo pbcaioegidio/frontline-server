@@ -14,7 +14,6 @@ namespace Server.Game.Network
 
         public GameClientPacket()
         {
-            Handle = new SafeFileHandle(IntPtr.Zero, true);
             Disposed = false;
             SECURITY_KEY = Bitwise.CRYPTO[0];
             HASH_CODE = Bitwise.CRYPTO[1];
@@ -55,10 +54,6 @@ namespace Server.Game.Network
                 }
                 MStream.Dispose();
                 BReader.Dispose();
-                if (disposing)
-                {
-                    Handle.Dispose();
-                }
                 Disposed = true;
             }
             catch (Exception Ex)

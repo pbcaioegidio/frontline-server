@@ -23,7 +23,17 @@ namespace Plugin.Core.SQL
                 Host = ConfigLoader.DatabaseHost,
                 Username = ConfigLoader.DatabaseUsername,
                 Password = ConfigLoader.DatabasePassword,
-                Port = ConfigLoader.DatabasePort
+                Port = ConfigLoader.DatabasePort,
+
+                // O docker-proxy derruba conexoes TCP ociosas antes do limite padrao
+                // do pool (300s), entao o Npgsql devolvia socket morto e estourava
+                // "Exception while writing to stream" no primeiro login apos o boot.
+                ConnectionIdleLifetime = 30,
+                ConnectionPruningInterval = 10,
+                KeepAlive = 30,
+                TcpKeepAlive = true,
+                Timeout = 15,
+                CommandTimeout = 30
             };
         }
 

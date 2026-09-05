@@ -51,7 +51,8 @@ namespace Plugin.Core.SQL
             }
             catch (Exception ex)
             {
-                CLogger.Print(ex.Message, LoggerType.Error, ex);
+                CLogger.Print($"[GetPlayerInventoryItems] owner={OwnerId} {ex.Message}"
+                    + (ex.InnerException != null ? " <- " + ex.InnerException.Message : ""), LoggerType.Error, ex);
                 return null;
             }
         }

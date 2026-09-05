@@ -12,7 +12,6 @@ namespace Plugin.Core.Network
     {
         protected MemoryStream MStream;
         protected BinaryReader BReader;
-        protected SafeHandle Handle;
         protected bool Disposed;
 
         public SyncClientPacket(byte[] Buffer)
@@ -24,7 +23,6 @@ namespace Plugin.Core.Network
 
             MStream = new MemoryStream(Buffer, 0, Buffer.Length);
             BReader = new BinaryReader(MStream);
-            Handle = new SafeFileHandle(IntPtr.Zero, true);
             Disposed = false;
         }
 
@@ -49,10 +47,6 @@ namespace Plugin.Core.Network
             {
                 MStream?.Dispose();
                 BReader?.Dispose();
-                if (Disposing)
-                {
-                    Handle?.Dispose();
-                }
             }
             catch
             {

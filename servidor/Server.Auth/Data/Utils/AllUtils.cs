@@ -30,8 +30,12 @@ namespace Server.Auth.Data.Utils
 
         public static void LoadPlayerInventory(Account Player)
         {
+            List<ItemsModel> items = DaoManagerSQL.GetPlayerInventoryItems(Player.PlayerId);
+            if (items == null)
+                throw new InvalidOperationException($"Falha ao ler o inventario do PlayerId={Player.PlayerId} (erro de banco acima).");
+
             lock (Player.Inventory.Items)
-                Player.Inventory.Items.AddRange((IEnumerable<ItemsModel>)DaoManagerSQL.GetPlayerInventoryItems(Player.PlayerId));
+                Player.Inventory.Items.AddRange((IEnumerable<ItemsModel>)items);
         }
 
         public static void LoadPlayerMissions(Account Player)

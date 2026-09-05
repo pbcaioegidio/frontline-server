@@ -11,14 +11,12 @@ namespace Plugin.Core.Network
     {
         protected MemoryStream MStream;
         protected BinaryWriter BWriter;
-        protected SafeHandle Handle;
         protected bool Disposed;
 
         public SyncServerPacket()
         {
             MStream = new MemoryStream();
             BWriter = new BinaryWriter(MStream);
-            Handle = new SafeFileHandle(IntPtr.Zero, true);
             Disposed = false;
         }
 
@@ -27,7 +25,6 @@ namespace Plugin.Core.Network
             MStream = new MemoryStream();
             MStream.SetLength(Length);
             BWriter = new BinaryWriter(MStream);
-            Handle = new SafeFileHandle(IntPtr.Zero, true);
             Disposed = false;
         }
 
@@ -49,10 +46,6 @@ namespace Plugin.Core.Network
             }
             MStream.Dispose();
             BWriter.Dispose();
-            if (Disposing)
-            {
-                Handle.Dispose();
-            }
             Disposed = true;
         }
 

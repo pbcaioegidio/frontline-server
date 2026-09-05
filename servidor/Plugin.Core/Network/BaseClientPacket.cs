@@ -10,7 +10,6 @@ namespace Plugin.Core.Network
     {
         protected MemoryStream MStream;
         protected BinaryReader BReader;
-        protected SafeHandle Handle;
         protected bool Disposed;
         protected int SECURITY_KEY;
         protected int HASH_CODE;
@@ -129,7 +128,6 @@ namespace Plugin.Core.Network
             {
                 BReader?.Dispose();
                 MStream?.Dispose();
-                Handle?.Dispose();
                 Disposed = true;
             }
         }

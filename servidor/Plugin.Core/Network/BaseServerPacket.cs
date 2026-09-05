@@ -17,7 +17,6 @@ namespace Plugin.Core.Network
     {
         protected MemoryStream MStream;
         protected BinaryWriter BWriter;
-        protected SafeHandle Handle;
         protected bool Disposed;
         protected int SECURITY_KEY;
         protected int HASH_CODE;
