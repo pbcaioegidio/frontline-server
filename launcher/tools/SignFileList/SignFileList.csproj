@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AssemblyName>SignFileList</AssemblyName>
+    <RootNamespace>SignFileList</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Point Blank Launcher\Launcher.PointBlank\Services\ManifestTrust.cs" Link="ManifestTrust.cs" />
+  </ItemGroup>
+</Project>

@@ -67,5 +67,6 @@ docs/vps-secrets.local.env
 docs/_icon_preview/
 docs/_vps_*.sh
 /dist/
+/out/
 *.tar.gz
 

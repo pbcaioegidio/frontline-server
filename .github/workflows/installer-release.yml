@@ -1,0 +1,96 @@
+name: Installer release (opcional)
+
+# Tag: installer-v20260905  →  Inno Slim → /var/frontline/downloads
+# Requer pasta client/ no runner (self-hosted Windows com client) OU artifact.
+on:
+  push:
+    tags:
+      - "installer-v*"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Slim ou Full"
+        type: choice
+        options: [Slim, Full]
+        default: Slim
+      version:
+        description: "Versão exibida no setup (vazia = data)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  pack-upload:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require client/
+        id: client
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "client/FLLauncher.exe") -or -not (Test-Path "client/FrontLine.exe")) {
+            Write-Host "::error::Pasta client/ ausente neste runner."
+            Write-Host "Opcoes: (1) self-hosted Windows com client ao lado do repo"
+            Write-Host "        (2) rode scripts/pack-player-setup.ps1 -Mode Slim -Upload na maquina de build"
+            exit 1
+          }
+          Write-Host "client/ OK"
+
+      - name: Version
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VER="${GITHUB_REF_NAME#installer-v}"
+          elif [[ -n "${{ inputs.version }}" ]]; then
+            VER="${{ inputs.version }}"
+          else
+            VER="$(date -u +%Y%m%d)"
+          fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "mode=${{ inputs.mode || 'Slim' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          winget install --id JRSoftware.InnoSetup -e --accept-package-agreements --accept-source-agreements
+          $iscc = @(
+            "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { throw "ISCC.exe nao encontrado apos install" }
+          echo "ISCC=$iscc" >> $env:GITHUB_ENV
+
+      - name: Pack installer
+        shell: pwsh
+        run: |
+          & .\scripts\pack-player-setup.ps1 `
+            -Mode "${{ steps.ver.outputs.mode }}" `
+            -Version "${{ steps.ver.outputs.version }}" `
+            -ClientRoot (Resolve-Path "client").Path `
+            -OutDir (Join-Path $pwd "dist")
+
+      - name: Upload to VPS downloads
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_SSH_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          USER="${VPS_USER:-ubuntu}"
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          REMOTE="$USER@$VPS_HOST"
+          DEST="/var/frontline/downloads"
+          ssh "$REMOTE" "sudo mkdir -p '$DEST' && sudo chown \$USER:\$USER '$DEST'"
+          EXE=$(ls -1 dist/Instalador-FrontLine-*.exe | head -1)
+          scp "$EXE" "$REMOTE:$DEST/"
+          echo "OK $(basename "$EXE") → $DEST"
+          ssh "$REMOTE" "ls -lh '$DEST' | tail -5"

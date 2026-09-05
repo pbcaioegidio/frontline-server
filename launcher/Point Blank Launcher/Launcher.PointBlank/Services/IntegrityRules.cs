@@ -34,6 +34,9 @@ namespace Launcher.PointBlank.Services
             if (name.Equals("UserFileList.sig", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("ufl-md5.txt", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("config.zpt", StringComparison.OrdinalIgnoreCase)) return true;
+            // Catalogos sincronizados com o server (Data/Raws) — o client reescreve no login
+            if (name.Equals("Shop.dat", StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.Equals("EventPortal.dat", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("Thumbs.db", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("FLSetup.exe", StringComparison.OrdinalIgnoreCase)) return true;

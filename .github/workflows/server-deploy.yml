@@ -1,0 +1,108 @@
+name: Server deploy
+
+# Tag: server-v20260905  →  sync servidor/ + docker compose rebuild na VPS
+# Também: Actions → Run workflow (workflow_dispatch)
+on:
+  push:
+    tags:
+      - "server-v*"
+  workflow_dispatch:
+    inputs:
+      rebuild_socket:
+        description: "Também rebuild/restart do serviço socket"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version from tag or date
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TAG="${GITHUB_REF_NAME}"
+            VER="${TAG#server-v}"
+          else
+            VER="$(date -u +%Y%m%d)"
+          fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Server deploy version: $VER"
+
+      - name: Sync and rebuild on VPS
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_SSH_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+          REBUILD_SOCKET: ${{ inputs.rebuild_socket || false }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SSH_KEY:-}" ] || [ -z "${VPS_HOST:-}" ]; then
+            echo "Configure secrets VPS_SSH_KEY e VPS_HOST"
+            exit 1
+          fi
+          USER="${VPS_USER:-ubuntu}"
+          ROOT="${VPS_PATH:-/opt/frontline/servidor}"
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          REMOTE="$USER@$VPS_HOST"
+
+          # Empacota só o necessário (sem bin/obj/.env)
+          tar -C servidor -czf /tmp/servidor-src.tgz \
+            --exclude='bin' --exclude='obj' --exclude='.env' \
+            --exclude='**/bin' --exclude='**/obj' \
+            --exclude='runtime' \
+            --exclude='Unico.Execute/bin' \
+            --exclude='Unico.Execute/obj' \
+            .
+
+          ssh "$REMOTE" "mkdir -p '$ROOT' && mkdir -p /tmp/fl-deploy"
+          scp /tmp/servidor-src.tgz "$REMOTE:/tmp/fl-deploy/servidor-src.tgz"
+
+          ssh "$REMOTE" bash -s <<EOF
+          set -euo pipefail
+          ROOT='$ROOT'
+          cd "\$ROOT"
+          tar -xzf /tmp/fl-deploy/servidor-src.tgz
+          rm -f /tmp/fl-deploy/servidor-src.tgz
+          if [ ! -f .env ]; then
+            echo "Falta .env em \$ROOT (não sobe pelo Actions)"
+            exit 1
+          fi
+          COMPOSE=(docker compose -f docker-compose.vps.yml)
+          if [ -f docker-compose.hostnet.yml ]; then
+            COMPOSE+=(-f docker-compose.hostnet.yml)
+          fi
+          COMPOSE+=(--env-file .env)
+          "\${COMPOSE[@]}" up -d --build server
+          if [ "$REBUILD_SOCKET" = "true" ]; then
+            "\${COMPOSE[@]}" up -d --build socket
+          fi
+          "\${COMPOSE[@]}" ps
+          echo "OK server deploy ${{ steps.ver.outputs.version }}"
+          EOF
+
+      - name: Smoke — Auth port listening
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_SSH_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          USER="${VPS_USER:-ubuntu}"
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh "$USER@$VPS_HOST" "sleep 8; ss -ltn | grep -E ':39190|:39191' || (docker logs --tail 40 servidor-server-1; exit 1)"

@@ -1,0 +1,15 @@
+# Bypass docker-proxy para Auth/Game (ACK TCP mais confiavel no client Windows).
+# Uso: docker compose -f docker-compose.vps.yml -f docker-compose.hostnet.yml --env-file .env up -d
+services:
+  db:
+    ports:
+      - "127.0.0.1:5432:5432"
+  server:
+    network_mode: host
+    environment:
+      PB_DB_HOST: 127.0.0.1
+      PB_BIND_HOST: 0.0.0.0
+      PB_ADVERTISE_HOST: ${PB_ADVERTISE_HOST:?defina PB_ADVERTISE_HOST}
+      PB_RCON_BIND_HOST: 127.0.0.1
+    # ports ignorados com network_mode: host
+    ports: !reset []

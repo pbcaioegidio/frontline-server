@@ -1,0 +1,170 @@
+name: Client patch
+
+# Tag: client-v20260905  →  delta client-patch/ + FileList assinada → Socket Data/Client
+on:
+  push:
+    tags:
+      - "client-v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "ClientVersion (número). Vazio = data UTC."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-upload:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Version
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VER="${GITHUB_REF_NAME#client-v}"
+          elif [[ -n "${{ inputs.version }}" ]]; then
+            VER="${{ inputs.version }}"
+          else
+            VER="$(date -u +%Y%m%d)"
+          fi
+          VER="$(echo "$VER" | tr -cd '0-9')"
+          if [[ -z "$VER" ]]; then echo "Versão inválida"; exit 1; fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Check client-patch has files
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:GITHUB_WORKSPACE "client-patch"
+          $files = @(Get-ChildItem $root -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -notin @("README.md", ".gitkeep") })
+          if ($files.Count -eq 0) {
+            throw "client-patch/ esta vazio. Coloque os arquivos do delta e tente de novo."
+          }
+          Write-Host "Delta files: $($files.Count)"
+          $files | ForEach-Object { Write-Host " - $($_.FullName.Substring($root.Length + 1))" }
+
+      - name: Fetch current UserFileList from VPS
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_SSH_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          USER="${VPS_USER:-ubuntu}"
+          ROOT="${VPS_PATH:-/opt/frontline/servidor}"
+          mkdir -p ~/.ssh out/ufl-base
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          REMOTE="$USER@$VPS_HOST"
+          # Prefer lista ja publicada no patch; senao tenta runtime do jogo (nao ha); senao falha se nao tiver
+          if ssh "$REMOTE" "test -f '$ROOT/runtime/Socket/Data/Client/UserFileList.dat'"; then
+            scp "$REMOTE:$ROOT/runtime/Socket/Data/Client/UserFileList.dat" out/ufl-base/UserFileList.dat
+            scp "$REMOTE:$ROOT/runtime/Socket/Data/Client/UserFileList.sig" out/ufl-base/UserFileList.sig || true
+          else
+            echo "AVISO: UserFileList ainda nao esta no Socket. O job precisa de lista base."
+            echo "Faca upload inicial uma vez (scp local UserFileList.dat para Data/Client) ou rode em self-hosted com client/."
+            if [ -f client/UserFileList.dat ]; then
+              cp client/UserFileList.dat out/ufl-base/UserFileList.dat
+              cp client/UserFileList.sig out/ufl-base/UserFileList.sig 2>/dev/null || true
+            else
+              exit 1
+            fi
+          fi
+
+      - name: Write FILELIST private PEM
+        env:
+          PEM: ${{ secrets.FILELIST_PRIVATE_PEM }}
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:PEM)) {
+            throw "Secret FILELIST_PRIVATE_PEM ausente"
+          }
+          New-Item -ItemType Directory -Force -Path "out" | Out-Null
+          Set-Content -Path "out/filelist-private.pem" -Value $env:PEM.Trim() -Encoding ascii
+
+      - name: Build patch (merge FileList + manifest)
+        shell: pwsh
+        run: |
+          $clientRoot = ""
+          if (Test-Path "client/FrontLine.exe") { $clientRoot = (Resolve-Path "client").Path }
+          $args = @{
+            Version          = "${{ steps.ver.outputs.version }}"
+            PatchRoot        = (Resolve-Path "client-patch").Path
+            ExistingFileList = (Resolve-Path "out/ufl-base/UserFileList.dat").Path
+            PrivatePemPath   = (Resolve-Path "out/filelist-private.pem").Path
+            OutDir           = (Join-Path $pwd "out/client-patch")
+          }
+          if ($clientRoot) { $args.ClientRoot = $clientRoot }
+          & .\scripts\build-client-patch.ps1 @args
+
+      - name: Upload patch to VPS
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_SSH_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+          VER: ${{ steps.ver.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          USER="${VPS_USER:-ubuntu}"
+          ROOT="${VPS_PATH:-/opt/frontline/servidor}"
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          REMOTE="$USER@$VPS_HOST"
+          DEST="$ROOT/runtime/Socket/Data/Client"
+          INFO="$ROOT/runtime/Socket/Info"
+          CFG="$ROOT/runtime/Socket/Config/config.ini"
+
+          ssh "$REMOTE" "mkdir -p '$DEST' '$INFO'"
+          # Mantem arquivos antigos; sobrescreve so o delta (inclui UserFileList)
+          scp -r out/client-patch/files/* "$REMOTE:$DEST/"
+          scp out/client-patch/manifest.json "$REMOTE:$INFO/manifest.json"
+
+          ssh "$REMOTE" "VER='$VER' CFG='$CFG' python3 - <<'PY'
+          import os, re
+          ver, cfg = os.environ['VER'], os.environ['CFG']
+          text = open(cfg, 'r', encoding='utf-8', errors='replace').read()
+          if re.search(r'(?m)^ClientVersion=', text):
+              text = re.sub(r'(?m)^ClientVersion=.*$', 'ClientVersion=' + ver, text)
+          else:
+              text += '\nClientVersion=' + ver + '\n'
+          open(cfg, 'w', encoding='utf-8').write(text)
+          print('ClientVersion=', ver)
+          PY"
+
+          ssh "$REMOTE" "cd '$ROOT' && docker compose -f docker-compose.vps.yml restart socket"
+          echo "OK client patch $VER"
+
+      - name: Smoke — ClientVersion + manifest
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_SSH_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+          VER: ${{ steps.ver.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          USER="${VPS_USER:-ubuntu}"
+          ROOT="${VPS_PATH:-/opt/frontline/servidor}"
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh "$USER@$VPS_HOST" "grep -E '^ClientVersion=$VER' '$ROOT/runtime/Socket/Config/config.ini' && test -f '$ROOT/runtime/Socket/Data/Client/UserFileList.dat' && test -f '$ROOT/runtime/Socket/Info/manifest.json' && python3 -c \"import json; m=json.load(open('$ROOT/runtime/Socket/Info/manifest.json')); assert m.get('clientVersion')=='$VER', m; print('files', len(m.get('files') or []))\""

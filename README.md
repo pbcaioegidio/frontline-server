@@ -52,6 +52,8 @@ Client completo, packs e EXEs de publish **não** entram no Git — patch sobe p
 2. **Servidor** — veja [`servidor/README.md`](servidor/README.md) (Windows / Docker / Linux)
 3. **Launcher** — veja [`launcher/README.md`](launcher/README.md)
 4. **Segurança VPS** — veja [`servidor/linux/SECURITY.md`](servidor/linux/SECURITY.md)
+5. **Deploy GitHub Actions** — veja [`docs/deploy-github-actions.md`](docs/deploy-github-actions.md)  
+   (tags `server-v*` / `launcher-v*` / `client-v*` → VPS; jogador só Update no launcher)
 
 ---
 

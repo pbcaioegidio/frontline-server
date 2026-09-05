@@ -42,5 +42,5 @@ Já ligadas no build Debug / linux:
 - [ ] Postgres sem porta pública
 - [ ] Socket na VPS + Evidence gravando
 - [ ] Launcher do player com IP VPS
-- [ ] Patch: bump versão + `FileListBuilder` + pasta `Data/Client`
+- [ ] Patch: tag `client-v*` (Actions) → FileList + `Data/Client` + bump `ClientVersion` (ver [`docs/deploy-github-actions.md`](../../docs/deploy-github-actions.md))
 - [ ] Teste: matar launcher → kick HB; burst kills → FG-124

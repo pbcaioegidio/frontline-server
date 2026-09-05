@@ -128,9 +128,17 @@ VALUES ('seuUsuario', md5('suaSenha'));
 
 ---
 
+## Deploy / patch
+
+Publicação na VPS: tags GitHub Actions — ver [`docs/deploy-github-actions.md`](../docs/deploy-github-actions.md).
+
+- `launcher-v*` → `Data/Launcher` + `Data/Client` + `LauncherVersion`
+- `client-v*` → delta `client-patch/` + FileList + `ClientVersion`
+
+---
+
 ## Requisitos
 
 - Windows 10/11  
-- .NET Framework 4.8  
-- PostgreSQL 14+ (no servidor do Socket)  
-- Visual Studio 2022 (para compilar)  
+- .NET 8 (launcher atual) / PostgreSQL no Socket (VPS)  
+- Visual Studio 2022 ou `dotnet` CLI para compilar  
