@@ -1,10 +1,10 @@
 # Empacota setup do jogador (launcher + FL Guard + client).
 # Uso:
-#   .\scripts\pack-player-setup.ps1 -Mode Slim    # sem Pack (~3 GB) — Pack baixa pelo Socket
-#   .\scripts\pack-player-setup.ps1 -Mode Full    # client completo (~16 GB)
+#   .\scripts\pack-player-setup.ps1 -Mode Slim
+#   .\scripts\pack-player-setup.ps1 -Mode Full
 #   .\scripts\pack-player-setup.ps1 -Mode Slim -Upload
 #
-# Upload: scp para VPS /var/frontline/downloads/
+# Upload: defina $env:FL_VPS_SSH (nunca IP no codigo).
 
 param(
     [ValidateSet("Slim", "Full")]
@@ -12,10 +12,9 @@ param(
     [switch] $Upload,
     [string] $ClientRoot = "",
     [string] $OutDir = "",
-    # Nunca versionar IP. Use: $env:FL_VPS_SSH = "ubuntu@SEU_HOST"
     [string] $VpsHost = "",
     [string] $VpsDir = "/var/frontline/downloads",
-    [string] $PublicDownloadBase = ""  # ex.: https://download.seudominio.com — opcional
+    [string] $PublicDownloadBase = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -26,16 +25,18 @@ if (-not (Test-Path (Join-Path $root "client"))) {
 if (-not $ClientRoot) { $ClientRoot = Join-Path $root "client" }
 if (-not $OutDir) { $OutDir = Join-Path $root "dist" }
 
-if (-not (Test-Path $ClientRoot)) { throw "Client nao encontrado: $ClientRoot" }
+if (-not (Test-Path $ClientRoot)) {
+    throw "Client nao encontrado: $ClientRoot"
+}
 
 $stamp = Get-Date -Format "yyyyMMdd"
 $name = "FrontLine-Setup-$Mode-$stamp"
 $stage = Join-Path $env:TEMP $name
-$zip = Join-Path $OutDir "$name.zip"
 
 Write-Host "==> Modo $Mode"
 Write-Host "    Client: $ClientRoot"
 Write-Host "    Stage:  $stage"
+Write-Host "    Out:    $OutDir"
 
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $stage, $OutDir | Out-Null
@@ -45,67 +46,82 @@ if ($Mode -eq "Slim") {
     $excludeDirs += "Pack"
 }
 
-# robocopy espelha o client
-$xd = ($excludeDirs | ForEach-Object { "/XD"; $_ })
-$args = @($ClientRoot, $stage, "/E", "/NFL", "/NDL", "/NJH", "/NJS", "/nc", "/ns", "/np") + $xd
-& robocopy @args | Out-Null
-# robocopy exit 0-7 = ok
-if ($LASTEXITCODE -ge 8) { throw "robocopy falhou: $LASTEXITCODE" }
+$xd = @()
+foreach ($d in $excludeDirs) {
+    $xd += "/XD"
+    $xd += $d
+}
+$rcArgs = @($ClientRoot, $stage, "/E", "/NFL", "/NDL", "/NJH", "/NJS", "/nc", "/ns", "/np") + $xd
+& robocopy @rcArgs | Out-Null
+if ($LASTEXITCODE -ge 8) {
+    throw "robocopy falhou: $LASTEXITCODE"
+}
 
-# Garante config apontando para VPS (se existir SetIp tool skip — assume ja atualizado)
-$cfg = Join-Path $stage "config.zpt"
-if (-not (Test-Path $cfg)) { Write-Warning "config.zpt ausente no stage" }
-if (-not (Test-Path (Join-Path $stage "FLLauncher.exe"))) { throw "FLLauncher.exe ausente" }
-if (-not (Test-Path (Join-Path $stage "FrontLine.exe"))) { throw "FrontLine.exe ausente" }
-if (-not (Test-Path (Join-Path $stage "UserFileList.dat"))) { Write-Warning "UserFileList.dat ausente — rode FileListBuilder" }
+if (-not (Test-Path (Join-Path $stage "config.zpt"))) {
+    Write-Warning "config.zpt ausente no stage"
+}
+if (-not (Test-Path (Join-Path $stage "FLLauncher.exe"))) {
+    throw "FLLauncher.exe ausente"
+}
+if (-not (Test-Path (Join-Path $stage "FrontLine.exe"))) {
+    throw "FrontLine.exe ausente"
+}
+if (-not (Test-Path (Join-Path $stage "UserFileList.dat"))) {
+    Write-Warning "UserFileList.dat ausente - rode FileListBuilder"
+}
 
-# README do jogador
-@"
-FrontLine — instalacao
+$readme = @"
+FrontLine - instalacao
 
-1. Extraia esta pasta inteira (nao rode so o zip).
+1. Extraia esta pasta inteira.
 2. Abra FLLauncher.exe
 3. Login e Start.
 
-Nao apague FLLauncher enquanto joga (FL Guard / heartbeat).
-Atualizacoes futuras: o launcher baixa so o que mudou (Socket).
+Nao feche o FLLauncher enquanto joga (FL Guard / heartbeat).
+Atualizacoes: o launcher baixa so o que mudou (Socket).
 
 Modo deste pacote: $Mode
-"@ | Set-Content (Join-Path $stage "LEIA-ME.txt") -Encoding UTF8
+"@
+Set-Content -Path (Join-Path $stage "LEIA-ME.txt") -Value $readme -Encoding UTF8
 
-Write-Host "==> Compactando zip (pode demorar)..."
-if (Test-Path $zip) { Remove-Item $zip -Force }
-# Compress-Archive e lento/limitado; preferir tar.gz se disponivel
+Write-Host "==> Compactando tar.gz (pode demorar muito no Full)..."
 $tarGz = Join-Path $OutDir "$name.tar.gz"
+if (Test-Path $tarGz) { Remove-Item $tarGz -Force }
+
 Push-Location (Split-Path $stage -Parent)
-tar -czf $tarGz (Split-Path $stage -Leaf)
-Pop-Location
-if (-not (Test-Path $tarGz)) { throw "falha ao criar $tarGz" }
+try {
+    tar -czf $tarGz (Split-Path $stage -Leaf)
+}
+finally {
+    Pop-Location
+}
+
+if (-not (Test-Path $tarGz)) {
+    throw "falha ao criar $tarGz"
+}
 
 $sizeGb = [math]::Round((Get-Item $tarGz).Length / 1GB, 2)
 Write-Host "==> OK: $tarGz ($sizeGb GB)"
 
-# zip opcional menor so para Slim pequeno — tar.gz e o artefato principal
-$artifact = $tarGz
-
 if ($Upload) {
     if (-not $VpsHost) { $VpsHost = $env:FL_VPS_SSH }
-    if (-not $VpsHost) { throw "Defina -VpsHost ou env FL_VPS_SSH (ex.: ubuntu@host). Nao use IP no codigo." }
+    if (-not $VpsHost) {
+        throw "Defina -VpsHost ou env FL_VPS_SSH. Nao use IP no codigo."
+    }
     if (-not $PublicDownloadBase) { $PublicDownloadBase = $env:FL_DOWNLOAD_BASE }
 
-    Write-Host "==> Upload para $VpsHost:$VpsDir ..."
+    Write-Host ("==> Upload para {0} ..." -f $VpsHost)
     ssh -o BatchMode=yes $VpsHost "sudo mkdir -p $VpsDir && sudo chown ubuntu:ubuntu $VpsDir"
-    scp -o BatchMode=yes $artifact "${VpsHost}:$VpsDir/"
-    $base = Split-Path $artifact -Leaf
+    scp -o BatchMode=yes $tarGz "${VpsHost}:$VpsDir/"
+    $base = Split-Path $tarGz -Leaf
     ssh -o BatchMode=yes $VpsHost "cd $VpsDir && ln -sfn $base FrontLine-Setup-latest.tar.gz && ls -lh"
     if ($PublicDownloadBase) {
         $baseUrl = $PublicDownloadBase.TrimEnd('/')
-        Write-Host "==> Download: $baseUrl/downloads/$base"
-        Write-Host "             $baseUrl/downloads/FrontLine-Setup-latest.tar.gz"
+        Write-Host ("==> Download: {0}/downloads/{1}" -f $baseUrl, $base)
     } else {
-        Write-Host "==> Upload OK. Publique o link via dominio/CDN (nao no Git)."
+        Write-Host "==> Upload OK (sem URL publica)."
     }
 }
 
 Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
-Write-Host "Concluido."
+Write-Host "Concluido. Arquivo local em dist\ (nao sobe sozinho para a VPS)."
