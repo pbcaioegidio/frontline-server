@@ -64,4 +64,8 @@ desktop.ini
 NOTAS-FRONTLINE.md
 docs/vps-secrets.local.env
 **/.env
+docs/_icon_preview/
+docs/_vps_*.sh
+/dist/
+*.tar.gz
 

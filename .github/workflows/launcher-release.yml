@@ -1,0 +1,66 @@
+name: Launcher release
+
+# Tag: launcher-v20260516  →  build FLLauncher + sobe para a VPS (Socket Data/Launcher)
+on:
+  push:
+    tags:
+      - "launcher-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-upload:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish FLLauncher
+        working-directory: launcher/Point Blank Launcher/Launcher.PointBlank
+        run: |
+          dotnet publish PointBlank.Launcher.csproj -c Release -r win-x64 --self-contained true -o "${{ github.workspace }}/out/launcher"
+          Copy-Item -Force "${{ github.workspace }}/launcher/Point Blank Launcher/Launcher.PointBlank/Icon.ico" "${{ github.workspace }}/out/launcher/" -ErrorAction SilentlyContinue
+
+      - name: Version from tag
+        id: ver
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="${TAG#launcher-v}"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Launcher version: $VER"
+
+      - name: Upload to VPS (Socket Data/Launcher)
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SSH_KEY:-}" ] || [ -z "${VPS_HOST:-}" ]; then
+            echo "Configure secrets VPS_SSH_KEY e VPS_HOST"
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          REMOTE="ubuntu@$VPS_HOST"
+          DEST="/opt/frontline/servidor/runtime/Socket/Data/Launcher"
+          ssh "$REMOTE" "mkdir -p '$DEST'"
+          scp -r out/launcher/* "$REMOTE:$DEST/"
+
+          # bump LauncherVersion no config do Socket
+          VER="${{ steps.ver.outputs.version }}"
+          ssh "$REMOTE" "sed -i 's/^LauncherVersion=.*/LauncherVersion=$VER/' /opt/frontline/servidor/runtime/Socket/Config/config.ini && cd /opt/frontline/servidor && docker compose -f docker-compose.vps.yml restart socket"
+          echo "OK launcher $VER em $DEST"
+
+      - name: Reminder FileList
+        run: |
+          Write-Host "Se mudou arquivos do client, rode FileListBuilder localmente e publique UserFileList.dat/.sig + manifest no Socket."
