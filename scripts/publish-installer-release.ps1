@@ -33,9 +33,15 @@ $title = "Instalador FrontLine $Version ($Mode)"
 $notes = @"
 ## Instalador FrontLine ($Mode)
 
-1. Baixe o .exe
-2. Instale (UAC uma vez)
-3. Abra o FrontLine — updates pelo launcher
+Baixe **apenas** o arquivo ``Instalador-FrontLine-*.exe`` (ignore Source code).
+
+1. **Baixar** o .exe
+2. **Instalar** (UAC / administrador — so nesta vez)
+3. **Abrir** o FrontLine pelo atalho — updates pelo launcher
+
+Depois de instalado, nao precisa baixar o instalador de novo.
+
+Requisitos: Windows 10/11 64 bits + internet.
 "@
 
 Write-Host "EXE: $Exe ($([math]::Round((Get-Item $Exe).Length/1MB,1)) MB)"
