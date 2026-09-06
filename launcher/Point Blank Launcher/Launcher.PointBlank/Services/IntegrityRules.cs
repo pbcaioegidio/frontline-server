@@ -34,6 +34,9 @@ namespace Launcher.PointBlank.Services
             if (name.Equals("UserFileList.sig", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("ufl-md5.txt", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("config.zpt", StringComparison.OrdinalIgnoreCase)) return true;
+            // Versao/config local — mudam no Update / por maquina
+            if (name.Equals("launcher.svl", StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.Equals("LocalConfig.json", StringComparison.OrdinalIgnoreCase)) return true;
             // Catalogos sincronizados com o server (Data/Raws) — o client reescreve no login
             if (name.Equals("Shop.dat", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("EventPortal.dat", StringComparison.OrdinalIgnoreCase)) return true;
@@ -69,7 +72,8 @@ namespace Launcher.PointBlank.Services
             }
 
             if (StartsWithFolder(local, "_icon_bak")) return true;
-            if (StartsWithFolder(local, "_fl_publish_tmp")) return true;
+            // _fl_publish_tmp e _fl_publish_tmp_cfg (e similares)
+            if (local.StartsWith("_fl_publish_tmp", StringComparison.OrdinalIgnoreCase)) return true;
             if (StartsWithFolder(local, "tools")) return true;
             if (name.StartsWith("FLLauncher.exe.bak", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.EndsWith(".new", StringComparison.OrdinalIgnoreCase)) return true;
