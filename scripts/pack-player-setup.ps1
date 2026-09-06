@@ -1,12 +1,12 @@
 # Empacota instalador Windows (.exe) do jogador via Inno Setup.
 # Uso:
 #   .\scripts\pack-player-setup.ps1 -Mode Slim
-#   .\scripts\pack-player-setup.ps1 -Mode Full
-#   .\scripts\pack-player-setup.ps1 -Mode Slim -GitHubRelease   # download facil: Releases do repo
-#   .\scripts\pack-player-setup.ps1 -Mode Slim -Upload          # espelho VPS (opcional)
+#   .\scripts\pack-player-setup.ps1 -Mode Slim -GitHubRelease
+#       → sobe no repo PUBLICO de download (padrao: pbcaioegidio/frontline-downloads)
+#   .\scripts\pack-player-setup.ps1 -Mode Slim -Upload
 #
 # Requisitos: Inno Setup 6 (ISCC). Se faltar: winget install JRSoftware.InnoSetup
-# -GitHubRelease: gh CLI autenticado (gh auth login) no repo frontline-server
+# -GitHubRelease: winget install GitHub.cli + gh auth login
 # -Upload: defina $env:FL_VPS_SSH (nunca IP no codigo).
 
 param(
@@ -22,6 +22,8 @@ param(
     [string] $PublicDownloadBase = "",
     [string] $Version = "",
     [string] $ReleaseTag = "",
+    # Repo PUBLICO so de instalador (codigo do server fica no privado)
+    [string] $GitHubRepo = "pbcaioegidio/frontline-downloads",
     [switch] $Sign,
     [string] $SignThumbprint = ""
 )
@@ -195,10 +197,21 @@ if ($sizeGb -ge 1) {
 }
 
 if ($GitHubRelease) {
-    $gh = Get-Command gh -ErrorAction SilentlyContinue
-    if (-not $gh) {
+    $ghCmd = $null
+    $ghFound = Get-Command gh -ErrorAction SilentlyContinue
+    if ($ghFound) { $ghCmd = $ghFound.Source }
+    else {
+        foreach ($p in @(
+            "$env:ProgramFiles\GitHub CLI\gh.exe",
+            "$env:LOCALAPPDATA\Programs\GitHub CLI\gh.exe"
+        )) {
+            if (Test-Path $p) { $ghCmd = $p; break }
+        }
+    }
+    if (-not $ghCmd) {
         throw "gh CLI nao encontrado. Instale: winget install GitHub.cli  e rode gh auth login"
     }
+    if (-not $GitHubRepo) { $GitHubRepo = "pbcaioegidio/frontline-downloads" }
     if (-not $ReleaseTag) {
         $ReleaseTag = "installer-v$stamp"
     }
@@ -214,23 +227,32 @@ Versao do setup: **$Version**
 4. Atualizacoes futuras: botao **Update** no FLLauncher (nao precisa baixar o instalador de novo)
 
 Slim = sem pasta Pack. Full = client completo.
+
+Repo de codigo do servidor e privado; este repo e so download.
 "@
-    Write-Host "==> GitHub Release $ReleaseTag ..."
-    $view = & gh release view $ReleaseTag 2>$null
+    Write-Host "==> GitHub Release $ReleaseTag em $GitHubRepo ..."
+    # Cria repo publico se ainda nao existir (ignora erro se ja existe)
+    & $ghCmd repo view $GitHubRepo 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "    Criando repo publico $GitHubRepo ..."
+        & $ghCmd repo create $GitHubRepo --public --description "Downloads do instalador FrontLine (sem codigo do servidor)" --confirm 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Nao consegui criar $GitHubRepo. Rode: gh auth login  e tente de novo."
+        }
+    }
+    & $ghCmd release view $ReleaseTag -R $GitHubRepo 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) {
-        & gh release upload $ReleaseTag $exeOut --clobber
+        & $ghCmd release upload $ReleaseTag $exeOut -R $GitHubRepo --clobber
         if ($LASTEXITCODE -ne 0) { throw "gh release upload falhou" }
         $notesFile = Join-Path $env:TEMP "fl-release-notes.md"
         Set-Content -Path $notesFile -Value $notes -Encoding UTF8
-        & gh release edit $ReleaseTag --title $title --notes-file $notesFile
+        & $ghCmd release edit $ReleaseTag -R $GitHubRepo --title $title --notes-file $notesFile
     } else {
-        & gh release create $ReleaseTag $exeOut --title $title --notes $notes
+        & $ghCmd release create $ReleaseTag $exeOut -R $GitHubRepo --title $title --notes $notes
         if ($LASTEXITCODE -ne 0) { throw "gh release create falhou" }
     }
-    $repo = (& gh repo view --json nameWithOwner -q .nameWithOwner 2>$null)
-    if (-not $repo) { $repo = "pbcaioegidio/frontline-server" }
-    Write-Host "==> Download: https://github.com/$repo/releases/tag/$ReleaseTag"
-    Write-Host "==> Latest:   https://github.com/$repo/releases/latest"
+    Write-Host "==> Download: https://github.com/$GitHubRepo/releases/tag/$ReleaseTag"
+    Write-Host "==> Latest:   https://github.com/$GitHubRepo/releases/latest"
 }
 
 if ($Upload) {

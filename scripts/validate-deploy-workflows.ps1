@@ -11,8 +11,7 @@ function Bad($msg) { Write-Host "[FAIL] $msg" -ForegroundColor Red; $script:fail
 $workflows = @(
     ".github/workflows/server-deploy.yml",
     ".github/workflows/launcher-release.yml",
-    ".github/workflows/client-patch.yml",
-    ".github/workflows/installer-release.yml"
+    ".github/workflows/client-patch.yml"
 )
 foreach ($rel in $workflows) {
     $p = Join-Path $root $rel
@@ -26,6 +25,7 @@ foreach ($rel in $workflows) {
 $scripts = @(
     "scripts/build-client-patch.ps1",
     "scripts/pack-player-setup.ps1",
+    "scripts/publish-installer-release.ps1",
     "scripts/validate-deploy-workflows.ps1",
     "scripts/e2e-deploy-smoke.ps1",
     "docs/deploy-github-actions.md",

@@ -11,7 +11,8 @@ O jogador **instala uma vez** (Inno no GitHub Releases). Depois só abre o `FLLa
 ```text
 [1ª vez]  GitHub Releases → Instalador-FrontLine-*.exe → Program Files\FrontLine
 [sempre]  FLLauncher ↔ Socket :9000 → Update (Data/Client) → FL Guard → Start → Auth/Game
-[você]    git tag server-v* / launcher-v* / client-v* / installer-v* → Actions
+[você]    git tag server-v* / launcher-v* / client-v* → Actions
+          instalador: pack + publish → frontline-downloads (publico)
 ```
 
 ---
@@ -23,7 +24,8 @@ O jogador **instala uma vez** (Inno no GitHub Releases). Depois só abre o `FLLa
 | `server-v20260905` | Server deploy | Código `servidor/` na VPS + `docker compose up -d --build` |
 | `launcher-v20260905` | Launcher release | `FLLauncher.exe` self-contained → `Socket/Data/Launcher` **e** `Data/Client` + bump `LauncherVersion` |
 | `client-v20260905` | Client patch | Delta em `client-patch/` + FileList assinada → `Data/Client` + `manifest.json` + bump `ClientVersion` |
-| `installer-v20260905` | Installer release | Gera Inno Slim/Full e publica **GitHub Release** (download fácil). Espelho opcional na VPS. |
+
+Instalador **não** roda no Actions deste repo (a pasta `client/` não está no git). Publicação manual → repo público [`frontline-downloads`](https://github.com/pbcaioegidio/frontline-downloads).
 
 Também dá para rodar cada um em **Actions → workflow → Run workflow** (sem tag).
 
@@ -42,8 +44,6 @@ Versões no Socket (`runtime/Socket/Config/config.ini`) são **números** (`long
 | `VPS_SSH_USER` | não | Default `ubuntu` |
 
 A chave **pública** do FileList fica no launcher (`ManifestTrust.PublicPem`). A **privada nunca** vai no git.
-
-O Installer release usa `GITHUB_TOKEN` (já incluso) para criar a Release — não precisa secret extra só pelo download no GitHub.
 
 ---
 
@@ -86,39 +86,35 @@ Quem **já instalou** não precisa baixar o instalador de novo só por causa de 
 
 Só para a **primeira instalação** (ou reinstalação limpa). Não substitui Update do launcher.
 
+Download público (repo **sem** código do servidor):  
+https://github.com/pbcaioegidio/frontline-downloads/releases/latest
+
 ### Posso apagar o `.exe` e gerar outro?
 
 **Sim.** Em `dist\`, apague `Instalador-FrontLine-*.exe` antigo e gere de novo. O jogo já instalado no PC **não** some. Quem já joga continua no Update; o instalador novo é para novos jogadores (ou setup limpo).
 
-### Como publicar (recomendado — na sua máquina)
-
-A pasta `client/` é grande e **não** fica no git. Por isso o Actions `windows-latest` costuma falhar sem runner self-hosted. O caminho estável:
+### Como publicar (na sua máquina)
 
 ```powershell
-# 1) (opcional) apagar instalador velho
-Remove-Item .\dist\Instalador-FrontLine-*.exe -ErrorAction SilentlyContinue
+cd c:\Users\pbcai\Downloads\source
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
-# 2) gerar + publicar Release no GitHub
+# Gera o setup (Inno) — demora um pouco
+.\scripts\pack-player-setup.ps1 -Mode Slim
+
+# Sobe no repo PUBLICO frontline-downloads (precisa: gh auth login)
+.\scripts\publish-installer-release.ps1
+```
+
+Ou num passo só (gera + publica):
+
+```powershell
 .\scripts\pack-player-setup.ps1 -Mode Slim -GitHubRelease
 ```
 
-Requisitos: Inno Setup 6, `gh` logado (`gh auth login`), pasta `client\` com `FLLauncher.exe` + `FrontLine.exe`.
+Requisitos: Inno Setup 6, `gh` logado, pasta `client\` com `FLLauncher.exe` + `FrontLine.exe`.
 
 Slim = sem pasta `Pack` (menor). Full = client completo no setup (arquivo bem maior).
-
-Link típico:
-
-- Release da tag: `https://github.com/pbcaioegidio/frontline-server/releases/tag/installer-vYYYYMMDD`
-- Última release: `https://github.com/pbcaioegidio/frontline-server/releases/latest`
-
-### Via Actions (quando tiver `client/` no runner)
-
-1. Tag: `git tag installer-v20260905` + `git push origin installer-v20260905`  
-   **ou** Actions → **Installer release** → **Run workflow** (Slim/Full)  
-2. O job gera o `.exe` e cria/atualiza a **GitHub Release** com o asset  
-3. Espelho VPS (`/var/frontline/downloads`) só se os secrets VPS existirem  
-
-Sem `client/` no runner: use o script local com `-GitHubRelease` (acima).
 
 ---
 
