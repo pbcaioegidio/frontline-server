@@ -2,15 +2,18 @@
 # Uso:
 #   .\scripts\pack-player-setup.ps1 -Mode Slim
 #   .\scripts\pack-player-setup.ps1 -Mode Full
-#   .\scripts\pack-player-setup.ps1 -Mode Slim -Upload
+#   .\scripts\pack-player-setup.ps1 -Mode Slim -GitHubRelease   # download facil: Releases do repo
+#   .\scripts\pack-player-setup.ps1 -Mode Slim -Upload          # espelho VPS (opcional)
 #
 # Requisitos: Inno Setup 6 (ISCC). Se faltar: winget install JRSoftware.InnoSetup
-# Upload: defina $env:FL_VPS_SSH (nunca IP no codigo).
+# -GitHubRelease: gh CLI autenticado (gh auth login) no repo frontline-server
+# -Upload: defina $env:FL_VPS_SSH (nunca IP no codigo).
 
 param(
     [ValidateSet("Slim", "Full")]
     [string] $Mode = "Slim",
     [switch] $Upload,
+    [switch] $GitHubRelease,
     [switch] $KeepStage,
     [string] $ClientRoot = "",
     [string] $OutDir = "",
@@ -18,6 +21,7 @@ param(
     [string] $VpsDir = "/var/frontline/downloads",
     [string] $PublicDownloadBase = "",
     [string] $Version = "",
+    [string] $ReleaseTag = "",
     [switch] $Sign,
     [string] $SignThumbprint = ""
 )
@@ -190,6 +194,45 @@ if ($sizeGb -ge 1) {
     Write-Host "==> OK: $exeOut ($sizeMb MB)"
 }
 
+if ($GitHubRelease) {
+    $gh = Get-Command gh -ErrorAction SilentlyContinue
+    if (-not $gh) {
+        throw "gh CLI nao encontrado. Instale: winget install GitHub.cli  e rode gh auth login"
+    }
+    if (-not $ReleaseTag) {
+        $ReleaseTag = "installer-v$stamp"
+    }
+    $title = "Instalador FrontLine $Version ($Mode)"
+    $notes = @"
+## Instalador FrontLine ($Mode)
+
+Versao do setup: **$Version**
+
+1. Baixe o ``.exe`` abaixo
+2. Instale (UAC / administrador — so nesta instalacao)
+3. Abra o **FrontLine** pelo atalho
+4. Atualizacoes futuras: botao **Update** no FLLauncher (nao precisa baixar o instalador de novo)
+
+Slim = sem pasta Pack. Full = client completo.
+"@
+    Write-Host "==> GitHub Release $ReleaseTag ..."
+    $view = & gh release view $ReleaseTag 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        & gh release upload $ReleaseTag $exeOut --clobber
+        if ($LASTEXITCODE -ne 0) { throw "gh release upload falhou" }
+        $notesFile = Join-Path $env:TEMP "fl-release-notes.md"
+        Set-Content -Path $notesFile -Value $notes -Encoding UTF8
+        & gh release edit $ReleaseTag --title $title --notes-file $notesFile
+    } else {
+        & gh release create $ReleaseTag $exeOut --title $title --notes $notes
+        if ($LASTEXITCODE -ne 0) { throw "gh release create falhou" }
+    }
+    $repo = (& gh repo view --json nameWithOwner -q .nameWithOwner 2>$null)
+    if (-not $repo) { $repo = "pbcaioegidio/frontline-server" }
+    Write-Host "==> Download: https://github.com/$repo/releases/tag/$ReleaseTag"
+    Write-Host "==> Latest:   https://github.com/$repo/releases/latest"
+}
+
 if ($Upload) {
     if (-not $VpsHost) { $VpsHost = $env:FL_VPS_SSH }
     if (-not $VpsHost) {
@@ -215,6 +258,7 @@ if (-not $KeepStage) {
     Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 }
 Write-Host "Concluido. Instalador: dist\$outName.exe"
-Write-Host "  - Eleva como administrador"
+Write-Host "  - Eleva como administrador (uma vez)"
 Write-Host "  - Desinstalador no Painel de Controle / menu Iniciar"
 Write-Host "  - Atalhos FLLauncher"
+Write-Host "  - Pode apagar o .exe antigo em dist\ e gerar de novo quando quiser"

@@ -1,7 +1,13 @@
-name: Installer release (opcional)
+name: Installer release
 
-# Tag: installer-v20260905  →  Inno Slim → /var/frontline/downloads
-# Requer pasta client/ no runner (self-hosted Windows com client) OU artifact.
+# Tag installer-v* OU Actions → Run workflow
+# Gera o .exe Inno e publica em GitHub Releases (download fácil).
+# Opcional: espelho em /var/frontline/downloads na VPS.
+#
+# Requisito: pasta client/ no runner (self-hosted Windows) —
+# no windows-latest do GitHub o client não está no git (muito grande).
+# Alternativa local: .\scripts\pack-player-setup.ps1 -Mode Slim -GitHubRelease
+
 on:
   push:
     tags:
@@ -9,32 +15,37 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Slim ou Full"
+        description: "Slim (sem Pack) ou Full"
         type: choice
         options: [Slim, Full]
         default: Slim
       version:
-        description: "Versão exibida no setup (vazia = data)"
+        description: "Versão do setup (vazia = data UTC)"
         required: false
         type: string
+      mirror_vps:
+        description: "Também copiar para VPS /var/frontline/downloads"
+        type: boolean
+        default: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  pack-upload:
+  pack-release:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Require client/
-        id: client
         shell: pwsh
         run: |
           if (-not (Test-Path "client/FLLauncher.exe") -or -not (Test-Path "client/FrontLine.exe")) {
             Write-Host "::error::Pasta client/ ausente neste runner."
-            Write-Host "Opcoes: (1) self-hosted Windows com client ao lado do repo"
-            Write-Host "        (2) rode scripts/pack-player-setup.ps1 -Mode Slim -Upload na maquina de build"
+            Write-Host "O instalador precisa do client completo (nao vai no git)."
+            Write-Host "Opcoes:"
+            Write-Host "  1) Na maquina de build: .\\scripts\\pack-player-setup.ps1 -Mode Slim -GitHubRelease"
+            Write-Host "  2) Runner self-hosted Windows com client/ ao lado do clone + Run workflow / tag installer-v*"
             exit 1
           }
           Write-Host "client/ OK"
@@ -45,13 +56,19 @@ jobs:
         run: |
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             VER="${GITHUB_REF_NAME#installer-v}"
+            TAG="$GITHUB_REF_NAME"
           elif [[ -n "${{ inputs.version }}" ]]; then
             VER="${{ inputs.version }}"
+            TAG="installer-v${VER}"
           else
             VER="$(date -u +%Y%m%d)"
+            TAG="installer-v${VER}"
           fi
+          VER="$(echo "$VER" | tr -cd '0-9.')"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "mode=${{ inputs.mode || 'Slim' }}" >> "$GITHUB_OUTPUT"
+          echo "Installer $TAG mode=${{ inputs.mode || 'Slim' }}"
 
       - name: Install Inno Setup
         shell: pwsh
@@ -73,8 +90,46 @@ jobs:
             -Version "${{ steps.ver.outputs.version }}" `
             -ClientRoot (Resolve-Path "client").Path `
             -OutDir (Join-Path $pwd "dist")
+          Get-ChildItem dist\Instalador-FrontLine-*.exe | ForEach-Object {
+            Write-Host "Built $($_.Name) ($([math]::Round($_.Length/1MB,1)) MB)"
+          }
 
-      - name: Upload to VPS downloads
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.ver.outputs.tag }}"
+          VER="${{ steps.ver.outputs.version }}"
+          MODE="${{ steps.ver.outputs.mode }}"
+          EXE=$(ls -1 dist/Instalador-FrontLine-*.exe | head -1)
+          BODY=$(cat <<EOF
+          ## Instalador FrontLine ($MODE)
+
+          Versão do setup: **$VER**
+
+          1. Baixe o \`.exe\` abaixo
+          2. Instale (UAC / administrador — só nesta instalação)
+          3. Abra o **FrontLine** pelo atalho
+          4. Atualizações futuras: botão **Update** no FLLauncher (não precisa baixar o instalador de novo)
+
+          Slim = sem pasta Pack (menor; packs baixam no Update se necessário).
+          Full = client completo no instalador.
+          EOF
+          )
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$EXE" --clobber
+            gh release edit "$TAG" --notes "$BODY"
+          else
+            gh release create "$TAG" "$EXE" \
+              --title "Instalador FrontLine $VER ($MODE)" \
+              --notes "$BODY"
+          fi
+          echo "Download: https://github.com/${{ github.repository }}/releases/tag/$TAG"
+
+      - name: Mirror VPS (opcional)
+        if: ${{ github.event_name == 'push' || inputs.mirror_vps }}
         env:
           SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -82,6 +137,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ -z "${SSH_KEY:-}" ] || [ -z "${VPS_HOST:-}" ]; then
+            echo "Sem VPS_SSH_KEY/VPS_HOST — pulando espelho VPS (Release no GitHub ja esta OK)."
+            exit 0
+          fi
           USER="${VPS_USER:-ubuntu}"
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/id_ed25519
@@ -91,6 +150,7 @@ jobs:
           DEST="/var/frontline/downloads"
           ssh "$REMOTE" "sudo mkdir -p '$DEST' && sudo chown \$USER:\$USER '$DEST'"
           EXE=$(ls -1 dist/Instalador-FrontLine-*.exe | head -1)
+          BASE=$(basename "$EXE")
           scp "$EXE" "$REMOTE:$DEST/"
-          echo "OK $(basename "$EXE") → $DEST"
-          ssh "$REMOTE" "ls -lh '$DEST' | tail -5"
+          ssh "$REMOTE" "cd '$DEST' && ln -sfn '$BASE' FrontLine-Setup-latest.exe && ls -lh | tail -5"
+          echo "Espelho VPS OK: $DEST/$BASE"

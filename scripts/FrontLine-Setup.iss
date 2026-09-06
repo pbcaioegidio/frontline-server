@@ -37,8 +37,8 @@ AppCopyright=Copyright (C) 2026 FrontLine
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
+; Sempre Program Files (todos os usuarios). UAC uma vez na instalacao — nao mostra escolha.
 PrivilegesRequired=admin
-PrivilegesRequiredOverridesAllowed=dialog
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir={#FlOutDir}
@@ -77,6 +77,14 @@ ShowLanguageDialog=no
 
 [Languages]
 Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
+
+[Messages]
+; Textos do assistente (PT-BR)
+WelcomeLabel1=Bem-vindo ao instalador do FrontLine
+WelcomeLabel2=Isto instala o jogo e o launcher em Program Files.%n%nDepois da instalacao, atualizacoes saem pelo FLLauncher (botao Update) — nao precisa baixar o instalador de novo.%n%nClique em Avancar para continuar.
+FinishedHeadingLabel=FrontLine instalado
+FinishedLabel=Pronto. Abra o FrontLine pelo atalho e faca login.%n%nSe o servidor pedir atualizacao, use Update no launcher.
+ClickFinish=Clique em Concluir para sair do instalador.
 
 [Tasks]
 Name: "desktopicon"; Description: "Criar atalho na Área de trabalho"; GroupDescription: "Atalhos:"; Flags: checkedonce
