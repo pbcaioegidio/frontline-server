@@ -143,41 +143,47 @@ jobs:
           ssh "$REMOTE" "cd '$ROOT' && docker compose -f docker-compose.vps.yml restart socket"
           echo "OK launcher $VER em $DEST_L e $DEST_C"
 
-      - name: Atualiza UserFileList (hash do FLLauncher.exe)
+      - name: Baixa UserFileList da VPS
+        id: ufl
         env:
           SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_SSH_USER }}
           VPS_PATH: ${{ secrets.VPS_PATH }}
           PEM: ${{ secrets.FILELIST_PRIVATE_PEM }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${PEM:-}" ]; then
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+            echo "FILELIST_PRIVATE_PEM ausente — pulando sync FileList"
+            exit 0
+          fi
+          if [ -z "${SSH_KEY:-}" ] || [ -z "${VPS_HOST:-}" ]; then
+            echo "VPS_SSH_KEY / VPS_HOST obrigatorios"
+            exit 1
+          fi
+          echo "skip=0" >> "$GITHUB_OUTPUT"
+          USER="${VPS_USER:-ubuntu}"
+          ROOT="${VPS_PATH:-/opt/frontline/servidor}"
+          DEST_C="$ROOT/runtime/Socket/Data/Client"
+          mkdir -p ~/.ssh out/ufl-base
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          scp "$USER@$VPS_HOST:$DEST_C/UserFileList.dat" out/ufl-base/UserFileList.dat
+          scp "$USER@$VPS_HOST:$DEST_C/UserFileList.sig" out/ufl-base/UserFileList.sig || true
+          printf '%s\n' "$PEM" > out/filelist-private.pem
+          echo "UserFileList baixada"
+
+      - name: Merge hash FLLauncher + assina FileList
+        if: steps.ufl.outputs.skip != '1'
+        env:
           VER: ${{ steps.ver.outputs.version }}
         shell: pwsh
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:PEM)) {
-            Write-Warning "FILELIST_PRIVATE_PEM ausente — FL Guard pode marcar FLLauncher.exe como alterado apos Update. Configure o secret."
-            exit 0
-          }
-          if ([string]::IsNullOrWhiteSpace($env:SSH_KEY) -or [string]::IsNullOrWhiteSpace($env:VPS_HOST)) {
-            throw "VPS_SSH_KEY / VPS_HOST obrigatorios para atualizar FileList"
-          }
-          $user = if ($env:VPS_USER) { $env:VPS_USER } else { "ubuntu" }
-          $root = if ($env:VPS_PATH) { $env:VPS_PATH } else { "/opt/frontline/servidor" }
-          $remote = "${user}@$($env:VPS_HOST)"
-          $destC = "$root/runtime/Socket/Data/Client"
-          $key = Join-Path $env:TEMP "fl-launcher-release-key"
-          Set-Content -Path $key -Value $env:SSH_KEY.Trim() -Encoding ascii -NoNewline
-          # OpenSSH no Windows exige ACL restrita na chave
-          icacls $key /inheritance:r | Out-Null
-          icacls $key /grant:r "$($env:USERNAME):(R)" | Out-Null
-
-          New-Item -ItemType Directory -Force -Path out/ufl-base, out/launcher-patch | Out-Null
-          scp -i $key -o StrictHostKeyChecking=accept-new `
-            "${remote}:${destC}/UserFileList.dat" out/ufl-base/UserFileList.dat
-          scp -i $key "${remote}:${destC}/UserFileList.sig" out/ufl-base/UserFileList.sig 2>$null
-
+          New-Item -ItemType Directory -Force -Path out/launcher-patch | Out-Null
           Copy-Item out/launcher/FLLauncher.exe out/launcher-patch/FLLauncher.exe -Force
-          Set-Content -Path out/filelist-private.pem -Value $env:PEM.Trim() -Encoding ascii
-
           & .\scripts\build-client-patch.ps1 `
             -Version $env:VER `
             -PatchRoot (Resolve-Path out/launcher-patch).Path `
@@ -185,38 +191,62 @@ jobs:
             -PrivatePemPath (Resolve-Path out/filelist-private.pem).Path `
             -OutDir (Join-Path $pwd "out/launcher-ufl")
 
-          scp -i $key `
-            out/launcher-ufl/UserFileList.dat `
-            out/launcher-ufl/UserFileList.sig `
-            out/launcher-ufl/files/ufl-md5.txt `
-            "${remote}:${destC}/"
+      - name: Sobe FileList + atualiza manifest
+        if: steps.ufl.outputs.skip != '1'
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_SSH_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+          VER: ${{ steps.ver.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          USER="${VPS_USER:-ubuntu}"
+          ROOT="${VPS_PATH:-/opt/frontline/servidor}"
+          DEST_C="$ROOT/runtime/Socket/Data/Client"
+          INFO="$ROOT/runtime/Socket/Info"
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          REMOTE="$USER@$VPS_HOST"
 
-          # Garante que o Update baixe tambem a FileList nova (merge no manifest)
-          $md5Dat = (Get-FileHash out/launcher-ufl/UserFileList.dat -Algorithm MD5).Hash
-          $md5Sig = (Get-FileHash out/launcher-ufl/UserFileList.sig -Algorithm MD5).Hash
-          $szDat = (Get-Item out/launcher-ufl/UserFileList.dat).Length
-          $szSig = (Get-Item out/launcher-ufl/UserFileList.sig).Length
-          $info = "$root/runtime/Socket/Info"
-          ssh -i $key $remote "python3 - <<'PY'
+          scp out/launcher-ufl/UserFileList.dat out/launcher-ufl/UserFileList.sig "$REMOTE:$DEST_C/"
+          if [ -f out/launcher-ufl/files/ufl-md5.txt ]; then
+            scp out/launcher-ufl/files/ufl-md5.txt "$REMOTE:$DEST_C/"
+          elif [ -f out/launcher-ufl/ufl-md5.txt ]; then
+            scp out/launcher-ufl/ufl-md5.txt "$REMOTE:$DEST_C/"
+          fi
+
+          MD5_DAT=$(md5sum out/launcher-ufl/UserFileList.dat | awk '{print toupper($1)}')
+          MD5_SIG=$(md5sum out/launcher-ufl/UserFileList.sig | awk '{print toupper($1)}')
+          SZ_DAT=$(wc -c < out/launcher-ufl/UserFileList.dat | tr -d ' \r\n')
+          SZ_SIG=$(wc -c < out/launcher-ufl/UserFileList.sig | tr -d ' \r\n')
+
+          ssh "$REMOTE" "MD5_DAT='$MD5_DAT' MD5_SIG='$MD5_SIG' SZ_DAT='$SZ_DAT' SZ_SIG='$SZ_SIG' INFO='$INFO' VER='$VER' python3 - <<'PY'
           import json, os
-          path = os.path.join('$info', 'manifest.json')
+          info = os.environ['INFO']
+          path = os.path.join(info, 'manifest.json')
           try:
-              man = json.load(open(path, encoding='utf-8'))
+              with open(path, encoding='utf-8') as f:
+                  man = json.load(f)
           except Exception:
-              man = {'clientVersion': '$env:VER', 'patchUrl': '', 'files': []}
+              man = {'clientVersion': os.environ['VER'], 'patchUrl': '', 'files': []}
           files = man.get('files') or []
-          def drop(name):
-              return [x for x in files if (x.get('path') or '').replace('\\\\','/').lower() != name.lower()]
-          files = drop('UserFileList.dat')
-          files = drop('UserFileList.sig')
-          files.append({'path': 'UserFileList.dat', 'zip': '', 'size': $szDat, 'md5': '$md5Dat'})
-          files.append({'path': 'UserFileList.sig', 'zip': '', 'size': $szSig, 'md5': '$md5Sig'})
+          skip = {'userfilelist.dat', 'userfilelist.sig'}
+          files = [x for x in files if (x.get('path') or '').replace('\\\\','/').lower() not in skip]
+          files.append({'path': 'UserFileList.dat', 'zip': '', 'size': int(os.environ['SZ_DAT']), 'md5': os.environ['MD5_DAT']})
+          files.append({'path': 'UserFileList.sig', 'zip': '', 'size': int(os.environ['SZ_SIG']), 'md5': os.environ['MD5_SIG']})
           man['files'] = files
-          json.dump(man, open(path, 'w', encoding='utf-8'), indent=2)
-          print('manifest + UserFileList entries OK')
+          with open(path, 'w', encoding='utf-8') as f:
+              json.dump(man, f, indent=2)
+              f.write('\n')
+          print('manifest + UserFileList OK')
           PY"
-          ssh -i $key $remote "cd '$root' && docker compose -f docker-compose.vps.yml restart socket"
-          Write-Host "FileList atualizada com hash do FLLauncher.exe"
+
+          ssh "$REMOTE" "cd '$ROOT' && docker compose -f docker-compose.vps.yml restart socket"
+          echo "FileList atualizada com hash do FLLauncher.exe"
 
       - name: Smoke — Socket up + LauncherVersion
         env:
