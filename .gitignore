@@ -70,3 +70,12 @@ docs/_vps_*.sh
 /out/
 *.tar.gz
 
+
+discord-bot/.env
+
+# Bot Discord tem repo próprio (frontline-discord-bot)
+/discord-bot/
+
+# Arte de invite / ranks (geração local; não versionar no server)
+/media/
+
