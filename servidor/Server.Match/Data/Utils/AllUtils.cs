@@ -487,6 +487,159 @@ namespace Server.Match.Data.Utils
             killer.KillWindowStart = now;
         }
 
+        /// <summary>
+        /// Aimbot/FOV: HS% (FG-130) e snap angular (FG-132).
+        /// Auto: flag + clip; congela na partida após N violações.
+        /// Hardban só se AimbotAutoBan=true e não for arma de alto dano (default off — GM manual).
+        /// </summary>
+        public static void TrackAimbotHit(PlayerModel shooter, HitDataInfo hit, CharaHitPart hitPart)
+        {
+            if (shooter == null || hit == null || !ConfigLoader.AntiScript || !ConfigLoader.AimbotDetect)
+                return;
+            if (hit.WeaponClass == ClassType.Knife || hit.WeaponClass == ClassType.Knuckle
+                || hit.WeaponClass == ClassType.DualKnife)
+                return;
+
+            ItemsStatistic stats = ItemStatisticXML.GetItemStats(hit.WeaponId);
+            bool highDmg = IsHighDamageWeapon(stats, hit.WeaponClass);
+            DateTime now = DateTimeUtil.Now();
+
+            // --- Snap (FG-132) ---
+            Vector3 dir = (Vector3)hit.EndBullet - (Vector3)hit.StartBullet;
+            float len = (float)Math.Sqrt(dir.X * dir.X + dir.Y * dir.Y + dir.Z * dir.Z);
+            if (len > 0.01f)
+            {
+                dir /= len;
+                if (shooter.HasLastAimDir && shooter.LastAimShotAt != default(DateTime))
+                {
+                    double ms = (now - shooter.LastAimShotAt).TotalMilliseconds;
+                    if (ms > 5 && ms <= ConfigLoader.AimbotSnapMaxIntervalMs)
+                    {
+                        Vector3 prev = (Vector3)shooter.LastAimDir;
+                        float prevLen = (float)Math.Sqrt(prev.X * prev.X + prev.Y * prev.Y + prev.Z * prev.Z);
+                        if (prevLen > 0.01f)
+                        {
+                            prev /= prevLen;
+                            float deg = AngleDegrees(prev, dir);
+                            float need = highDmg
+                                ? ConfigLoader.AimbotSnapDegrees + 18f
+                                : ConfigLoader.AimbotSnapDegrees;
+                            if (deg >= need)
+                            {
+                                shooter.AimSnapHits++;
+                                if (shooter.AimSnapHits >= (highDmg ? 4 : 3))
+                                {
+                                    EscalateAimbot(shooter, "SNAP", "FG-132",
+                                        $"Snap {deg:F0}° em {ms:F0}ms weapon={hit.WeaponId} highDmg={highDmg}",
+                                        hit.WeaponId, highDmg);
+                                    shooter.AimSnapHits = 0;
+                                }
+                            }
+                            else if (shooter.AimSnapHits > 0)
+                                shooter.AimSnapHits = Math.Max(0, shooter.AimSnapHits - 1);
+                        }
+                    }
+                }
+                shooter.LastAimDir = dir;
+                shooter.LastAimShotAt = now;
+                shooter.HasLastAimDir = true;
+            }
+
+            // --- HS ratio (FG-130) ---
+            int winSec = 45;
+            if (shooter.AimHitWindowStart == default(DateTime) ||
+                (now - shooter.AimHitWindowStart).TotalSeconds > winSec)
+            {
+                shooter.AimHitWindowStart = now;
+                shooter.AimHitsInWindow = 0;
+                shooter.AimHeadHitsInWindow = 0;
+            }
+            shooter.AimHitsInWindow++;
+            if (hitPart == CharaHitPart.HEAD)
+                shooter.AimHeadHitsInWindow++;
+
+            int minHits = Math.Max(8, ConfigLoader.AimbotHsMinHits);
+            if (highDmg)
+                minHits += 6;
+            if (shooter.AimHitsInWindow < minHits)
+                return;
+
+            float ratio = shooter.AimHeadHitsInWindow / (float)shooter.AimHitsInWindow;
+            float needRatio = highDmg
+                ? ConfigLoader.AimbotHsRatioFlagHighDmg
+                : ConfigLoader.AimbotHsRatioFlag;
+            if (ratio + 0.0001f < needRatio)
+                return;
+
+            EscalateAimbot(shooter, "HS_RATIO", "FG-130",
+                $"HS {shooter.AimHeadHitsInWindow}/{shooter.AimHitsInWindow} ({ratio:P0}) weapon={hit.WeaponId} highDmg={highDmg}",
+                hit.WeaponId, highDmg);
+            shooter.AimHitsInWindow = 0;
+            shooter.AimHeadHitsInWindow = 0;
+            shooter.AimHitWindowStart = now;
+        }
+
+        private static bool IsHighDamageWeapon(ItemsStatistic stats, ClassType cls)
+        {
+            if (cls == ClassType.Sniper || cls == ClassType.Shotgun || cls == ClassType.DualShotgun
+                || cls == ClassType.RocketLauncher)
+                return true;
+            if (stats != null && stats.Damage >= Math.Max(100, ConfigLoader.AimbotHighDamageThreshold))
+                return true;
+            return false;
+        }
+
+        private static float AngleDegrees(Vector3 a, Vector3 b)
+        {
+            float dot = a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+            if (dot > 1f) dot = 1f;
+            if (dot < -1f) dot = -1f;
+            return (float)(Math.Acos(dot) * (180.0 / Math.PI));
+        }
+
+        private static void EscalateAimbot(PlayerModel shooter, string category, string code, string why, int weaponId, bool highDmg)
+        {
+            shooter.AimViolations++;
+            long pid = shooter.PlayerIdByServer > 0 ? shooter.PlayerIdByServer : 0;
+            int severity = highDmg ? 3 : 4;
+            CLogger.Print($"[AntiAim] Slot={shooter.Slot} {code} {why} Viol={shooter.AimViolations}", LoggerType.Hack);
+            Plugin.Core.Security.SecurityDao.LogEvent(
+                Plugin.Core.Security.SecurityDao.SourceMatch, pid, "", "",
+                "flag", category, why,
+                "{\"slot\":" + shooter.Slot + ",\"weapon\":" + weaponId +
+                ",\"viol\":" + shooter.AimViolations + ",\"high_dmg\":" + (highDmg ? "true" : "false") + "}",
+                severity, code);
+
+            if (pid > 0)
+            {
+                Plugin.Core.Security.SecurityDao.RequestCapture(
+                    pid, "clip", "auto:" + category + " — " + why,
+                    "match:antiaim", 0, Plugin.Core.Security.SecurityDao.SourceMatch);
+            }
+
+            int freezeAt = Math.Max(2, ConfigLoader.AimbotFreezeViolations);
+            if (highDmg)
+                freezeAt += 1;
+            if (shooter.AimViolations >= freezeAt)
+            {
+                shooter.Dead = true;
+                shooter.NeverRespawn = true;
+                CLogger.Print($"[AntiAim] Slot={shooter.Slot} frozen (viol={shooter.AimViolations})", LoggerType.Hack);
+            }
+
+            // Hardban automático: OFF por padrão. Nunca auto-ban em contexto high-dmg.
+            if (ConfigLoader.AimbotAutoBan && !highDmg && pid > 0
+                && shooter.AimViolations >= Math.Max(freezeAt + 2, ConfigLoader.AimbotBanViolations))
+            {
+                string evidence = "{\"slot\":" + shooter.Slot + ",\"weapon\":" + weaponId +
+                    ",\"viol\":" + shooter.AimViolations + "}";
+                Plugin.Core.Security.SecurityDao.ApplyHardBan(
+                    pid, "Auto-ban aimbot: " + why, TimeSpan.Zero,
+                    "match:antiaim", Plugin.Core.Security.SecurityDao.SourceMatch,
+                    0, category, evidence, false);
+            }
+        }
+
         
         public static bool ValidateGrenadeHit(int RawDamage, GrenadeHitInfo Hit, out int Damage)
         {

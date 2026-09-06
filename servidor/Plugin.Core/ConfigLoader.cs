@@ -132,6 +132,28 @@ namespace Plugin.Core
         public static int KillBurstWindowSeconds;
         /// <summary>Kills na janela que disparam flag/clip/kick na partida.</summary>
         public static int KillBurstMaxKills;
+        /// <summary>Heurísticas aimbot/FOV no Match (FG-130/132).</summary>
+        public static bool AimbotDetect;
+        /// <summary>Amostras mínimas de hit em jogador antes de avaliar HS%.</summary>
+        public static int AimbotHsMinHits;
+        /// <summary>Taxa HS/hits que dispara flag (armas normais).</summary>
+        public static float AimbotHsRatioFlag;
+        /// <summary>Taxa HS/hits para armas de alto dano (sniper/RPG etc.).</summary>
+        public static float AimbotHsRatioFlagHighDmg;
+        /// <summary>Damage base &gt;= isto → limiares mais brandos.</summary>
+        public static int AimbotHighDamageThreshold;
+        /// <summary>Ângulo (graus) entre tiros consecutivos considerado snap.</summary>
+        public static float AimbotSnapDegrees;
+        /// <summary>Janela ms em que o snap é avaliado.</summary>
+        public static int AimbotSnapMaxIntervalMs;
+        /// <summary>Violações aimbot antes de congelar na partida (+clip).</summary>
+        public static int AimbotFreezeViolations;
+        /// <summary>Se true, hardban após AimbotBanViolations (default false — preferir GM).</summary>
+        public static bool AimbotAutoBan;
+        /// <summary>Violações para hardban automático (só se AimbotAutoBan).</summary>
+        public static int AimbotBanViolations;
+        /// <summary>Pacotes UDP/s por IP no Match antes de dropar (0 = off).</summary>
+        public static int MatchUdpMaxPacketsPerSecond;
         public static float MaxClanPoints;
         public static float PlantDuration;
         public static float DefuseDuration;
@@ -228,6 +250,17 @@ namespace Plugin.Core
             SpeedBanViolations = configEngine.ReadD("SpeedBanViolations", 20, "Security");
             KillBurstWindowSeconds = configEngine.ReadD("KillBurstWindowSeconds", 8, "Security");
             KillBurstMaxKills = configEngine.ReadD("KillBurstMaxKills", 5, "Security");
+            AimbotDetect = configEngine.ReadX("AimbotDetect", true, "Security");
+            AimbotHsMinHits = configEngine.ReadD("AimbotHsMinHits", 14, "Security");
+            AimbotHsRatioFlag = configEngine.ReadT("AimbotHsRatioFlag", 0.88f, "Security");
+            AimbotHsRatioFlagHighDmg = configEngine.ReadT("AimbotHsRatioFlagHighDmg", 0.96f, "Security");
+            AimbotHighDamageThreshold = configEngine.ReadD("AimbotHighDamageThreshold", 180, "Security");
+            AimbotSnapDegrees = configEngine.ReadT("AimbotSnapDegrees", 62f, "Security");
+            AimbotSnapMaxIntervalMs = configEngine.ReadD("AimbotSnapMaxIntervalMs", 90, "Security");
+            AimbotFreezeViolations = configEngine.ReadD("AimbotFreezeViolations", 3, "Security");
+            AimbotAutoBan = configEngine.ReadX("AimbotAutoBan", false, "Security");
+            AimbotBanViolations = configEngine.ReadD("AimbotBanViolations", 8, "Security");
+            MatchUdpMaxPacketsPerSecond = configEngine.ReadD("MatchUdpMaxPacketsPerSecond", 140, "Security");
             GameLocales = new List<ClientLocale>();
             National = (NationsEnum)Enum.Parse(typeof(NationsEnum), configEngine.ReadS("National", "Global", "Essentials"));
             string str1 = configEngine.ReadS("Region", "None", "Essentials");

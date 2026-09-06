@@ -807,6 +807,7 @@ namespace Server.Match
                                             PlayerModel Player;
                                             if (A_2.GetPlayer(objectId, out Player) && player.RespawnIsValid() && !player.Dead && !Player.Dead && !Player.Immortal)
                                             {
+                                                AllUtils.TrackAimbotHit(player, Hit, hitPart);
                                                 if (hitPart == CharaHitPart.HEAD)
                                                     DeathType = CharaDeath.HEADSHOT;
                                                 if (A_2.RoomType == RoomCondition.DeathMatch && A_2.Rule == MapRules.HeadHunter && DeathType != CharaDeath.HEADSHOT)

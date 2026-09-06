@@ -32,8 +32,31 @@ export FL_EVIDENCE_ROOT=/var/frontline/Evidence
 Já ligadas no build Debug / linux:
 
 - `RequireOtpToken`, `OtpOneShot`, `RequireLauncherHeartbeat`
-- `AntiScript`, `AutoBan`
+- `AntiScript`, `AutoBan` (AutoBan = hardban genérico; **não** liga aimbot sozinho)
 - `KillBurstWindowSeconds=8`, `KillBurstMaxKills=5` (FG-124 + clip)
+
+### Aimbot / FOV (Match)
+
+| Chave | Default | Efeito |
+|-------|---------|--------|
+| `AimbotDetect` | true | Liga HS% + snap |
+| `AimbotHsMinHits` | 14 | Mínimo de hits antes de avaliar HS% |
+| `AimbotHsRatioFlag` | 0.88 | HS/hits para armas normais → FG-130 |
+| `AimbotHsRatioFlagHighDmg` | 0.96 | Limiar **mais alto** p/ sniper/shotgun/RPG/dano≥180 |
+| `AimbotHighDamageThreshold` | 180 | Damage base ItemStatistic |
+| `AimbotSnapDegrees` / `AimbotSnapMaxIntervalMs` | 62° / 90ms | FG-132 (+18° se high-dmg) |
+| `AimbotFreezeViolations` | 3 | Congela na partida + clip (high-dmg precisa +1) |
+| `AimbotAutoBan` | **false** | Hardban automático **desligado** — use GM/RCON |
+| `AimbotBanViolations` | 8 | Só se `AimbotAutoBan=true` e **não** high-dmg |
+
+Automático: `flag` em `security_events` + `RequestCapture` (clip) + freeze na partida.  
+**Ban permanente:** GM chat / RCON / `ApplyHardBan` manual. Não banir à toa sniper/RPG.
+
+### Match UDP flood
+
+| Chave | Default | Efeito |
+|-------|---------|--------|
+| `MatchUdpMaxPacketsPerSecond` | 140 | Drop por IP; log FG-140 a cada ~30s (0 = off) |
 
 ## Checklist antes de jogadores reais
 
@@ -44,3 +67,5 @@ Já ligadas no build Debug / linux:
 - [ ] Launcher do player com IP VPS
 - [ ] Patch: tag `client-v*` (Actions) → FileList + `Data/Client` + bump `ClientVersion` (ver [`docs/deploy-github-actions.md`](../../docs/deploy-github-actions.md))
 - [ ] Teste: matar launcher → kick HB; burst kills → FG-124
+- [ ] Teste: HS% absurdo → FG-130 + clip (sem hardban se `AimbotAutoBan=false`)
+- [ ] Revisar `security_events` / Evidence e banir via GM se confirmar cheat

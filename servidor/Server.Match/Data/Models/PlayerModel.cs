@@ -41,6 +41,15 @@ namespace Server.Match.Data.Models
         public int KillsInWindow;
         public int HeadshotsInWindow;
         public int KillBurstViolations;
+        // Aimbot / FOV (Match)
+        public int AimHitsInWindow;
+        public int AimHeadHitsInWindow;
+        public DateTime AimHitWindowStart;
+        public Half3 LastAimDir;
+        public DateTime LastAimShotAt;
+        public bool HasLastAimDir;
+        public int AimSnapHits;
+        public int AimViolations;
         public IPEndPoint Client;
         public DateTime StartTime;
         public DateTime LastPing;
@@ -114,6 +123,14 @@ namespace Server.Match.Data.Models
             this.KillsInWindow = 0;
             this.HeadshotsInWindow = 0;
             this.KillBurstViolations = 0;
+            this.AimHitsInWindow = 0;
+            this.AimHeadHitsInWindow = 0;
+            this.AimHitWindowStart = new DateTime();
+            this.LastAimDir = new Half3();
+            this.LastAimShotAt = new DateTime();
+            this.HasLastAimDir = false;
+            this.AimSnapHits = 0;
+            this.AimViolations = 0;
             this.Life = 100;
             this.MaxLife = 100;
             this.Ping = 5;

@@ -10,6 +10,7 @@ using Plugin.Core;
 using Plugin.Core.Enums;
 using Plugin.Core.Logging;
 using Plugin.Core.Utility;
+using Server.Match.Data.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -232,6 +233,8 @@ namespace Server.Match
                     IPEndPoint clientEP = remoteEndPoint as IPEndPoint;
                     if (clientEP != null)
                     {
+                        if (!UdpFloodGuard.Allow(clientEP))
+                            return;
                         MatchClient client = new MatchClient(workSocket, clientEP);
                         BeginReceive(client, receivedData);
                     }
