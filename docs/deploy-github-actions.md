@@ -31,6 +31,9 @@ Também dá para rodar cada um em **Actions → workflow → Run workflow** (sem
 
 Versões no Socket (`runtime/Socket/Config/config.ini`) são **números** (`long`). Prefira `YYYYMMDD` ou `YYYYMMDDNN` (ex.: `20260905`, `202609053`).
 
+**Regra crítica:** a tag nova tem que ser **maior** que a `LauncherVersion` / `ClientVersion` já na VPS.  
+Ex.: depois de `launcher-v202609055`, **não** use `launcher-v20260907` (`20260907 < 202609055` → Update nunca baixa). Use `202609056` ou `202609070`. O workflow do launcher **falha** se a versão nova for ≤ à atual.
+
 ---
 
 ## Secrets (GitHub → Settings → Secrets and variables → Actions)

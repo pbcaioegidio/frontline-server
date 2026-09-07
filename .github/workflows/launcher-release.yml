@@ -93,6 +93,21 @@ jobs:
           INFO="$ROOT/runtime/Socket/Info"
           CFG="$ROOT/runtime/Socket/Config/config.ini"
 
+          # Update so dispara se local < server (long). Tag nova PRECISA ser maior
+          # que a LauncherVersion atual — ex. apos 202609055, use 202609056 ou 202609070
+          # (20260907 < 202609055 e o jogador NUNCA recebe o EXE novo).
+          CUR=$(ssh "$REMOTE" "grep -E '^LauncherVersion=' '$CFG' 2>/dev/null | head -1 | cut -d= -f2 | tr -cd '0-9'" || true)
+          CUR="${CUR:-0}"
+          if [[ "$CUR" =~ ^[0-9]+$ ]] && [[ "$VER" =~ ^[0-9]+$ ]]; then
+            if (( 10#$VER <= 10#$CUR )); then
+              echo "::error::LauncherVersion nova ($VER) <= atual na VPS ($CUR)."
+              echo "O Update do jogador compara long: se a tag for menor, ninguem baixa o FLLauncher novo."
+              echo "Use uma tag maior, ex.: launcher-v$((CUR + 1)) ou launcher-vYYYYMMDDNN."
+              exit 1
+            fi
+          fi
+          echo "LauncherVersion VPS=$CUR → nova=$VER"
+
           ssh "$REMOTE" "mkdir -p '$DEST_L' '$DEST_C' '$INFO'"
           # Limpa launcher antigo no destino canônico e sobe o novo
           ssh "$REMOTE" "rm -rf '$DEST_L'/*"
