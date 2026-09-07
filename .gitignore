@@ -64,6 +64,7 @@ desktop.ini
 # Notas locais com credenciais
 NOTAS-FRONTLINE.md
 docs/vps-secrets.local.env
+docs/r2-secrets.local.env
 **/.env
 docs/_icon_preview/
 docs/_vps_*.sh

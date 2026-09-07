@@ -136,12 +136,26 @@ if (Test-Path $flExe) {
     }
 }
 
+# Dados de jogador / maquina — nao podem ir no instalador publico
+$excludeFiles = @(
+    "LocalConfig.json",
+    "launcher.svl",
+    "UserFileList.sig.bak",
+    "Thumbs.db",
+    "desktop.ini"
+)
+
 $xd = @()
 foreach ($d in $excludeDirs) {
     $xd += "/XD"
     $xd += $d
 }
-$rcArgs = @($ClientRoot, $stage, "/E", "/NFL", "/NDL", "/NJH", "/NJS", "/nc", "/ns", "/np") + $xd
+$xf = @()
+foreach ($f in $excludeFiles) {
+    $xf += "/XF"
+    $xf += $f
+}
+$rcArgs = @($ClientRoot, $stage, "/E", "/NFL", "/NDL", "/NJH", "/NJS", "/nc", "/ns", "/np") + $xd + $xf
 Write-Host "==> Copiando arquivos para stage..."
 & robocopy @rcArgs | Out-Null
 if ($LASTEXITCODE -ge 8) {
@@ -149,6 +163,15 @@ if ($LASTEXITCODE -ge 8) {
 }
 if ($Mode -eq "Full" -and -not (Test-Path (Join-Path $stage "Pack"))) {
     throw "Modo Full exige pasta Pack no client: $(Join-Path $ClientRoot 'Pack')"
+}
+
+# Cinto de seguranca: remove rastros de conta/sessao se escaparem do robocopy
+foreach ($f in $excludeFiles) {
+    Get-ChildItem -LiteralPath $stage -Filter $f -Recurse -Force -ErrorAction SilentlyContinue |
+        Remove-Item -Force -ErrorAction SilentlyContinue
+}
+if (Test-Path (Join-Path $stage "LocalConfig.json")) {
+    throw "LocalConfig.json ainda no stage - nao publicar instalador com conta de teste"
 }
 
 if (-not (Test-Path (Join-Path $stage "config.zpt"))) {
@@ -346,7 +369,8 @@ if ($Upload) {
             "ln -sfn '$($_.Name)' 'FrontLine-Setup-latest-$($Matches[1]).bin'"
         }
     })
-    # Symlinks latest + ZIP único para o site (jogador baixa 1 arquivo).
+    # Symlinks latest + ZIP unico para o site (jogador baixa 1 arquivo).
+    # Strip CR: ssh remoto quebra com CRLF do Windows em "cd $VpsDir".
     $remoteZip = @"
 cd $VpsDir
 ln -sfn '$base' FrontLine-Setup-latest.exe
@@ -355,7 +379,9 @@ rm -f FrontLine-Setup-latest.zip
 zip -0 FrontLine-Setup-latest.zip FrontLine-Setup-latest.exe FrontLine-Setup-latest-*.bin
 ls -lh FrontLine-Setup-latest.zip FrontLine-Setup-latest.exe
 "@
+    $remoteZip = ($remoteZip -replace "`r", "").Trim()
     ssh -o BatchMode=yes $VpsHost $remoteZip
+    if ($LASTEXITCODE -ne 0) { throw "Falha ao criar symlinks/ZIP na VPS" }
     if (-not $PublicDownloadBase) { $PublicDownloadBase = "https://www.frontlinebattle.com.br" }
     $baseUrl = $PublicDownloadBase.TrimEnd('/')
     Write-Host ("==> ZIP:      {0}/downloads/FrontLine-Setup-latest.zip" -f $baseUrl)
