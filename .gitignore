@@ -81,3 +81,14 @@ discord-bot/.env
 # Arte de invite / ranks (geração local; não versionar no server)
 /media/
 
+
+# Redistributaveis baixados no pack
+scripts/redist/*.exe
+!scripts/redist/.gitkeep
+
+# Backups locais do client (fora da pasta client/)
+/_client-backups/
+
+# Manifesto temporario gerado a mao na VPS
+docs/_manifest_fix.json
+

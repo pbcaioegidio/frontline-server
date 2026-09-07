@@ -41,14 +41,14 @@ if ($FromVps) {
     $remote = @"
 set -euo pipefail
     if ! command -v aws >/dev/null 2>&1; then
-      ARCH=$(uname -m)
-      case "$ARCH" in
+      ARCH=`$(uname -m)
+      case "`$ARCH" in
         aarch64|arm64) AWSZIP=awscli-exe-linux-aarch64.zip ;;
         *) AWSZIP=awscli-exe-linux-x86_64.zip ;;
       esac
-      echo "==> instalando AWS CLI v2 ($ARCH)..."
+      echo "==> instalando AWS CLI v2 (`$ARCH)..."
       cd /tmp
-      curl -fsSL "https://awscli.amazonaws.com/$AWSZIP" -o awscliv2.zip
+      curl -fsSL "https://awscli.amazonaws.com/`$AWSZIP" -o awscliv2.zip
       sudo apt-get update -qq
       sudo apt-get install -y -qq unzip
       unzip -qo awscliv2.zip
@@ -58,12 +58,13 @@ set -euo pipefail
 export AWS_ACCESS_KEY_ID='$($env:R2_ACCESS_KEY_ID)'
 export AWS_SECRET_ACCESS_KEY='$($env:R2_SECRET_ACCESS_KEY)'
 export AWS_DEFAULT_REGION=auto
+ENDPOINT='$endpoint'
 SRC=/var/frontline/downloads/FrontLine-Setup-latest.zip
 test -f "`$SRC"
 ls -lh "`$SRC"
-aws s3 cp "`$SRC" "s3://$($env:R2_BUCKET)/$ObjectKey" --endpoint-url '$endpoint'
+aws s3 cp "`$SRC" "s3://$($env:R2_BUCKET)/$ObjectKey" --endpoint-url "`$ENDPOINT"
 echo OK
-aws s3 ls "s3://$($env:R2_BUCKET)/" --endpoint-url '$endpoint'
+aws s3 ls "s3://$($env:R2_BUCKET)/" --endpoint-url "`$ENDPOINT"
 "@
     $remote = $remote -replace "`r", ""
     $remote | ssh -o BatchMode=yes $env:FL_VPS_SSH bash

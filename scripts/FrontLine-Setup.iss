@@ -19,6 +19,9 @@
 #ifndef FlIcon
   #define FlIcon "C:\Users\pbcai\Downloads\source\docs\frontline-setup.ico"
 #endif
+#ifndef FlRedist
+  #define FlRedist "C:\Users\pbcai\Downloads\source\scripts\redist"
+#endif
 
 #define MyAppName "FrontLine"
 #define MyAppPublisher "FrontLine"
@@ -84,7 +87,7 @@ Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortugue
 [Messages]
 ; Textos do assistente (PT-BR)
 WelcomeLabel1=Bem-vindo ao instalador do FrontLine
-WelcomeLabel2=Isto instala o jogo e o launcher em Program Files.%n%nO instalador pede administrador só agora. Depois o Update do launcher funciona sem pedir admin de novo.%n%nClique em Avancar para continuar.
+WelcomeLabel2=Isto instala o jogo, o launcher e os componentes Visual C++ necessarios.%n%nO instalador pede administrador so agora. Depois o Update do launcher funciona sem pedir admin de novo.%n%nClique em Avancar para continuar.
 FinishedHeadingLabel=FrontLine instalado
 FinishedLabel=Pronto. Abra o FrontLine pelo atalho e faca login.%n%nSe o servidor pedir atualizacao, use Update no launcher (sem precisar de administrador).
 ClickFinish=Clique em Concluir para sair do instalador.
@@ -99,6 +102,11 @@ Name: "{app}\_DownloadPatchFiles"; Permissions: users-modify
 
 [Files]
 Source: "{#FlSource}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Runtimes Microsoft — FrontLine.exe e x86; FLLauncher e x64. Instalados em silencio no fim.
+Source: "{#FlRedist}\vc_redist.x86.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall ignoreversion
+Source: "{#FlRedist}\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall ignoreversion
+Source: "{#FlRedist}\vcredist2013_x86.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall ignoreversion skipifsourcedoesntexist
+Source: "{#FlRedist}\vcredist2010_x86.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall ignoreversion skipifsourcedoesntexist
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
@@ -107,6 +115,11 @@ Name: "{group}\Desinstalar {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
+; Visual C++ antes de abrir o jogo (quiet; se ja tiver, termina rapido)
+Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Instalando Visual C++ 2015-2022 (32 bits)..."; Flags: waituntilterminated skipifdoesntexist
+Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Instalando Visual C++ 2015-2022 (64 bits)..."; Flags: waituntilterminated skipifdoesntexist
+Filename: "{tmp}\vcredist2013_x86.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Instalando Visual C++ 2013 (32 bits)..."; Flags: waituntilterminated skipifdoesntexist
+Filename: "{tmp}\vcredist2010_x86.exe"; Parameters: "/q /norestart"; StatusMsg: "Instalando Visual C++ 2010 (32 bits)..."; Flags: waituntilterminated skipifdoesntexist
 ; SID S-1-5-32-545 = BUILTIN\Users (funciona em Windows PT-BR). (OI)(CI)M = modificar + herança.
 Filename: "{sys}\icacls.exe"; Parameters: """{app}"" /grant *S-1-5-32-545:(OI)(CI)M /T"; StatusMsg: "Liberando pasta para Update sem administrador..."; Flags: runhidden waituntilterminated
 Filename: "{app}\{#MyAppExeName}"; Description: "Abrir {#MyAppName} agora"; Flags: nowait postinstall skipifsilent; WorkingDir: "{app}"

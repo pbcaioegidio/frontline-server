@@ -71,6 +71,35 @@ $outName = "Instalador-FrontLine-$Mode-$stamp"
 $stage = Join-Path $env:TEMP "FrontLine-Setup-stage-$Mode"
 $iss = Join-Path $PSScriptRoot "FrontLine-Setup.iss"
 $icon = Join-Path $root "docs\frontline-setup.ico"
+$redistDir = Join-Path $PSScriptRoot "redist"
+
+function Ensure-VcRedist {
+    param([string] $Dir)
+    New-Item -ItemType Directory -Force -Path $Dir | Out-Null
+    $files = @(
+        @{ Name = "vc_redist.x86.exe"; Url = "https://aka.ms/vs/17/release/vc_redist.x86.exe"; MinBytes = 5MB },
+        @{ Name = "vc_redist.x64.exe"; Url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"; MinBytes = 5MB },
+        @{ Name = "vcredist2013_x86.exe"; Url = "https://aka.ms/highdpimfc2013x86enu"; MinBytes = 3MB },
+        @{ Name = "vcredist2010_x86.exe"; Url = "https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe"; MinBytes = 3MB }
+    )
+    foreach ($f in $files) {
+        $dest = Join-Path $Dir $f.Name
+        if ((Test-Path $dest) -and (Get-Item $dest).Length -ge $f.MinBytes) {
+            Write-Host "    Redist OK: $($f.Name) ($([math]::Round((Get-Item $dest).Length/1MB,1)) MB)"
+            continue
+        }
+        Write-Host "    Baixando $($f.Name) ..."
+        try {
+            Invoke-WebRequest -Uri $f.Url -OutFile $dest -UseBasicParsing -TimeoutSec 180
+        } catch {
+            throw "Falha ao baixar $($f.Name): $($_.Exception.Message)"
+        }
+        if (-not (Test-Path $dest) -or (Get-Item $dest).Length -lt $f.MinBytes) {
+            throw "Download incompleto: $dest"
+        }
+        Write-Host "    Redist OK: $($f.Name) ($([math]::Round((Get-Item $dest).Length/1MB,1)) MB)"
+    }
+}
 
 if (-not (Test-Path $iss)) {
     throw "Script Inno ausente: $iss"
@@ -113,34 +142,13 @@ if ($Mode -eq "Slim") {
     Write-Host "==> Modo Full: inclui Pack (instalador grande; GitHub Releases max ~2 GB - use -Upload na VPS)."
 }
 
-# FrontLine.exe sem UAC a cada abertura (manifest asInvoker)
-$flExe = Join-Path $ClientRoot "FrontLine.exe"
-if (Test-Path $flExe) {
-    $raw = [IO.File]::ReadAllBytes($flExe)
-    $ascii = [Text.Encoding]::ASCII.GetString($raw)
-    if ($ascii.Contains("requireAdministrator")) {
-        Write-Host "==> Removendo requireAdministrator de FrontLine.exe (asInvoker)..."
-        $needle = [Text.Encoding]::ASCII.GetBytes("requireAdministrator")
-        $repl = [Text.Encoding]::ASCII.GetBytes("asInvoker            ")
-        for ($i = 0; $i -le $raw.Length - $needle.Length; $i++) {
-            $ok = $true
-            for ($j = 0; $j -lt $needle.Length; $j++) {
-                if ($raw[$i + $j] -ne $needle[$j]) { $ok = $false; break }
-            }
-            if ($ok) {
-                for ($j = 0; $j -lt $repl.Length; $j++) { $raw[$i + $j] = $repl[$j] }
-                $i += $needle.Length - 1
-            }
-        }
-        [IO.File]::WriteAllBytes($flExe, $raw)
-    }
-}
-
 # Dados de jogador / maquina — nao podem ir no instalador publico
 $excludeFiles = @(
     "LocalConfig.json",
     "launcher.svl",
     "UserFileList.sig.bak",
+    "FrontLine.exe.bak-admin",
+    "FrontLine.exe.bak",
     "Thumbs.db",
     "desktop.ini"
 )
@@ -165,13 +173,34 @@ if ($Mode -eq "Full" -and -not (Test-Path (Join-Path $stage "Pack"))) {
     throw "Modo Full exige pasta Pack no client: $(Join-Path $ClientRoot 'Pack')"
 }
 
+# NAO alterar FrontLine.exe (manifest/UAC). Hex-patch ja quebrou SxS antes.
+# Client fonte e stage devem permanecer byte-a-byte iguais no EXE do jogo.
+
 # Cinto de seguranca: remove rastros de conta/sessao se escaparem do robocopy
 foreach ($f in $excludeFiles) {
     Get-ChildItem -LiteralPath $stage -Filter $f -Recurse -Force -ErrorAction SilentlyContinue |
         Remove-Item -Force -ErrorAction SilentlyContinue
 }
+# Remove qualquer *.bak* que tenha escapado
+Get-ChildItem -LiteralPath $stage -Filter "*.bak*" -Recurse -Force -ErrorAction SilentlyContinue |
+    Remove-Item -Force -ErrorAction SilentlyContinue
 if (Test-Path (Join-Path $stage "LocalConfig.json")) {
     throw "LocalConfig.json ainda no stage - nao publicar instalador com conta de teste"
+}
+if (Test-Path (Join-Path $stage "FrontLine.exe.bak-admin")) {
+    throw "Backup .bak-admin vazou para o stage - nao publicar"
+}
+
+# Integridade: FrontLine.exe do stage == client (nenhum patch)
+$srcFl = Join-Path $ClientRoot "FrontLine.exe"
+$stgFl = Join-Path $stage "FrontLine.exe"
+if ((Test-Path $srcFl) -and (Test-Path $stgFl)) {
+    $h1 = (Get-FileHash -Algorithm SHA256 -LiteralPath $srcFl).Hash
+    $h2 = (Get-FileHash -Algorithm SHA256 -LiteralPath $stgFl).Hash
+    if ($h1 -ne $h2) {
+        throw "FrontLine.exe no stage difere do client - abortando"
+    }
+    Write-Host "==> FrontLine.exe intacto (SHA256=$h1)"
 }
 
 if (-not (Test-Path (Join-Path $stage "config.zpt"))) {
@@ -227,6 +256,9 @@ if (Test-Path $exeOut) {
     }
 }
 
+Write-Host "==> Garantindo Visual C++ Redistributable (embutido no setup)..."
+Ensure-VcRedist -Dir $redistDir
+
 Write-Host "==> Compilando instalador Inno (pode demorar no Full)..."
 $isccArgs = @(
     "/DFlSource=$stage",
@@ -234,7 +266,8 @@ $isccArgs = @(
     "/DFlOutName=$outName",
     "/DFlVersion=$Version",
     "/DFlMode=$Mode",
-    "/DFlIcon=$icon"
+    "/DFlIcon=$icon",
+    "/DFlRedist=$redistDir"
 )
 if ($Sign) {
     if (-not $SignThumbprint) { $SignThumbprint = $env:FL_CODESIGN_THUMBPRINT }
