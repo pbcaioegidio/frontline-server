@@ -1,33 +1,35 @@
 # Deploy completo via GitHub Actions
 
-Guia do que sobe onde, como o jogador atualiza, e como publicar instalador / launcher / client / servidor.
+Guia do que sobe onde, como o jogador atualiza, e como publicar instalador / launcher / client / servidor / site.
 
 ---
 
 ## Ideia em uma frase
 
-O jogador **instala uma vez** (Inno no GitHub Releases). Depois só abre o `FLLauncher` → **Update** quando o Socket tiver versão nova. Nada de copiar `UserFileList`, `Shop.dat` ou DLL na mão.
+O jogador **instala uma vez** (Full na VPS / site). Depois só abre o `FLLauncher` → **Update** quando o Socket tiver versão nova.
 
 ```text
-[1ª vez]  GitHub Releases → Instalador-FrontLine-*.exe → Program Files\FrontLine
+[1ª vez]  frontlinebattle.com.br/downloads → Instalador Full (.exe + .bin) → Program Files\FrontLine
 [sempre]  FLLauncher ↔ Socket :9000 → Update (Data/Client) → FL Guard → Start → Auth/Game
-[você]    git tag server-v* / launcher-v* / client-v* → Actions
-          instalador: pack + publish → frontline-downloads (publico)
+[você]    git tag server-v* / launcher-v* / client-v* → Actions (este repo)
+          site: repo frontline-web + tag site-v* → Actions
+          instalador Full: pack-player-setup.ps1 -Upload → /var/frontline/downloads/
 ```
 
 ---
 
 ## O que cada tag / workflow faz
 
-| Tag | Workflow | Resultado |
-|-----|----------|-----------|
-| `server-v202609.1.0` | Server deploy | Código `servidor/` na VPS + `docker compose up -d --build` |
-| `launcher-v202609.1.0` | Launcher release | `FLLauncher.exe` self-contained → `Socket/Data/Launcher` **e** `Data/Client` + bump `LauncherVersion` |
-| `client-v202609.1.0` | Client patch | Delta em `client-patch/` + FileList assinada → `Data/Client` + `manifest.json` + bump `ClientVersion` |
+| Tag / repo | Workflow | Resultado |
+|------------|----------|-----------|
+| `server-v202609.1.0` (este repo) | Server deploy | Código `servidor/` na VPS + `docker compose up -d --build` |
+| `launcher-v202609.1.0` | Launcher release | `FLLauncher.exe` → Socket Data + bump `LauncherVersion` |
+| `client-v202609.1.0` | Client patch | Delta `client-patch/` + FileList → bump `ClientVersion` |
+| `site-v202609.1.0` ([frontline-web](https://github.com/pbcaioegidio/frontline-web)) | Site deploy | Build Vite → `/var/www/frontlinebattle` |
 
-Instalador **não** roda no Actions deste repo (a pasta `client/` não está no git). Publicação manual → repo público [`frontline-downloads`](https://github.com/pbcaioegidio/frontline-downloads).
+Instalador **não** roda no Actions (pasta `client/` fora do git). Full sobe com `-Upload` na VPS.
 
-Também dá para rodar cada um em **Actions → workflow → Run workflow** (sem tag).
+Também dá para rodar cada workflow em **Actions → Run workflow** (sem tag).
 
 ### Versionamento das tags (ano-mês + feature)
 
@@ -40,15 +42,9 @@ Formato: **`vYYYYMM.FEATURE.FIX`** (ex.: `launcher-v202609.1.0`).
 | Outra feature no mesmo mês | sobe o **FEATURE**, FIX volta a `0` | `v202609.2.0` |
 | Mês seguinte | novo `YYYYMM`, feature `1.0` | `v202610.1.0` |
 
-Mesma regra para `launcher-v*`, `client-v*` e `server-v*`:
+Mesma regra para `launcher-v*`, `client-v*`, `server-v*` e `site-v*`.
 
-```text
-v202609.1.0   → feature 1.0
-v202609.1.1   → fix da 1.0
-v202609.2.0   → nova feature
-```
-
-No Socket (`config.ini`) a versão vira **só dígitos** (`long`) para o Update comparar:
+No Socket (`config.ini`) a versão vira **só dígitos** (`long`):
 
 | Tag | Número no Socket |
 |-----|------------------|
@@ -56,121 +52,98 @@ No Socket (`config.ini`) a versão vira **só dígitos** (`long`) para o Update 
 | `…-v202609.1.1` | `2026090101` |
 | `…-v202609.2.0` | `2026090200` |
 
-(FEATURE e FIX com 2 dígitos cada: `1.0` → `0100`, `1.11` → `0111`.)
-
-**Regra crítica:** a tag nova tem que gerar número **maior** que a `LauncherVersion` / `ClientVersion` já na VPS.  
-O workflow do launcher **falha** se a versão nova for ≤ à atual. Não misture o esquema antigo `YYYYMMDDNN` (ex. `202609055`) com um número menor — se a VPS já está em `202609070`, a próxima no esquema novo deve ser pelo menos `202609.1.0` → `2026090100` (ok, é maior) ou continue subindo FEATURE/FIX.
+**Regra crítica:** a tag nova tem que gerar número **maior** que a versão já na VPS.
 
 ---
 
 ## Secrets (GitHub → Settings → Secrets and variables → Actions)
 
+### Este repo (`frontline-server`)
+
 | Secret | Obrigatório | Uso |
 |--------|-------------|-----|
-| `VPS_HOST` | sim (server/launcher/client) | IP/host da VPS |
+| `VPS_HOST` | sim | IP/host da VPS |
 | `VPS_SSH_KEY` | sim | Chave privada SSH (ed25519) |
-| `FILELIST_PRIVATE_PEM` | para `client-v*` | Conteúdo do `filelist-private.pem` (BEGIN…END) |
+| `FILELIST_PRIVATE_PEM` | para `client-v*` | Conteúdo do `filelist-private.pem` |
 | `VPS_PATH` | não | Default `/opt/frontline/servidor` |
 | `VPS_SSH_USER` | não | Default `ubuntu` |
 
-A chave **pública** do FileList fica no launcher (`ManifestTrust.PublicPem`). A **privada nunca** vai no git.
+### Repo `frontline-web`
+
+| Secret | Uso |
+|--------|-----|
+| `VPS_HOST` / `VPS_SSH_KEY` / `VPS_SSH_USER` | Deploy do site (mesmos valores) |
+
+A chave **pública** do FileList fica no launcher. A **privada nunca** vai no git.
 
 ---
 
 ## Pastas na VPS (runtime)
 
 ```text
-/opt/frontline/servidor/
-  docker-compose.vps.yml
-  docker-compose.hostnet.yml
-  .env                          # só na VPS
-  runtime/Socket/
-    Config/config.ini           # LauncherVersion / ClientVersion
-    Info/manifest.json          # lista do patch (Update)
-    Data/Client/                # bytes do FILE_REQ
-    Data/Launcher/              # cópia canônica do FLLauncher
-  runtime/Config|Data|Logs/     # Auth / Game / Match
+/opt/frontline/servidor/          # game server + socket
+/var/www/frontlinebattle/         # site (Actions frontline-web)
+/var/frontline/downloads/         # instalador Full (.exe + .bin)
+  FrontLine-Setup-latest.exe      # symlink → versão atual
+  FrontLine-Setup-latest-N.bin    # symlinks das fatias (mesmo basename do .exe)
 ```
 
-Espelho opcional do instalador: `/var/frontline/downloads/` (não é o caminho principal se usar GitHub Releases).
+Nginx: [`docs/nginx-frontlinebattle.conf`](nginx-frontlinebattle.conf) — site + `location /downloads/`.
+
+Domínio DNS (KingHost): `A` `@` e `www` → IP da VPS. **Apague o AAAA** do `@` se ainda apontar IPv6 da King (senão Let’s Encrypt / visitantes IPv6 vão para o lugar errado).  
+Firewall Oracle Cloud: liberar **TCP 80 e 443** no Security List / NSG (iptables na VM já aceita; 443 no cloud pode estar fechado).
+
+Site público: `http://www.frontlinebattle.com.br` (HTTPS `www` com cert Let’s Encrypt quando a porta 443 estiver aberta).
 
 ---
 
 ## Fluxo do jogador
 
-1. Baixa o instalador na página de Releases do GitHub  
+1. Baixa o instalador em [frontlinebattle.com.br](http://www.frontlinebattle.com.br) (`.exe` + todos os `.bin` na mesma pasta)  
 2. Instala (UAC administrador **só nesta instalação**) → `Program Files\FrontLine`  
-3. Abre `FLLauncher.exe` (atalho)  
-4. Socket `:9000` compara `LauncherVersion` / `ClientVersion` locais com o server  
-5. Se local \< server → botão **Update** (baixa só o que mudou)  
-6. FL Guard confere `UserFileList.dat` + `.sig`  
-7. **Start** → jogo  
-
-Quem **já instalou** não precisa baixar o instalador de novo só por causa de patch de launcher/client/server.
+3. Abre `FLLauncher.exe`  
+4. Socket `:9000` compara versões → **Update** se precisar  
+5. FL Guard → **Start** → jogo  
 
 ---
 
-## Instalador (GitHub Releases — download fácil)
-
-### Serve pra quê?
-
-Só para a **primeira instalação** (ou reinstalação limpa). Não substitui Update do launcher.
-
-Download público (repo **sem** código do servidor):  
-https://github.com/pbcaioegidio/frontline-downloads/releases/latest
-
-### Posso apagar o `.exe` e gerar outro?
-
-**Sim.** Em `dist\`, apague `Instalador-FrontLine-*.exe` antigo e gere de novo. O jogo já instalado no PC **não** some. Quem já joga continua no Update; o instalador novo é para novos jogadores (ou setup limpo).
-
-### Como publicar (na sua máquina)
+## Instalador Full (VPS)
 
 ```powershell
 cd c:\Users\pbcai\Downloads\source
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+$env:FL_VPS_SSH = "ubuntu@SEU_IP"   # nunca commitar IP
+$env:FL_DOWNLOAD_BASE = "https://www.frontlinebattle.com.br"
 
-# Gera o setup (Inno) — demora um pouco
-.\scripts\pack-player-setup.ps1 -Mode Slim
-
-# Sobe no repo PUBLICO frontline-downloads (precisa: gh auth login)
-.\scripts\publish-installer-release.ps1
-```
-
-Ou num passo só (gera + publica):
-
-```powershell
-.\scripts\pack-player-setup.ps1 -Mode Slim -GitHubRelease
-```
-
-Requisitos: Inno Setup 6, `gh` logado, pasta `client\` com `FLLauncher.exe` + `FrontLine.exe`.
-
-Slim = sem pasta `Pack` (**só teste** — instalação limpa fica sem mapas).  
-**Full** = com `Pack` (instalador ~10 GB+). GitHub Releases limita ~2 GB → publique Full com `-Upload` na VPS (`FL_VPS_SSH` / `FL_DOWNLOAD_BASE`), não no GitHub.
-
-```powershell
 .\scripts\pack-player-setup.ps1 -Mode Full -Upload
 ```
 
-O `FrontLine.exe` no pack sai sem pedir UAC a cada abertura (`asInvoker`).
+Atualize também `frontline-web/public/downloads-manifest.json` e faça deploy do site se a lista de arquivos mudar.
+
+### Legado: GitHub Releases (`frontline-downloads`)
+
+**Depreciado.** Full não cabe no limite ~2 GB do GitHub. O script [`publish-installer-release.ps1`](../scripts/publish-installer-release.ps1) e `-GitHubRelease` existem só por compatibilidade Slim/teste — o caminho oficial é `-Upload` na VPS. Pode apagar o repo `frontline-downloads`.
+
+---
+
+## Discord bot
+
+Código em [`discord-bot/`](../discord-bot/) **neste** monorepo (não no `frontline-web`). Deploy típico: Docker na VPS / processo Node com `.env` (token, canais, `DATABASE_URL`).
+
+Canal de downloads: botão aponta para o instalador no site (`FrontLine-Setup-latest.exe`). Atualizar embed:
+
+```powershell
+cd discord-bot
+node scripts/update-download.js
+```
+
+(requer `DISCORD_TOKEN` e message id no script / env).
 
 ---
 
 ## Como publicar patch de client
 
-1. Arquivos alterados em `client-patch/` (espelho do client).  
-   Não coloque `UserFileList.dat` na mão — o workflow assina.  
-2. Tag (ano-mês + feature/fix):
-
-```bash
-git tag client-v202609.1.0    # feature
-git push origin client-v202609.1.0
-
-# deu problema → fix
-git tag client-v202609.1.1
-git push origin client-v202609.1.1
-```
-
-3. Actions: merge/assinatura FileList → `Data/Client` → `manifest.json` → bump `ClientVersion` → restart socket.
+1. Arquivos em `client-patch/`  
+2. Tag: `git tag client-v202609.1.0 && git push origin client-v202609.1.0`
 
 ---
 
@@ -181,38 +154,38 @@ git tag server-v202609.1.0
 git push origin server-v202609.1.0
 ```
 
-Sobe `servidor/` e roda compose com `docker-compose.vps.yml` + `docker-compose.hostnet.yml`.
-
 ---
 
 ## Como publicar launcher
 
 ```bash
-git tag launcher-v202609.1.0    # feature
+git tag launcher-v202609.1.0
 git push origin launcher-v202609.1.0
-
-# deu problema → fix
-git tag launcher-v202609.1.1
-git push origin launcher-v202609.1.1
-
-# nova feature no mesmo mês
-git tag launcher-v202609.2.0
-git push origin launcher-v202609.2.0
 ```
 
-Sobe `FLLauncher.exe` para `Data/Launcher` e `Data/Client`, bump `LauncherVersion`.  
-Se o hash do EXE mudar, regenere/assine `UserFileList` (ou rode um `client-v*` que inclua a lista) para o FL Guard não marcar o launcher como alterado.
+---
+
+## Como publicar o site
+
+No repo [frontline-web](https://github.com/pbcaioegidio/frontline-web):
+
+```bash
+git tag site-v202609.1.0
+git push origin site-v202609.1.0
+```
+
+Ou **Actions → Site deploy → Run workflow**.
 
 ---
 
 ## Checklist pós-deploy
 
-- [ ] Containers healthy (`docker compose … ps`)  
+- [ ] Containers healthy  
 - [ ] `config.ini` com versões novas  
-- [ ] Launcher mostra Update se a versão local for menor  
-- [ ] Update sem erro do FL Guard  
-- [ ] Login + lobby OK  
-- [ ] (se instalador) Release no GitHub com o `.exe` baixável  
+- [ ] Launcher Update + FL Guard OK  
+- [ ] Site `www.frontlinebattle.com.br` carrega  
+- [ ] `/downloads/FrontLine-Setup-latest.exe` + `.bin` baixam  
+- [ ] (HTTPS) Security List com TCP 443 + AAAA King removido  
 
 ---
 
@@ -223,4 +196,4 @@ Se o hash do EXE mudar, regenere/assine `UserFileList` (ou rode um `client-v*` q
 .\scripts\e2e-deploy-smoke.ps1
 ```
 
-Assinatura FileList (merge): [`launcher/tools/SignFileList`](../launcher/tools/SignFileList).
+Assinatura FileList: [`launcher/tools/SignFileList`](../launcher/tools/SignFileList).

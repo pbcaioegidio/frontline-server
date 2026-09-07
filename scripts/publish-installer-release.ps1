@@ -1,5 +1,8 @@
-# Sobe um instalador ja gerado em dist\ para o repo PUBLICO de downloads.
-# Uso (apos gh auth login):
+# LEGADO: sobe instalador Slim para GitHub Releases (limite ~2 GB).
+# Caminho oficial do Full: .\scripts\pack-player-setup.ps1 -Mode Full -Upload
+#   → https://www.frontlinebattle.com.br/downloads/
+#
+# Uso (apos gh auth login) — so se ainda precisar do repo antigo:
 #   .\scripts\publish-installer-release.ps1
 #   .\scripts\publish-installer-release.ps1 -Exe .\dist\Instalador-FrontLine-Slim-20260905.exe
 
@@ -10,6 +13,8 @@ param(
     [string] $Mode = "Slim",
     [string] $Version = ""
 )
+
+Write-Warning "publish-installer-release.ps1 esta depreciado. Prefira pack-player-setup.ps1 -Upload (VPS / site)."
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent

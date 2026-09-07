@@ -1,13 +1,14 @@
 # Empacota instalador Windows (.exe) do jogador via Inno Setup.
 # Uso:
 #   .\scripts\pack-player-setup.ps1 -Mode Slim
+#   .\scripts\pack-player-setup.ps1 -Mode Full -Upload
+#       → sobe .exe + .bin na VPS (/var/frontline/downloads) — caminho oficial
 #   .\scripts\pack-player-setup.ps1 -Mode Slim -GitHubRelease
-#       → sobe no repo PUBLICO de download (padrao: pbcaioegidio/frontline-downloads)
-#   .\scripts\pack-player-setup.ps1 -Mode Slim -Upload
+#       → LEGADO (GitHub Releases ~2 GB; Full nao serve)
 #
 # Requisitos: Inno Setup 6 (ISCC). Se faltar: winget install JRSoftware.InnoSetup
-# -GitHubRelease: winget install GitHub.cli + gh auth login
-# -Upload: defina $env:FL_VPS_SSH (nunca IP no codigo).
+# -Upload: $env:FL_VPS_SSH + opcional $env:FL_DOWNLOAD_BASE=https://www.frontlinebattle.com.br
+# -GitHubRelease: legado Slim; preferir -Upload
 
 param(
     [ValidateSet("Slim", "Full")]
@@ -338,16 +339,28 @@ if ($Upload) {
         if ($LASTEXITCODE -ne 0) { throw "scp falhou: $($p.Name)" }
     }
     $base = Split-Path $exeOut -Leaf
-    ssh -o BatchMode=yes $VpsHost "cd $VpsDir && ln -sfn $base FrontLine-Setup-latest.exe && ls -lh"
-    if ($PublicDownloadBase) {
-        $baseUrl = $PublicDownloadBase.TrimEnd('/')
-        Write-Host ("==> Download: {0}/downloads/{1}" -f $baseUrl, $base)
-        Write-Host ("==> Latest:   {0}/downloads/FrontLine-Setup-latest.exe" -f $baseUrl)
-        Write-Host "    (baixe o .exe e todos os .bin da mesma pasta)"
-    } else {
-        Write-Host "==> Upload OK (sem URL publica). Arquivos em ${VpsDir}"
-        Write-Host "    Baixe o .exe + todos os .bin juntos."
-    }
+    # Inno DiskSpanning usa o basename do .exe para achar as fatias (-1.bin, -2.bin, …).
+    # Symlinks FrontLine-Setup-latest* apontam para a versão recém-enviada.
+    $binLinks = @(Get-ChildItem $OutDir -File | Where-Object { $_.Name -like "$outName-*.bin" } | ForEach-Object {
+        if ($_.Name -match '-(\d+)\.bin$') {
+            "ln -sfn '$($_.Name)' 'FrontLine-Setup-latest-$($Matches[1]).bin'"
+        }
+    })
+    # Symlinks latest + ZIP único para o site (jogador baixa 1 arquivo).
+    $remoteZip = @"
+cd $VpsDir
+ln -sfn '$base' FrontLine-Setup-latest.exe
+$($binLinks -join "`n")
+rm -f FrontLine-Setup-latest.zip
+zip -0 FrontLine-Setup-latest.zip FrontLine-Setup-latest.exe FrontLine-Setup-latest-*.bin
+ls -lh FrontLine-Setup-latest.zip FrontLine-Setup-latest.exe
+"@
+    ssh -o BatchMode=yes $VpsHost $remoteZip
+    if (-not $PublicDownloadBase) { $PublicDownloadBase = "https://www.frontlinebattle.com.br" }
+    $baseUrl = $PublicDownloadBase.TrimEnd('/')
+    Write-Host ("==> ZIP:      {0}/downloads/FrontLine-Setup-latest.zip" -f $baseUrl)
+    Write-Host ("==> Site:     {0}/#download" -f $baseUrl)
+    Write-Host "    (jogador baixa 1 ZIP, extrai e roda o .exe)"
 }
 
 if (-not $KeepStage) {
