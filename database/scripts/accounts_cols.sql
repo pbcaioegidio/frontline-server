@@ -1,0 +1,1 @@
+SELECT column_name, data_type, character_maximum_length FROM information_schema.columns WHERE table_name = 'accounts' AND column_name IN ('username','password','token','player_id','email','discord_id') ORDER BY ordinal_position;
