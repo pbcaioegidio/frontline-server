@@ -146,6 +146,8 @@ Requisitos: Inno Setup 6, `gh` logado, pasta `client\` com `FLLauncher.exe` + `F
 
 Slim = sem pasta `Pack` (menor). Full = client completo no setup (arquivo bem maior).
 
+O FL Guard **não** exige `Pack\` (instalador Slim). Depois do Update do launcher, a lista assinada pode ainda citar Pack — o cliente ignora essa pasta na checagem para não gerar os ~7k falsos positivos. Mapas só rodam se `Pack\` existir no disco (Update futuro ou cópia).
+
 ---
 
 ## Como publicar patch de client

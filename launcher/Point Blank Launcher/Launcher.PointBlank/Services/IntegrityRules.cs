@@ -53,6 +53,11 @@ namespace Launcher.PointBlank.Services
                     || ext.Equals(".msg", StringComparison.OrdinalIgnoreCase)))
                 return true;
 
+            // Instalador Slim nao inclui Pack (~12 GB). Update do launcher nao pode
+            // exigir Pack na lista nem marcar Pack no disco como "extra".
+            // Mapas/armas em Pack\ ficam fora do FL Guard (tradeoff do Slim).
+            if (StartsWithFolder(local, "Pack")) return true;
+
             // Socket: config/DB/Evidence mudam por máquina — não entram na lista assinada
             if (StartsWithFolder(local, "FLService\\config")) return true;
             if (StartsWithFolder(local, "FLService\\Evidence")) return true;
