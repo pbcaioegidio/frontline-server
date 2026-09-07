@@ -31,11 +31,18 @@ if (-not $Version) { $Version = (Get-Date -Format "yyyy.M.d") }
 
 $title = "Instalador FrontLine $Version ($Mode)"
 $notes = @"
+<p align="center">
+  <img src="https://github.com/$GitHubRepo/raw/main/media/banner.jpg" alt="FrontLine — Instalador Windows" width="100%">
+</p>
+
 ## Instalador FrontLine ($Mode)
 
-Baixe **apenas** o arquivo ``Instalador-FrontLine-*.exe`` (ignore Source code).
+Baixe **apenas** o arquivo ``Instalador-FrontLine-*.exe`` abaixo  
+(ignore "Source code" — nao e o jogo).
 
-1. **Baixar** o .exe
+### Passo a passo
+
+1. **Baixar** o ``.exe`` desta pagina
 2. **Instalar** (UAC / administrador — so nesta vez)
 3. **Abrir** o FrontLine pelo atalho — updates pelo launcher
 

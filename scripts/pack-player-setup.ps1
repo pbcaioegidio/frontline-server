@@ -130,8 +130,23 @@ if (-not (Test-Path (Join-Path $stage "FLLauncher.exe"))) {
 if (-not (Test-Path (Join-Path $stage "FrontLine.exe"))) {
     throw "FrontLine.exe ausente"
 }
-if (-not (Test-Path (Join-Path $stage "UserFileList.dat"))) {
-    Write-Warning "UserFileList.dat ausente - rode FileListBuilder"
+# Slim (e Full se a lista do client estiver velha): UserFileList deve bater com o stage.
+# Sem isso o Slim leva lista Full com Pack\ → FL Guard marca milhares de arquivos ausentes.
+$pem = Join-Path $root "launcher\security\filelist-private.pem"
+$flProj = Join-Path $root "launcher\tools\FileListBuilder\FileListBuilder.csproj"
+if (-not (Test-Path $pem)) {
+    throw "Chave FileList ausente: $pem"
+}
+if (-not (Test-Path $flProj)) {
+    throw "FileListBuilder ausente: $flProj"
+}
+Write-Host "==> Regenerando UserFileList.dat/.sig a partir do stage ($Mode)..."
+dotnet run --project $flProj -c Release --no-launch-profile -- $stage $pem
+if ($LASTEXITCODE -ne 0) {
+    throw "FileListBuilder falhou: exit $LASTEXITCODE"
+}
+if (-not (Test-Path (Join-Path $stage "UserFileList.dat")) -or -not (Test-Path (Join-Path $stage "UserFileList.sig"))) {
+    throw "UserFileList.dat/.sig nao gerados no stage"
 }
 
 $readme = @"
@@ -217,31 +232,43 @@ if ($GitHubRelease) {
     }
     $title = "Instalador FrontLine $Version ($Mode)"
     $notes = @"
+<p align="center">
+  <img src="https://github.com/$GitHubRepo/raw/main/media/banner.jpg" alt="FrontLine — Instalador Windows" width="100%">
+</p>
+
 ## Instalador FrontLine ($Mode)
+
+Baixe **apenas** o arquivo ``Instalador-FrontLine-*.exe`` abaixo  
+(ignore "Source code" — nao e o jogo).
 
 Versao do setup: **$Version**
 
-1. Baixe o ``.exe`` abaixo
-2. Instale (UAC / administrador — so nesta instalacao)
-3. Abra o **FrontLine** pelo atalho
-4. Atualizacoes futuras: botao **Update** no FLLauncher (nao precisa baixar o instalador de novo)
+1. **Baixar** o ``.exe`` desta pagina
+2. **Instalar** (UAC / administrador — so nesta instalacao)
+3. **Abrir** o FrontLine pelo atalho → login → se pedir, use **Update**
+
+Depois de instalado, patches saem pelo **FLLauncher** (nao precisa baixar o instalador de novo).
 
 Slim = sem pasta Pack. Full = client completo.
-
-Repo de codigo do servidor e privado; este repo e so download.
 "@
     Write-Host "==> GitHub Release $ReleaseTag em $GitHubRepo ..."
     # Cria repo publico se ainda nao existir (ignora erro se ja existe)
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
     & $ghCmd repo view $GitHubRepo 2>$null | Out-Null
-    if ($LASTEXITCODE -ne 0) {
+    $repoOk = ($LASTEXITCODE -eq 0)
+    if (-not $repoOk) {
         Write-Host "    Criando repo publico $GitHubRepo ..."
         & $ghCmd repo create $GitHubRepo --public --description "Downloads do instalador FrontLine (sem codigo do servidor)" --confirm 2>$null
         if ($LASTEXITCODE -ne 0) {
+            $ErrorActionPreference = $prevEap
             throw "Nao consegui criar $GitHubRepo. Rode: gh auth login  e tente de novo."
         }
     }
     & $ghCmd release view $ReleaseTag -R $GitHubRepo 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) {
+    $relOk = ($LASTEXITCODE -eq 0)
+    $ErrorActionPreference = $prevEap
+    if ($relOk) {
         & $ghCmd release upload $ReleaseTag $exeOut -R $GitHubRepo --clobber
         if ($LASTEXITCODE -ne 0) { throw "gh release upload falhou" }
         $notesFile = Join-Path $env:TEMP "fl-release-notes.md"

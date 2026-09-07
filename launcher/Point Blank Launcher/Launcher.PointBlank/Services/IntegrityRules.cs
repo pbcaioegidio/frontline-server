@@ -34,6 +34,9 @@ namespace Launcher.PointBlank.Services
             if (name.Equals("UserFileList.sig", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("ufl-md5.txt", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("config.zpt", StringComparison.OrdinalIgnoreCase)) return true;
+            // Preferencias do jogador (resolucao, etc.) — FLConfig/jogo reescrevem
+            if (name.Equals("env_settings.ini", StringComparison.OrdinalIgnoreCase)
+                && StartsWithFolder(local, "EnvSet")) return true;
             // Versao/config local — mudam no Update / por maquina
             if (name.Equals("launcher.svl", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("LocalConfig.json", StringComparison.OrdinalIgnoreCase)) return true;
@@ -43,6 +46,12 @@ namespace Launcher.PointBlank.Services
             if (name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("Thumbs.db", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("FLSetup.exe", StringComparison.OrdinalIgnoreCase)) return true;
+            // Desinstalador Inno (criado so apos o setup — nao entra na lista)
+            if (name.StartsWith("unins", StringComparison.OrdinalIgnoreCase)
+                && (ext.Equals(".exe", StringComparison.OrdinalIgnoreCase)
+                    || ext.Equals(".dat", StringComparison.OrdinalIgnoreCase)
+                    || ext.Equals(".msg", StringComparison.OrdinalIgnoreCase)))
+                return true;
 
             // Socket: config/DB/Evidence mudam por máquina — não entram na lista assinada
             if (StartsWithFolder(local, "FLService\\config")) return true;
