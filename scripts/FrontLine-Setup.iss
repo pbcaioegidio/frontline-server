@@ -62,12 +62,14 @@ VersionInfoTextVersion={#FlVersion}
   SignedUninstaller=yes
 #endif
 Compression=lzma2/max
+DiskSpanning=yes
+; Fatias ~2 GB (limite pratico Windows/Inno; Setup.exe + .bin)
+DiskSliceSize=2100000000
 SolidCompression=yes
 WizardStyle=modern
 WizardSizePercent=120
 AllowNoIcons=yes
 MinVersion=10.0
-DiskSpanning=no
 CloseApplications=yes
 RestartApplications=no
 UsePreviousAppDir=yes

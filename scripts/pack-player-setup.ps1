@@ -327,15 +327,26 @@ if ($Upload) {
 
     Write-Host ("==> Upload para {0} ..." -f $VpsHost)
     ssh -o BatchMode=yes $VpsHost "sudo mkdir -p $VpsDir && sudo chown ubuntu:ubuntu $VpsDir"
-    scp -o BatchMode=yes $exeOut "${VpsHost}:$VpsDir/"
+    # DiskSpanning: Setup.exe + Setup-1.bin, Setup-2.bin, ...
+    $parts = @(Get-ChildItem $OutDir -File | Where-Object {
+        $_.BaseName -eq $outName -or $_.Name -like "$outName-*.bin"
+    })
+    if ($parts.Count -eq 0) { $parts = @(Get-Item $exeOut) }
+    foreach ($p in $parts) {
+        Write-Host ("    scp {0} ({1} MB)" -f $p.Name, [math]::Round($p.Length/1MB,1))
+        scp -o BatchMode=yes $p.FullName "${VpsHost}:$VpsDir/"
+        if ($LASTEXITCODE -ne 0) { throw "scp falhou: $($p.Name)" }
+    }
     $base = Split-Path $exeOut -Leaf
     ssh -o BatchMode=yes $VpsHost "cd $VpsDir && ln -sfn $base FrontLine-Setup-latest.exe && ls -lh"
     if ($PublicDownloadBase) {
         $baseUrl = $PublicDownloadBase.TrimEnd('/')
         Write-Host ("==> Download: {0}/downloads/{1}" -f $baseUrl, $base)
         Write-Host ("==> Latest:   {0}/downloads/FrontLine-Setup-latest.exe" -f $baseUrl)
+        Write-Host "    (baixe o .exe e todos os .bin da mesma pasta)"
     } else {
-        Write-Host "==> Upload OK (sem URL publica)."
+        Write-Host "==> Upload OK (sem URL publica). Arquivos em ${VpsDir}"
+        Write-Host "    Baixe o .exe + todos os .bin juntos."
     }
 }
 
