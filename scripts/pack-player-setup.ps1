@@ -11,7 +11,7 @@
 
 param(
     [ValidateSet("Slim", "Full")]
-    [string] $Mode = "Slim",
+    [string] $Mode = "Full",
     [switch] $Upload,
     [switch] $GitHubRelease,
     [switch] $KeepStage,
@@ -106,7 +106,33 @@ if (-not (Test-Path $icon) -or (Get-Item $icon).Length -lt 4096) {
 
 $excludeDirs = @("CEF\Cache", "_fl_backup", "_fl_publish_tmp", "tools", ".git")
 if ($Mode -eq "Slim") {
+    Write-Warning "Modo Slim: SEM pasta Pack (so teste). Jogadores devem usar -Mode Full."
     $excludeDirs += "Pack"
+} else {
+    Write-Host "==> Modo Full: inclui Pack (instalador grande; GitHub Releases max ~2 GB — use -Upload na VPS)."
+}
+
+# FrontLine.exe sem UAC a cada abertura (manifest asInvoker)
+$flExe = Join-Path $ClientRoot "FrontLine.exe"
+if (Test-Path $flExe) {
+    $raw = [IO.File]::ReadAllBytes($flExe)
+    $ascii = [Text.Encoding]::ASCII.GetString($raw)
+    if ($ascii.Contains("requireAdministrator")) {
+        Write-Host "==> Removendo requireAdministrator de FrontLine.exe (asInvoker)..."
+        $needle = [Text.Encoding]::ASCII.GetBytes("requireAdministrator")
+        $repl = [Text.Encoding]::ASCII.GetBytes("asInvoker            ")
+        for ($i = 0; $i -le $raw.Length - $needle.Length; $i++) {
+            $ok = $true
+            for ($j = 0; $j -lt $needle.Length; $j++) {
+                if ($raw[$i + $j] -ne $needle[$j]) { $ok = $false; break }
+            }
+            if ($ok) {
+                for ($j = 0; $j -lt $repl.Length; $j++) { $raw[$i + $j] = $repl[$j] }
+                $i += $needle.Length - 1
+            }
+        }
+        [IO.File]::WriteAllBytes($flExe, $raw)
+    }
 }
 
 $xd = @()
@@ -119,6 +145,9 @@ Write-Host "==> Copiando arquivos para stage..."
 & robocopy @rcArgs | Out-Null
 if ($LASTEXITCODE -ge 8) {
     throw "robocopy falhou: $LASTEXITCODE"
+}
+if ($Mode -eq "Full" -and -not (Test-Path (Join-Path $stage "Pack"))) {
+    throw "Modo Full exige pasta Pack no client: $(Join-Path $ClientRoot 'Pack')"
 }
 
 if (-not (Test-Path (Join-Path $stage "config.zpt"))) {
@@ -212,6 +241,10 @@ if ($sizeGb -ge 1) {
 }
 
 if ($GitHubRelease) {
+    if ((Get-Item $exeOut).Length -gt 1900MB) {
+        Write-Warning "Arquivo > 1.9 GB — GitHub Releases nao aceita. Use -Upload (VPS) ou hospede o Full fora do GitHub."
+        Write-Host "EXE local: $exeOut"
+    } else {
     $ghCmd = $null
     $ghFound = Get-Command gh -ErrorAction SilentlyContinue
     if ($ghFound) { $ghCmd = $ghFound.Source }
@@ -233,19 +266,19 @@ if ($GitHubRelease) {
     $title = "Instalador FrontLine $Version ($Mode)"
     $notes = @"
 <p align="center">
-  <img src="https://github.com/$GitHubRepo/raw/main/media/banner.jpg" alt="FrontLine — Instalador Windows" width="100%">
+  <img src="https://github.com/$GitHubRepo/raw/main/media/banner.jpg" alt="FrontLine - Instalador Windows" width="100%">
 </p>
 
 ## Instalador FrontLine ($Mode)
 
 Baixe **apenas** o arquivo ``Instalador-FrontLine-*.exe`` abaixo  
-(ignore "Source code" — nao e o jogo).
+(ignore "Source code" - nao e o jogo).
 
 Versao do setup: **$Version**
 
 1. **Baixar** o ``.exe`` desta pagina
-2. **Instalar** (UAC / administrador — so nesta instalacao)
-3. **Abrir** o FrontLine pelo atalho → login → se pedir, use **Update**
+2. **Instalar** (UAC / administrador - so nesta instalacao)
+3. **Abrir** o FrontLine pelo atalho - login - se pedir, use **Update**
 
 Depois de instalado, patches saem pelo **FLLauncher** (nao precisa baixar o instalador de novo).
 
@@ -280,6 +313,7 @@ Slim = sem pasta Pack. Full = client completo.
     }
     Write-Host "==> Download: https://github.com/$GitHubRepo/releases/tag/$ReleaseTag"
     Write-Host "==> Latest:   https://github.com/$GitHubRepo/releases/latest"
+    } # else tamanho ok pro GitHub
 }
 
 if ($Upload) {

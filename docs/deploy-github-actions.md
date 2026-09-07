@@ -144,9 +144,14 @@ Ou num passo só (gera + publica):
 
 Requisitos: Inno Setup 6, `gh` logado, pasta `client\` com `FLLauncher.exe` + `FrontLine.exe`.
 
-Slim = sem pasta `Pack` (menor). Full = client completo no setup (arquivo bem maior).
+Slim = sem pasta `Pack` (**só teste** — instalação limpa fica sem mapas).  
+**Full** = com `Pack` (instalador ~10 GB+). GitHub Releases limita ~2 GB → publique Full com `-Upload` na VPS (`FL_VPS_SSH` / `FL_DOWNLOAD_BASE`), não no GitHub.
 
-O FL Guard **não** exige `Pack\` (instalador Slim). Depois do Update do launcher, a lista assinada pode ainda citar Pack — o cliente ignora essa pasta na checagem para não gerar os ~7k falsos positivos. Mapas só rodam se `Pack\` existir no disco (Update futuro ou cópia).
+```powershell
+.\scripts\pack-player-setup.ps1 -Mode Full -Upload
+```
+
+O `FrontLine.exe` no pack sai sem pedir UAC a cada abertura (`asInvoker`).
 
 ---
 
