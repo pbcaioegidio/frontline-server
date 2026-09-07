@@ -21,18 +21,45 @@ O jogador **instala uma vez** (Inno no GitHub Releases). Depois só abre o `FLLa
 
 | Tag | Workflow | Resultado |
 |-----|----------|-----------|
-| `server-v20260905` | Server deploy | Código `servidor/` na VPS + `docker compose up -d --build` |
-| `launcher-v20260905` | Launcher release | `FLLauncher.exe` self-contained → `Socket/Data/Launcher` **e** `Data/Client` + bump `LauncherVersion` |
-| `client-v20260905` | Client patch | Delta em `client-patch/` + FileList assinada → `Data/Client` + `manifest.json` + bump `ClientVersion` |
+| `server-v202609.1.0` | Server deploy | Código `servidor/` na VPS + `docker compose up -d --build` |
+| `launcher-v202609.1.0` | Launcher release | `FLLauncher.exe` self-contained → `Socket/Data/Launcher` **e** `Data/Client` + bump `LauncherVersion` |
+| `client-v202609.1.0` | Client patch | Delta em `client-patch/` + FileList assinada → `Data/Client` + `manifest.json` + bump `ClientVersion` |
 
 Instalador **não** roda no Actions deste repo (a pasta `client/` não está no git). Publicação manual → repo público [`frontline-downloads`](https://github.com/pbcaioegidio/frontline-downloads).
 
 Também dá para rodar cada um em **Actions → workflow → Run workflow** (sem tag).
 
-Versões no Socket (`runtime/Socket/Config/config.ini`) são **números** (`long`). Prefira `YYYYMMDD` ou `YYYYMMDDNN` (ex.: `20260905`, `202609053`).
+### Versionamento das tags (ano-mês + feature)
 
-**Regra crítica:** a tag nova tem que ser **maior** que a `LauncherVersion` / `ClientVersion` já na VPS.  
-Ex.: depois de `launcher-v202609055`, **não** use `launcher-v20260907` (`20260907 < 202609055` → Update nunca baixa). Use `202609056` ou `202609070`. O workflow do launcher **falha** se a versão nova for ≤ à atual.
+Formato: **`vYYYYMM.FEATURE.FIX`** (ex.: `launcher-v202609.1.0`).
+
+| Situação | O que fazer | Exemplo |
+|----------|-------------|---------|
+| Nova feature / lançamento do mês | sobe o **FEATURE**, FIX = `0` | `v202609.1.0` |
+| Deu problema → correção | sobe só o **FIX** | `v202609.1.1` |
+| Outra feature no mesmo mês | sobe o **FEATURE**, FIX volta a `0` | `v202609.2.0` |
+| Mês seguinte | novo `YYYYMM`, feature `1.0` | `v202610.1.0` |
+
+Mesma regra para `launcher-v*`, `client-v*` e `server-v*`:
+
+```text
+v202609.1.0   → feature 1.0
+v202609.1.1   → fix da 1.0
+v202609.2.0   → nova feature
+```
+
+No Socket (`config.ini`) a versão vira **só dígitos** (`long`) para o Update comparar:
+
+| Tag | Número no Socket |
+|-----|------------------|
+| `…-v202609.1.0` | `2026090100` |
+| `…-v202609.1.1` | `2026090101` |
+| `…-v202609.2.0` | `2026090200` |
+
+(FEATURE e FIX com 2 dígitos cada: `1.0` → `0100`, `1.11` → `0111`.)
+
+**Regra crítica:** a tag nova tem que gerar número **maior** que a `LauncherVersion` / `ClientVersion` já na VPS.  
+O workflow do launcher **falha** se a versão nova for ≤ à atual. Não misture o esquema antigo `YYYYMMDDNN` (ex. `202609055`) com um número menor — se a VPS já está em `202609070`, a próxima no esquema novo deve ser pelo menos `202609.1.0` → `2026090100` (ok, é maior) ou continue subindo FEATURE/FIX.
 
 ---
 
@@ -125,11 +152,15 @@ Slim = sem pasta `Pack` (menor). Full = client completo no setup (arquivo bem ma
 
 1. Arquivos alterados em `client-patch/` (espelho do client).  
    Não coloque `UserFileList.dat` na mão — o workflow assina.  
-2. Tag:
+2. Tag (ano-mês + feature/fix):
 
 ```bash
-git tag client-v20260905
-git push origin client-v20260905
+git tag client-v202609.1.0    # feature
+git push origin client-v202609.1.0
+
+# deu problema → fix
+git tag client-v202609.1.1
+git push origin client-v202609.1.1
 ```
 
 3. Actions: merge/assinatura FileList → `Data/Client` → `manifest.json` → bump `ClientVersion` → restart socket.
@@ -139,8 +170,8 @@ git push origin client-v20260905
 ## Como publicar servidor
 
 ```bash
-git tag server-v20260905
-git push origin server-v20260905
+git tag server-v202609.1.0
+git push origin server-v202609.1.0
 ```
 
 Sobe `servidor/` e roda compose com `docker-compose.vps.yml` + `docker-compose.hostnet.yml`.
@@ -150,8 +181,16 @@ Sobe `servidor/` e roda compose com `docker-compose.vps.yml` + `docker-compose.h
 ## Como publicar launcher
 
 ```bash
-git tag launcher-v20260905
-git push origin launcher-v20260905
+git tag launcher-v202609.1.0    # feature
+git push origin launcher-v202609.1.0
+
+# deu problema → fix
+git tag launcher-v202609.1.1
+git push origin launcher-v202609.1.1
+
+# nova feature no mesmo mês
+git tag launcher-v202609.2.0
+git push origin launcher-v202609.2.0
 ```
 
 Sobe `FLLauncher.exe` para `Data/Launcher` e `Data/Client`, bump `LauncherVersion`.  

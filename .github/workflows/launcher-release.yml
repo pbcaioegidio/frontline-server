@@ -1,7 +1,8 @@
 name: Launcher release
 
-# Tag: launcher-v20260905  →  build FLLauncher self-contained + sobe para a VPS
-# Copia para Data/Launcher (canônico) e Data/Client (FILE_REQ do Update) + manifest
+# Tag: launcher-v202609.1.0  →  build FLLauncher + sobe para a VPS
+# Fix: launcher-v202609.1.1  |  nova feature: launcher-v202609.2.0
+# Socket usa long: 202609.1.0 → 2026090100
 on:
   push:
     tags:
@@ -9,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "LauncherVersion (número, ex. 20260905). Vazio = data UTC."
+        description: "LauncherVersion (ex. 202609.1.0 ou número). Vazio = YYYYMM.1.0 UTC."
         required: false
         type: string
 
@@ -32,20 +33,27 @@ jobs:
         shell: bash
         run: |
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            VER="${GITHUB_REF_NAME#launcher-v}"
+            RAW="${GITHUB_REF_NAME#launcher-v}"
           elif [[ -n "${{ inputs.version }}" ]]; then
-            VER="${{ inputs.version }}"
+            RAW="${{ inputs.version }}"
           else
-            VER="$(date -u +%Y%m%d)"
+            RAW="$(date -u +%Y%m).1.0"
           fi
-          # só dígitos para comparação long no launcher
-          VER="$(echo "$VER" | tr -cd '0-9')"
+          # YYYYMM.FEATURE.FIX → YYYYMM + FEATURE(2d) + FIX(2d); legado = só dígitos
+          if [[ "$RAW" =~ ^([0-9]{6})\.([0-9]+)\.([0-9]+)$ ]]; then
+            if (( ${BASH_REMATCH[2]} > 99 || ${BASH_REMATCH[3]} > 99 )); then
+              echo "FEATURE/FIX no máximo 99"; exit 1
+            fi
+            VER="${BASH_REMATCH[1]}$(printf '%02d' "${BASH_REMATCH[2]}")$(printf '%02d' "${BASH_REMATCH[3]}")"
+          else
+            VER="$(echo "$RAW" | tr -cd '0-9')"
+          fi
           if [[ -z "$VER" ]]; then
-            echo "Versão inválida (precisa ser numérica)"
+            echo "Versão inválida (use vYYYYMM.FEATURE.FIX ou só dígitos)"
             exit 1
           fi
           echo "version=$VER" >> "$GITHUB_OUTPUT"
-          echo "Launcher version: $VER"
+          echo "Launcher version: tag/raw=$RAW → socket=$VER"
 
       - name: Publish FLLauncher (self-contained win-x64)
         working-directory: launcher/Point Blank Launcher/Launcher.PointBlank
@@ -101,8 +109,8 @@ jobs:
           if [[ "$CUR" =~ ^[0-9]+$ ]] && [[ "$VER" =~ ^[0-9]+$ ]]; then
             if (( 10#$VER <= 10#$CUR )); then
               echo "::error::LauncherVersion nova ($VER) <= atual na VPS ($CUR)."
-              echo "O Update do jogador compara long: se a tag for menor, ninguem baixa o FLLauncher novo."
-              echo "Use uma tag maior, ex.: launcher-v$((CUR + 1)) ou launcher-vYYYYMMDDNN."
+              echo "O Update compara long: tag menor → ninguem baixa o FLLauncher."
+              echo "Use vYYYYMM.FEATURE.FIX com número maior (ex.: depois de 202609.1.0 → 202609.1.1 ou 202609.2.0)."
               exit 1
             fi
           fi

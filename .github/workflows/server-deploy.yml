@@ -1,6 +1,7 @@
 name: Server deploy
 
-# Tag: server-v20260905  →  sync servidor/ + docker compose rebuild na VPS
+# Tag: server-v202609.1.0  →  sync servidor/ + docker compose rebuild na VPS
+# Fix: server-v202609.1.1  |  nova feature: server-v202609.2.0
 # Também: Actions → Run workflow (workflow_dispatch)
 on:
   push:

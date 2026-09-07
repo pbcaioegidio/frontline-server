@@ -1,6 +1,7 @@
 name: Client patch
 
-# Tag: client-v20260905  →  delta client-patch/ + FileList assinada → Socket Data/Client
+# Tag: client-v202609.1.0  →  delta client-patch/ + FileList → Socket
+# Fix: client-v202609.1.1  |  nova feature: client-v202609.2.0
 on:
   push:
     tags:
@@ -8,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "ClientVersion (número). Vazio = data UTC."
+        description: "ClientVersion (ex. 202609.1.0 ou número). Vazio = YYYYMM.1.0 UTC."
         required: false
         type: string
 
@@ -31,15 +32,23 @@ jobs:
         shell: bash
         run: |
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            VER="${GITHUB_REF_NAME#client-v}"
+            RAW="${GITHUB_REF_NAME#client-v}"
           elif [[ -n "${{ inputs.version }}" ]]; then
-            VER="${{ inputs.version }}"
+            RAW="${{ inputs.version }}"
           else
-            VER="$(date -u +%Y%m%d)"
+            RAW="$(date -u +%Y%m).1.0"
           fi
-          VER="$(echo "$VER" | tr -cd '0-9')"
+          if [[ "$RAW" =~ ^([0-9]{6})\.([0-9]+)\.([0-9]+)$ ]]; then
+            if (( ${BASH_REMATCH[2]} > 99 || ${BASH_REMATCH[3]} > 99 )); then
+              echo "FEATURE/FIX no máximo 99"; exit 1
+            fi
+            VER="${BASH_REMATCH[1]}$(printf '%02d' "${BASH_REMATCH[2]}")$(printf '%02d' "${BASH_REMATCH[3]}")"
+          else
+            VER="$(echo "$RAW" | tr -cd '0-9')"
+          fi
           if [[ -z "$VER" ]]; then echo "Versão inválida"; exit 1; fi
           echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Client version: tag/raw=$RAW → socket=$VER"
 
       - name: Check client-patch has files
         shell: pwsh
