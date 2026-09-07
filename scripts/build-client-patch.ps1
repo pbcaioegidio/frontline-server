@@ -153,7 +153,7 @@ else {
     if ($LASTEXITCODE -ne 0) { throw "Assinatura FileList falhou" }
 
     $md5 = Get-Md5Hex $datOut
-    Set-Content $uflTxt ($md5.ToLowerInvariant() + [Environment]::NewLine)
+    [IO.File]::WriteAllText($uflTxt, $md5.ToLowerInvariant() + "`r`n", (New-Object Text.UTF8Encoding $false))
 }
 
 # Copia FileList para files/ (Update aplica no client)
@@ -187,7 +187,9 @@ $manifest = [ordered]@{
     })
 }
 $manifestPath = Join-Path $OutDir "manifest.json"
-($manifest | ConvertTo-Json -Depth 6) | Set-Content -Path $manifestPath -Encoding UTF8
+# UTF-8 SEM BOM: o Socket usa Newtonsoft e quebra com BOM ("Unexpected character ... position 0")
+$manifestJson = ($manifest | ConvertTo-Json -Depth 6) -replace "`r`n", "`n"
+[IO.File]::WriteAllText($manifestPath, $manifestJson + "`n", (New-Object Text.UTF8Encoding $false))
 
 Remove-Item $pemPath -Force -ErrorAction SilentlyContinue
 

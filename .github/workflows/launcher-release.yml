@@ -163,7 +163,8 @@ jobs:
           print('manifest + LauncherVersion=', ver)
           PY"
 
-          ssh "$REMOTE" "cd '$ROOT' && docker compose -f docker-compose.vps.yml restart socket"
+          # Mesmo conjunto de composes usado pelo server-deploy (o socket roda em host network)
+          ssh "$REMOTE" "cd '$ROOT' && C=(docker compose -f docker-compose.vps.yml); [ -f docker-compose.hostnet.yml ] && C+=(-f docker-compose.hostnet.yml); \"\${C[@]}\" restart socket"
           echo "OK launcher $VER em $DEST_L e $DEST_C"
 
       - name: Baixa UserFileList da VPS
@@ -268,7 +269,8 @@ jobs:
           print('manifest + UserFileList OK')
           PY"
 
-          ssh "$REMOTE" "cd '$ROOT' && docker compose -f docker-compose.vps.yml restart socket"
+          # Mesmo conjunto de composes usado pelo server-deploy (o socket roda em host network)
+          ssh "$REMOTE" "cd '$ROOT' && C=(docker compose -f docker-compose.vps.yml); [ -f docker-compose.hostnet.yml ] && C+=(-f docker-compose.hostnet.yml); \"\${C[@]}\" restart socket"
           echo "FileList atualizada com hash do FLLauncher.exe"
 
       - name: Smoke — Socket up + LauncherVersion

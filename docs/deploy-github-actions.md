@@ -147,6 +147,65 @@ node scripts/update-download.js
 
 ---
 
+## Armadilhas que já quebraram o servidor
+
+Três erros derrubaram o update de todos os jogadores em 07/09/2026. Se algo der errado no patch,
+comece por aqui.
+
+### `manifest.json` precisa ser UTF-8 **sem BOM**
+
+O Socket usa Newtonsoft. Com BOM o launcher mostra:
+
+```text
+Erro durante a atualização.
+Unexpected character encountered while parsing value: . Path '', line 0, position 0.
+```
+
+No Windows PowerShell 5.1, `Set-Content -Encoding UTF8` **grava BOM**. Use sempre:
+
+```powershell
+[IO.File]::WriteAllText($path, $json, (New-Object Text.UTF8Encoding $false))
+```
+
+Conferir na VPS: `od -c -N 4 .../Info/manifest.json` deve começar em `{`, não em `357 273 277`.
+
+### O socket sobe com **dois** composes
+
+O container `servidor-socket-1` roda em host network, criado com
+`docker-compose.vps.yml` + `docker-compose.hostnet.yml`. Reiniciar só com o `vps.yml` pode tirá-lo
+da rede host. Os três workflows usam o mesmo padrão:
+
+```bash
+C=(docker compose -f docker-compose.vps.yml)
+[ -f docker-compose.hostnet.yml ] && C+=(-f docker-compose.hostnet.yml)
+"${C[@]}" restart socket
+```
+
+### Nunca deixe `.bak` dentro de `client/`
+
+O `FileListBuilder` varre a pasta inteira. Um `FrontLine.exe.bak-admin` esquecido entra na lista
+assinada, e aí **todo jogador** recebe "arquivo ausente" do FL Guard. Backups vão para
+`_client-backups/`, fora do client. O `IntegrityRules.ShouldSkip` também ignora qualquer `.bak`.
+
+Pelo mesmo motivo, nunca faça hex-patch no `FrontLine.exe`: trocar `requireAdministrator` por
+`asInvoker` tem tamanho diferente e corrompe o XML do manifesto embutido, gerando
+"configuração lado a lado incorreta" (evento `SideBySide`, linha 14).
+
+### Ordem correta ao republicar o client
+
+```text
+1. FileListBuilder no client (gera UserFileList.dat + .sig + ufl-md5.txt)
+2. scp dos arquivos alterados → Socket/Data/Client
+3. manifest.json com size/md5 de cada arquivo (sem BOM)
+4. bump ClientVersion no Socket/Config/config.ini
+5. restart do socket com os dois composes
+```
+
+Se a lista assinada da VPS estiver errada, o workflow `client-patch` propaga o erro — ele faz
+*merge* na lista existente, não regera do client completo.
+
+---
+
 ## Como publicar servidor
 
 ```bash
