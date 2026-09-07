@@ -109,7 +109,7 @@ if ($Mode -eq "Slim") {
     Write-Warning "Modo Slim: SEM pasta Pack (so teste). Jogadores devem usar -Mode Full."
     $excludeDirs += "Pack"
 } else {
-    Write-Host "==> Modo Full: inclui Pack (instalador grande; GitHub Releases max ~2 GB — use -Upload na VPS)."
+    Write-Host "==> Modo Full: inclui Pack (instalador grande; GitHub Releases max ~2 GB - use -Upload na VPS)."
 }
 
 # FrontLine.exe sem UAC a cada abertura (manifest asInvoker)
@@ -242,7 +242,7 @@ if ($sizeGb -ge 1) {
 
 if ($GitHubRelease) {
     if ((Get-Item $exeOut).Length -gt 1900MB) {
-        Write-Warning "Arquivo > 1.9 GB — GitHub Releases nao aceita. Use -Upload (VPS) ou hospede o Full fora do GitHub."
+        Write-Warning "Arquivo > 1.9 GB - GitHub Releases nao aceita. Use -Upload (VPS) ou hospede o Full fora do GitHub."
         Write-Host "EXE local: $exeOut"
     } else {
     $ghCmd = $null
@@ -271,16 +271,16 @@ if ($GitHubRelease) {
 
 ## Instalador FrontLine ($Mode)
 
-Baixe **apenas** o arquivo ``Instalador-FrontLine-*.exe`` abaixo  
-(ignore "Source code" - nao e o jogo).
+Baixe apenas o arquivo Instalador-FrontLine-*.exe abaixo
+(ignore Source code - nao e o jogo).
 
-Versao do setup: **$Version**
+Versao do setup: $Version
 
-1. **Baixar** o ``.exe`` desta pagina
-2. **Instalar** (UAC / administrador - so nesta instalacao)
-3. **Abrir** o FrontLine pelo atalho - login - se pedir, use **Update**
+1. Baixar o .exe desta pagina
+2. Instalar (UAC / administrador - so nesta instalacao)
+3. Abrir o FrontLine pelo atalho - login - se pedir, use Update
 
-Depois de instalado, patches saem pelo **FLLauncher** (nao precisa baixar o instalador de novo).
+Depois de instalado, patches saem pelo FLLauncher (nao precisa baixar o instalador de novo).
 
 Slim = sem pasta Pack. Full = client completo.
 "@
@@ -308,12 +308,14 @@ Slim = sem pasta Pack. Full = client completo.
         Set-Content -Path $notesFile -Value $notes -Encoding UTF8
         & $ghCmd release edit $ReleaseTag -R $GitHubRepo --title $title --notes-file $notesFile
     } else {
-        & $ghCmd release create $ReleaseTag $exeOut -R $GitHubRepo --title $title --notes $notes
+        $notesFile = Join-Path $env:TEMP "fl-release-notes.md"
+        Set-Content -Path $notesFile -Value $notes -Encoding UTF8
+        & $ghCmd release create $ReleaseTag $exeOut -R $GitHubRepo --title $title --notes-file $notesFile
         if ($LASTEXITCODE -ne 0) { throw "gh release create falhou" }
     }
     Write-Host "==> Download: https://github.com/$GitHubRepo/releases/tag/$ReleaseTag"
     Write-Host "==> Latest:   https://github.com/$GitHubRepo/releases/latest"
-    } # else tamanho ok pro GitHub
+    }
 }
 
 if ($Upload) {
