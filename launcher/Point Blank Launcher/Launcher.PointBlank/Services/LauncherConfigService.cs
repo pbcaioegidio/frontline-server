@@ -22,7 +22,12 @@ namespace Launcher.PointBlank.Services
             string encryptedPath = Path.Combine(_folderPath, EncryptedFileName);
 
             if (!File.Exists(encryptedPath))
-                throw new FileNotFoundException("Arquivo de versão do launcher encriptado não encontrado.", encryptedPath);
+            {
+                // Instalador antigo excluia o .svl — cria baseline pra nao travar o jogador.
+                var created = new LauncherConfig { LauncherVersion = "0" };
+                Save(created);
+                return created;
+            }
 
             XDocument document = XDocument.Parse(ConfigCryptoService.DecryptFile(encryptedPath));
 

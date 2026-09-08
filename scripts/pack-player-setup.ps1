@@ -142,10 +142,10 @@ if ($Mode -eq "Slim") {
     Write-Host "==> Modo Full: inclui Pack (instalador grande; GitHub Releases max ~2 GB - use -Upload na VPS)."
 }
 
-# Dados de jogador / maquina — nao podem ir no instalador publico
+# Dados de jogador / maquina — nao podem ir no instalador publico.
+# launcher.svl e obrigatorio (versao do launcher); sem ele o FLLauncher quebra na abertura.
 $excludeFiles = @(
     "LocalConfig.json",
-    "launcher.svl",
     "UserFileList.sig.bak",
     "FrontLine.exe.bak-admin",
     "FrontLine.exe.bak",

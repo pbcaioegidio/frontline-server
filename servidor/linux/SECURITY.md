@@ -46,7 +46,7 @@ Já ligadas no build Debug / linux:
 | `AimbotHighDamageThreshold` | 180 | Damage base ItemStatistic |
 | `AimbotSnapDegrees` / `AimbotSnapMaxIntervalMs` | 62° / 90ms | FG-132 (+18° se high-dmg) |
 | `AimbotFreezeViolations` | 3 | Congela na partida + clip (high-dmg precisa +1) |
-| `AimbotAutoBan` | **false** | Hardban automático **desligado** — use GM/RCON |
+| `AimbotAutoBan` | **true** | Hardban automático após N violações (não high-dmg) |
 | `AimbotBanViolations` | 8 | Só se `AimbotAutoBan=true` e **não** high-dmg |
 
 Automático: `flag` em `security_events` + `RequestCapture` (clip) + freeze na partida.  
@@ -67,5 +67,5 @@ Automático: `flag` em `security_events` + `RequestCapture` (clip) + freeze na p
 - [ ] Launcher do player com IP VPS
 - [ ] Patch: tag `client-v*` (Actions) → FileList + `Data/Client` + bump `ClientVersion` (ver [`docs/deploy-github-actions.md`](../../docs/deploy-github-actions.md))
 - [ ] Teste: matar launcher → kick HB; burst kills → FG-124
-- [ ] Teste: HS% absurdo → FG-130 + clip (sem hardban se `AimbotAutoBan=false`)
+- [ ] Teste: HS% absurdo → FG-130 + clip; com `AimbotAutoBan=true` hardban após N violações (não high-dmg)
 - [ ] Revisar `security_events` / Evidence e banir via GM se confirmar cheat
