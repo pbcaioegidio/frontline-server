@@ -87,9 +87,9 @@ Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortugue
 [Messages]
 ; Textos do assistente (PT-BR)
 WelcomeLabel1=Bem-vindo ao instalador do FrontLine
-WelcomeLabel2=Isto instala o jogo, o launcher e os componentes Visual C++ necessarios.%n%nO instalador pede administrador so agora. Depois o Update do launcher funciona sem pedir admin de novo.%n%nClique em Avancar para continuar.
+WelcomeLabel2=Isto instala o jogo, o launcher e os componentes Visual C++ necessarios.%n%nO instalador pede administrador so agora (tambem cria exclusao do Windows Defender na pasta do jogo). Depois o Update do launcher funciona sem pedir admin de novo.%n%nClique em Avancar para continuar.
 FinishedHeadingLabel=FrontLine instalado
-FinishedLabel=Pronto. Abra o FrontLine pelo atalho e faca login.%n%nSe o servidor pedir atualizacao, use Update no launcher (sem precisar de administrador).
+FinishedLabel=Pronto. Abra o FrontLine pelo atalho e faca login.%n%nO instalador ja adicionou exclusao do Windows Defender na pasta do jogo. Se outro antivirus bloquear DLLs, exclua a mesma pasta manualmente.%n%nSe o servidor pedir atualizacao, use Update no launcher (sem precisar de administrador).
 ClickFinish=Clique em Concluir para sair do instalador.
 
 [Tasks]
@@ -122,7 +122,19 @@ Filename: "{tmp}\vcredist2013_x86.exe"; Parameters: "/install /quiet /norestart"
 Filename: "{tmp}\vcredist2010_x86.exe"; Parameters: "/q /norestart"; StatusMsg: "Instalando Visual C++ 2010 (32 bits)..."; Flags: waituntilterminated skipifdoesntexist
 ; SID S-1-5-32-545 = BUILTIN\Users (funciona em Windows PT-BR). (OI)(CI)M = modificar + herança.
 Filename: "{sys}\icacls.exe"; Parameters: """{app}"" /grant *S-1-5-32-545:(OI)(CI)M /T"; StatusMsg: "Liberando pasta para Update sem administrador..."; Flags: runhidden waituntilterminated
+; Windows Defender: exclusao da pasta + exes; limpa Zone.Identifier (ficheiro "bloqueado" do download).
+; Falha silenciosa se nao for Defender / politica GPO / SAC (nao interrompe o install).
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; \
+  Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command ""$ErrorActionPreference='SilentlyContinue'; $p='{app}'; if (Get-Command Add-MpPreference -EA SilentlyContinue) {{ Add-MpPreference -ExclusionPath $p; Add-MpPreference -ExclusionProcess @('FLLauncher.exe','FrontLine.exe','FLConfig.exe','i3Core.exe') }}; Get-ChildItem -LiteralPath $p -Recurse -Force | Unblock-File"""; \
+  StatusMsg: "Configurando Windows Defender (exclusao da pasta do jogo)..."; \
+  Flags: runhidden waituntilterminated
 Filename: "{app}\{#MyAppExeName}"; Description: "Abrir {#MyAppName} agora"; Flags: nowait postinstall skipifsilent; WorkingDir: "{app}"
+
+[UninstallRun]
+; Remove exclusao do Defender ao desinstalar (se ainda existir)
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; \
+  Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command ""$ErrorActionPreference='SilentlyContinue'; if (Get-Command Remove-MpPreference -EA SilentlyContinue) {{ Remove-MpPreference -ExclusionPath '{app}'; Remove-MpPreference -ExclusionProcess @('FLLauncher.exe','FrontLine.exe','FLConfig.exe','i3Core.exe') }}"""; \
+  Flags: runhidden waituntilterminated; RunOnceId: "RemoveDefenderExclusion"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\CEF\Cache"

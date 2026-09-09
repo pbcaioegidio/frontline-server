@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index,follow" />
+  <meta name="description" content="Política de Privacidade do FrontLine — FPS tático online." />
+  <meta name="theme-color" content="#05080c" />
+  <title>Política de Privacidade — FrontLine</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --flare: #ff6b1a;
+      --text: #e8eef4;
+      --muted: #9aa8b8;
+      --line: rgba(255, 255, 255, 0.25);
+      --font: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+      --display: "Bebas Neue", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: #05080c;
+      line-height: 1.65;
+    }
+
+    a { color: var(--flare); }
+
+    .page {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      background: rgba(5, 8, 12, 0.55);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    @media (min-width: 640px) {
+      .top { padding: 0.85rem 1.5rem; }
+    }
+
+    @media (min-width: 768px) {
+      .top { padding: 1rem 2.5rem; }
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand img {
+      height: 2rem;
+      width: 2rem;
+      border-radius: 2px;
+      object-fit: cover;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+    }
+
+    @media (min-width: 640px) {
+      .brand { gap: 0.75rem; }
+      .brand img { height: 2.5rem; width: 2.5rem; }
+    }
+
+    .brand span {
+      font-family: var(--display);
+      font-size: 1.25rem;
+      letter-spacing: 0.16em;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+    }
+
+    @media (min-width: 640px) {
+      .brand span { font-size: 1.5rem; }
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .actions { gap: 0.75rem; }
+    }
+
+    /* Mesmo estilo dos botões Som / Discord do site */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.25rem;
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.375rem 0.625rem;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      backdrop-filter: blur(4px);
+      transition: border-color 0.15s ease, color 0.15s ease;
+      cursor: pointer;
+    }
+
+    @media (min-width: 640px) {
+      .chip {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+      }
+    }
+
+    .chip:hover {
+      border-color: var(--flare);
+      color: #fff;
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      padding: 1.5rem 1rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 640px) {
+      main { padding: 2rem 1.5rem 3rem; }
+    }
+
+    @media (min-width: 768px) {
+      main { padding: 2.25rem 2.5rem 3.5rem; }
+    }
+
+    .sheet {
+      flex: 1;
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 2rem;
+      background: rgba(8, 12, 18, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      backdrop-filter: blur(8px);
+    }
+
+    @media (min-width: 768px) {
+      .sheet {
+        padding: 2rem 2.25rem 2.5rem;
+      }
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: 0.06em;
+      font-weight: 400;
+      line-height: 1.05;
+      margin-bottom: 0.35rem;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.75rem;
+    }
+
+    h2 {
+      margin: 1.75rem 0 0.55rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.01em;
+    }
+
+    p, li { color: #d5deea; font-size: 0.98rem; }
+    p + p { margin-top: 0.75rem; }
+    ul { padding-left: 1.2rem; margin-top: 0.4rem; }
+    li { margin: 0.4rem 0; }
+
+    footer {
+      padding: 0 1rem 1.75rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    @media (min-width: 768px) {
+      footer { padding: 0 2.5rem 2rem; }
+    }
+
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    footer a:hover { color: var(--flare); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <a class="brand" href="/" aria-label="FrontLine início">
+        <img src="/fl-mark.png" alt="" />
+        <span>FRONTLINE</span>
+      </a>
+      <div class="actions">
+        <a class="chip" href="/">Voltar ao site</a>
+      </div>
+    </header>
+
+    <main>
+      <article class="sheet">
+        <h1>POLÍTICA DE PRIVACIDADE</h1>
+        <p class="meta">Última atualização: 8 de setembro de 2026 · FrontLine (frontlinebattle.com.br)</p>
+
+        <p>
+          Esta Política de Privacidade descreve como o <strong>FrontLine</strong> (“nós”, “nosso”)
+          coleta, usa e protege informações quando você usa o site, o launcher, o cliente do jogo
+          e serviços relacionados (incluindo integração com Discord, quando aplicável).
+        </p>
+
+        <h2>1. Controlador e contato</h2>
+        <p>
+          O responsável pelo tratamento dos dados é o projeto FrontLine, disponível em
+          <a href="https://www.frontlinebattle.com.br">https://www.frontlinebattle.com.br</a>.
+          Para dúvidas sobre privacidade, use o canal de suporte no Discord oficial do projeto
+          ou o e-mail de contato indicado no site, quando disponível.
+        </p>
+
+        <h2>2. Dados que podemos coletar</h2>
+        <ul>
+          <li><strong>Conta de jogo:</strong> nome de usuário, nickname, senha (armazenada de forma protegida/hash), e-mail se fornecido, identificadores internos de conta.</li>
+          <li><strong>Discord (opcional):</strong> ID do Discord e dados básicos do perfil quando você vincula a conta ou usa login/integração via Discord.</li>
+          <li><strong>Dados técnicos:</strong> endereço IP, porta, logs de conexão, versão do cliente/launcher, informações de dispositivo/sistema operacional necessárias para anticheat, estabilidade e segurança.</li>
+          <li><strong>Dados de jogo:</strong> progresso, inventário, estatísticas, histórico de partidas, banimentos e registros de auditoria de login.</li>
+          <li><strong>Site e downloads:</strong> dados típicos de servidor web/CDN (IP, user-agent, páginas acessadas) e cookies técnicos essenciais, se usados.</li>
+          <li><strong>Comunicações:</strong> mensagens enviadas ao suporte (Discord, e-mail ou formulários).</li>
+        </ul>
+
+        <h2>3. Finalidades do tratamento</h2>
+        <ul>
+          <li>Criar e gerir a sua conta e permitir o acesso ao jogo.</li>
+          <li>Operar o serviço (matchmaking, salas, economia do jogo, atualizações do launcher).</li>
+          <li>Segurança, prevenção de fraude, abuso, trapaças e cumprimento das regras da comunidade.</li>
+          <li>Suporte ao jogador e resposta a pedidos legítimos.</li>
+          <li>Melhoria de desempenho, estabilidade e experiência (incluindo análise de erros/logs).</li>
+          <li>Cumprimento de obrigações legais, quando aplicável.</li>
+        </ul>
+
+        <h2>4. Bases legais (LGPD)</h2>
+        <p>
+          Tratamos dados com base na execução do contrato/serviço (fornecer o jogo),
+          no legítimo interesse (segurança, anticheat, melhoria do serviço) e, quando necessário,
+          no consentimento (por exemplo, vinculação voluntária ao Discord) ou obrigação legal.
+        </p>
+
+        <h2>5. Compartilhamento</h2>
+        <p>Não vendemos os seus dados pessoais. Podemos partilhar informações apenas com:</p>
+        <ul>
+          <li>Prestadores de infraestrutura (hospedagem, CDN, e-mail, armazenamento de ficheiros) sob contrato e para operar o serviço.</li>
+          <li>Discord, se você usar login/vinculação — sujeito também à política de privacidade da Discord Inc.</li>
+          <li>Autoridades, quando exigido por lei ou para proteger direitos, segurança e integridade do serviço.</li>
+        </ul>
+
+        <h2>6. Retenção</h2>
+        <p>
+          Mantemos os dados enquanto a conta estiver ativa e pelo tempo necessário às finalidades
+          acima, incluindo segurança e obrigações legais. Contas inativas, logs e backups podem
+          ser eliminados ou anonimizados periodicamente, conforme a operação do servidor.
+        </p>
+
+        <h2>7. Segurança</h2>
+        <p>
+          Adotamos medidas técnicas e organizacionais razoáveis (controlo de acesso, hashing de
+          palavras-passe, restrições de rede e monitorização). Nenhum sistema é 100% seguro;
+          peça-nos suporte se suspeitar de acesso indevido à sua conta.
+        </p>
+
+        <h2>8. Direitos do titular (LGPD)</h2>
+        <p>Nos termos da legislação aplicável, você pode solicitar:</p>
+        <ul>
+          <li>confirmação e acesso aos dados;</li>
+          <li>correção de dados incompletos ou desatualizados;</li>
+          <li>anonimização, bloqueio ou eliminação de dados desnecessários;</li>
+          <li>informação sobre partilhas;</li>
+          <li>revogação de consentimento, quando o tratamento se basear nele;</li>
+          <li>eliminação de conta, sujeitos a retenções legais ou de segurança.</li>
+        </ul>
+        <p>Pedidos podem ser feitos pelos canais de suporte oficiais do FrontLine.</p>
+
+        <h2>9. Menores</h2>
+        <p>
+          O serviço não se destina a crianças sem supervisão adequada. Se for responsável legal
+          e acreditar que um menor forneceu dados indevidamente, contacte o suporte para análise.
+        </p>
+
+        <h2>10. Transferências internacionais</h2>
+        <p>
+          Servidores, CDN ou ferramentas de suporte podem estar fora do Brasil. Nesse caso,
+          adotamos salvaguardas compatíveis com a operação do serviço e a legislação aplicável.
+        </p>
+
+        <h2>11. Cookies e tecnologias semelhantes</h2>
+        <p>
+          O site pode usar cookies ou armazenamento local estritamente necessários ao funcionamento
+          (preferências, sessão, medição básica). Você pode controlar cookies nas definições do navegador.
+        </p>
+
+        <h2>12. Alterações</h2>
+        <p>
+          Podemos atualizar esta política. A data no topo indica a versão vigente. Alterações
+          relevantes poderão ser comunicadas no site, launcher ou Discord.
+        </p>
+
+        <h2>13. Software do cliente</h2>
+        <p>
+          O instalador e o cliente do jogo podem recolher dados técnicos descritos nesta política
+          para autenticação, atualização e segurança. Componentes de terceiros (por exemplo,
+          runtimes Microsoft Visual C++) têm as suas próprias políticas, quando aplicável.
+        </p>
+      </article>
+    </main>
+
+    <footer>
+      © 2026 FrontLine · <a href="/">frontlinebattle.com.br</a>
+    </footer>
+  </div>
+</body>
+</html>
