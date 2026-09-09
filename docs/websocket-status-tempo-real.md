@@ -1,8 +1,9 @@
 # WebSocket no jogo → Discord `#status` (tempo real)
 
-> **Status:** ideia / plano futuro — **não implementar agora**.  
-> Hoje o bot atualiza `#📊・status` por **poll** (~15s) em Postgres + Docker.  
-> Este doc descreve o caminho preferido: **WebSocket no servidor do jogo** empurrando eventos para o bot.
+> **Status:** plano futuro (WebSocket no jogo) — **ainda não implementar**.  
+> **Agora em produção:** Postgres `LISTEN`/`NOTIFY` em `accounts.online`  
+> (`database/migrations/migration_notify_frontline_online_20260909.sql` + bot `status.js`).  
+> Poll continua só para saúde Docker. Este doc é o passo seguinte (WS dedicado no C#).
 
 Relacionado:
 
