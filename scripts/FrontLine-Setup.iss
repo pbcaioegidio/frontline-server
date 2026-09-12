@@ -25,7 +25,7 @@
 
 #define MyAppName "FrontLine"
 #define MyAppPublisher "FrontLine"
-#define MyAppURL "https://frontline.local"
+#define MyAppURL "https://www.frontlinebattle.com.br"
 #define MyAppExeName "FLLauncher.exe"
 #define MySetupTitle "Instalador FrontLine"
 
@@ -36,6 +36,8 @@ AppVersion={#FlVersion}
 AppVerName={#MySetupTitle} {#FlVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}
+AppUpdatesURL={#MyAppURL}
 AppCopyright=Copyright (C) 2026 FrontLine
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
@@ -110,6 +112,7 @@ Source: "{#FlRedist}\vcredist2010_x86.exe"; DestDir: "{tmp}"; Flags: deleteafter
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
+Name: "{group}\Site FrontLine"; Filename: "{#MyAppURL}"
 Name: "{group}\Configurar (FLConfig)"; Filename: "{app}\FLConfig.exe"; WorkingDir: "{app}"; Check: FileExists(ExpandConstant('{app}\FLConfig.exe'))
 Name: "{group}\Desinstalar {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
