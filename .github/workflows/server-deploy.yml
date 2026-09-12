@@ -70,6 +70,12 @@ jobs:
           ssh "$REMOTE" "mkdir -p '$ROOT' && mkdir -p /tmp/fl-deploy"
           scp /tmp/servidor-src.tgz "$REMOTE:/tmp/fl-deploy/servidor-src.tgz"
 
+          # Migration SQL (fora de servidor/) — Throw2 / Arma Especial 2
+          if [ -f database/migrations/migration_throw2_slot_unlock_20260912.sql ]; then
+            scp database/migrations/migration_throw2_slot_unlock_20260912.sql \
+              "$REMOTE:/tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql"
+          fi
+
           ssh "$REMOTE" bash -s <<EOF
           set -euo pipefail
           ROOT='$ROOT'
@@ -85,6 +91,15 @@ jobs:
             COMPOSE+=(-f docker-compose.hostnet.yml)
           fi
           COMPOSE+=(--env-file .env)
+
+          # Aplica migration Throw2 se veio no deploy
+          if [ -f /tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql ]; then
+            echo "Aplicando migration_throw2_slot_unlock_20260912.sql"
+            docker cp /tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql servidor-db-1:/tmp/migration_throw2.sql
+            docker exec servidor-db-1 psql -U postgres -d pb -f /tmp/migration_throw2.sql
+            rm -f /tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql
+          fi
+
           "\${COMPOSE[@]}" up -d --build server
           if [ "$REBUILD_SOCKET" = "true" ]; then
             "\${COMPOSE[@]}" up -d --build socket

@@ -72,6 +72,8 @@ namespace Plugin.Core.Enums
         // CouponEffects.ExtraThrowGrenade) is unrelated/legacy.
         public const int IncreaseSmokeSlot    = 1600191;
         public const int IncreaseSmokeSlotAlt = 1600211;
+        public const int IncreaseThrowing2Slot = 1600109; // stub system_shop; BuyExtend real = cupom 1700109
+        public const int IncreaseThrowing2SlotAlt = 1600110;
         // Unmapped: 1600206 (bit 0x1000000, no DB name); 1600207 (bit 0x800000, no DB name).
         //  1600205 (NickBorderColor cosmetic) also carries bit 0x20000000 - vestigial.
 

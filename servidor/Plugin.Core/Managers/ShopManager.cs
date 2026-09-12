@@ -103,6 +103,10 @@ namespace Plugin.Core.Managers
 
         public static void Load(int Type)
         {
+            // Cupom Throw2 (1700109) + esconde stub 1600109 antes de montar a loja.
+            if (Type == 1)
+                InventoryUnlocks.EnsureThrow2ShopCatalog();
+
             LoadRepairableItems(Type);
             LoadShopItems(Type);
             LoadShopEffects(Type);

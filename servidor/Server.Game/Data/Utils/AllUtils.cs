@@ -103,6 +103,9 @@ namespace Server.Game.Data.Utils
             // Cargar ítems básicos del jugador
             player.Inventory.LoadBasicItems();
 
+            // Arma Especial 2: item 1707109 (cupom 1700109), não o stub 1600109.
+            InventoryUnlocks.EnsureThrow2Slot(player.PlayerId, player.Inventory);
+
             // Cargar boina especial para generales (rango 46+)
             if (player.Rank >= 46)
                 player.Inventory.LoadGeneralBeret();
