@@ -201,16 +201,12 @@ jobs:
           )
           if n != 1:
               raise SystemExit("UserFileList nao encontrado em ServerConfig.json")
-          t2, n2 = re.subn(
-              r'("AccessUFL"\s*:\s*")[^"]*(")',
-              lambda m: m.group(1) + "true" + m.group(2),
-              t2,
-              count=1,
-          )
+          # NAO forcar AccessUFL=true: neste client o campo do LOGIN e HWID, nao MD5 da lista.
+          # Ligar AccessUFL com o MD5 da FileList derruba todos os jogadores.
           import json
           json.loads(t2)  # falha se JSON invalido
           p.write_text(t2, encoding="utf-8")
-          print("ServerConfig UserFileList=", ufl, "AccessUFL n=", n2)
+          print("ServerConfig UserFileList=", ufl, "(AccessUFL nao alterado)")
           PY
           REMOTE
           # Recarrega Auth/Game (jogadores conectados caem neste restart — necessario p/ AccessUFL)
