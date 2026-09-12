@@ -54,6 +54,8 @@ namespace Server.Auth.Data.Utils
         public static void ValidatePlayerInventoryStatus(Account Player)
         {
             Player.Inventory.LoadBasicItems();
+            // Arma Especial 2 / Smoke 2: liberar de graca (mesmo padrao do passe desativado).
+            Player.Effects = InventoryUnlocks.EnsureFreeExtraSlots(Player.PlayerId, Player.Effects, Player.Inventory);
             if (Player.Rank >= 46)
                 Player.Inventory.LoadGeneralBeret();
             if (Player.IsGM())

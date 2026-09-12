@@ -103,6 +103,9 @@ namespace Server.Game.Data.Utils
             // Cargar ítems básicos del jugador
             player.Inventory.LoadBasicItems();
 
+            // Arma Especial 2 / Smoke 2: liberar de graca (cupom ExtraGrenade / ExtraThrowGrenade).
+            player.Effects = InventoryUnlocks.EnsureFreeExtraSlots(player.PlayerId, player.Effects, player.Inventory);
+
             // Cargar boina especial para generales (rango 46+)
             if (player.Rank >= 46)
                 player.Inventory.LoadGeneralBeret();
