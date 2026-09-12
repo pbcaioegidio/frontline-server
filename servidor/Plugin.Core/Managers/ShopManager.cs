@@ -4,6 +4,7 @@ using Plugin.Core.Models;
 using Plugin.Core.Network;
 using Plugin.Core.SQL;
 using Plugin.Core.Utility;
+using Plugin.Core.XML;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -1065,6 +1066,12 @@ namespace Plugin.Core.Managers
             {
                 list = new List<GoodsItem>(ShopBuyableList);
             }
+
+            // Presenca/portal usam goods limitados (item_visible=false -> Visibility=4),
+            // que nao entram em ShopBuyableList. Sem eles no packed catalog o Auth zera
+            // as caixas ("Nenhuma recompensa") / o client Resolve FindGoods=null.
+            int eventExtras = AppendEventRewardGoods(list);
+
             if (list.Count > MAX_SHOP_GOODS)
                 list = list.GetRange(0, MAX_SHOP_GOODS);
 
@@ -1080,7 +1087,58 @@ namespace Plugin.Core.Managers
             PackedGoodsCount = list.Count;
             PackedGoodsBuffer = ZlibUtil.Compress(raw);
 
-            CLogger.Print($"Plugin carregado: packed goods {list.Count} recs ({raw.Length}B raw -> {PackedGoodsBuffer.Length}B zlib)", LoggerType.Info);
+            CLogger.Print(
+                $"Plugin carregado: packed goods {list.Count} recs (event extras={eventExtras}) ({raw.Length}B raw -> {PackedGoodsBuffer.Length}B zlib)",
+                LoggerType.Info);
+        }
+
+        /// <summary>
+        /// Inclui no catalogo packed os good_ids das caixas de visita (e xmas) que
+        /// existem em ShopAllList mas nao estavam compraveis.
+        /// </summary>
+        private static int AppendEventRewardGoods(List<GoodsItem> list)
+        {
+            HashSet<int> already = new HashSet<int>();
+            foreach (GoodsItem g in list)
+                already.Add(g.Id);
+
+            HashSet<int> wanted = new HashSet<int>();
+            lock (EventVisitXML.Events)
+            {
+                foreach (EventVisitModel ev in EventVisitXML.Events)
+                {
+                    if (ev?.Boxes == null)
+                        continue;
+                    foreach (VisitBoxModel box in ev.Boxes)
+                    {
+                        if (box?.Reward1 != null && box.Reward1.GoodId > 0)
+                            wanted.Add(box.Reward1.GoodId);
+                        if (box?.Reward2 != null && box.Reward2.GoodId > 0)
+                            wanted.Add(box.Reward2.GoodId);
+                    }
+                }
+            }
+
+            int added = 0;
+            lock (ShopAllList)
+            {
+                foreach (GoodsItem item in ShopAllList)
+                {
+                    if (!wanted.Contains(item.Id) || already.Contains(item.Id))
+                        continue;
+                    list.Add(item);
+                    already.Add(item.Id);
+                    added++;
+                }
+            }
+
+            foreach (int gid in wanted)
+            {
+                if (!already.Contains(gid))
+                    CLogger.Print($"packed event good {gid}: ausente em ShopAllList", LoggerType.Warning);
+            }
+
+            return added;
         }
 
         /// <summary>
