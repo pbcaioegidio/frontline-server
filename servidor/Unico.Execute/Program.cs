@@ -634,6 +634,9 @@ namespace Executable
                 RconCommand.Instance();
                 PrintSection("Rcon Status", false);
             }
+
+            // StatusFeed (Discord #status) — independente do RCON
+            Server.Game.StatusFeed.StatusFeedServer.Instance();
         }
 
         private void LoadConfigurations()

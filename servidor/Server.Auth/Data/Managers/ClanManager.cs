@@ -134,6 +134,9 @@ namespace Server.Auth.Data.Managers
                                     WeaponMelee = int.Parse(npgsqlDataReader["weapon_melee"].ToString()),
                                     WeaponExplosive = int.Parse(npgsqlDataReader["weapon_explosive"].ToString()),
                                     WeaponSpecial = int.Parse(npgsqlDataReader["weapon_special"].ToString()),
+                                    WeaponSpecial2 = npgsqlDataReader["weapon_special_2"] != DBNull.Value
+                                        ? int.Parse(npgsqlDataReader["weapon_special_2"].ToString())
+                                        : 0,
                                     CharaRedId = int.Parse(npgsqlDataReader["chara_red_side"].ToString()),
                                     CharaBlueId = int.Parse(npgsqlDataReader["chara_blue_side"].ToString()),
                                     DinoItem = int.Parse(npgsqlDataReader["dino_item_chara"].ToString()),

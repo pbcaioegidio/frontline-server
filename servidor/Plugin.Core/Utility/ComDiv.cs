@@ -161,6 +161,23 @@ namespace Plugin.Core.Utility
                 Equip.WeaponExplosive = 407056;
             if (!flag5)
                 Equip.WeaponSpecial = 508002;
+            if (Equip.WeaponSpecial2 != 0)
+            {
+                bool foundSpecial2 = false;
+                lock (Inventory)
+                {
+                    foreach (ItemsModel itemsModel in Inventory)
+                    {
+                        if (itemsModel.Count > 0U && itemsModel.Id == Equip.WeaponSpecial2)
+                        {
+                            foundSpecial2 = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundSpecial2)
+                    Equip.WeaponSpecial2 = 0;
+            }
             if (!flag6)
                 Equip.CharaRedId = 632656;
             if (!flag7)
@@ -204,9 +221,12 @@ namespace Plugin.Core.Utility
                 Query.AddQuery("weapon_melee", (object)Source.WeaponMelee);
             if (Equip.WeaponExplosive != Source.WeaponExplosive)
                 Query.AddQuery("weapon_explosive", (object)Source.WeaponExplosive);
-            if (Equip.WeaponSpecial == Source.WeaponSpecial)
+            if (Equip.WeaponSpecial == Source.WeaponSpecial && Equip.WeaponSpecial2 == Source.WeaponSpecial2)
                 return;
-            Query.AddQuery("weapon_special", (object)Source.WeaponSpecial);
+            if (Equip.WeaponSpecial != Source.WeaponSpecial)
+                Query.AddQuery("weapon_special", (object)Source.WeaponSpecial);
+            if (Equip.WeaponSpecial2 != Source.WeaponSpecial2)
+                Query.AddQuery("weapon_special_2", (object)Source.WeaponSpecial2);
         }
 
         public static void UpdateChars(PlayerEquipment Source, PlayerEquipment Equip, DBQuery Query)
@@ -267,6 +287,7 @@ namespace Plugin.Core.Utility
             Query.AddQuery("weapon_melee", (object)Equip.WeaponMelee);
             Query.AddQuery("weapon_explosive", (object)Equip.WeaponExplosive);
             Query.AddQuery("weapon_special", (object)Equip.WeaponSpecial);
+            Query.AddQuery("weapon_special_2", (object)Equip.WeaponSpecial2);
         }
 
         public static void UpdateChars(PlayerEquipment Equip, DBQuery Query)

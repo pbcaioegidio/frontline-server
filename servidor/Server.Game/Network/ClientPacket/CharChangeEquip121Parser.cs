@@ -109,6 +109,17 @@ namespace Server.Game.Network.ClientPacket
             characterSlots[1] = CharacterSlots.Length > 1 ? CharacterSlots[1] : 0;
         }
 
+        /// <summary>
+        /// pairs[5] = Arma Especial 2 (slot extra de special no client 121/122).
+        /// </summary>
+        internal int GetWeaponSpecial2()
+        {
+            CharChangeEquip121ItemPair[] pairs = CharacterInfo.Pairs;
+            if (pairs == null || pairs.Length <= 5)
+                return 0;
+            return ToLegacyItemId(pairs[5].ItemId);
+        }
+
         internal static int ToLegacyItemId(uint value)
         {
             if (value > int.MaxValue)

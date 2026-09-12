@@ -121,6 +121,13 @@ namespace Server.Host
             StartDailyResetLoop();
             if (!ComDiv.ValidateAllPlayersAccount())
                 return 1;
+            try
+            {
+                Plugin.Core.StatusFeed.StatusFeedHub.PublishSnapshot(
+                    "up",
+                    Plugin.Core.StatusFeed.StatusFeedHub.SafeOnlineCount());
+            }
+            catch { /* opcional */ }
 
             if (ConfigLoader.ProcessSplit)
             {
@@ -144,6 +151,13 @@ namespace Server.Host
             CLogger.Init();
             if (!ComDiv.ValidateAllPlayersAccount())
                 return 1;
+            try
+            {
+                Plugin.Core.StatusFeed.StatusFeedHub.PublishSnapshot(
+                    "up",
+                    Plugin.Core.StatusFeed.StatusFeedHub.SafeOnlineCount());
+            }
+            catch { /* opcional */ }
             if (!StartService(service))
                 return 1;
             CLogger.Print($"Service '{service}' online.", LoggerType.Info);
@@ -370,6 +384,8 @@ namespace Server.Host
             CompetitiveXML.Load();
             if (includeRcon)
                 RconCommand.Instance();
+            // StatusFeed (Discord #status) — independente do RCON
+            Server.Game.StatusFeed.StatusFeedServer.Instance();
         }
     }
 }

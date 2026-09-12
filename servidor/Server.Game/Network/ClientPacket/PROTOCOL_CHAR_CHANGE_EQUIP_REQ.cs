@@ -30,6 +30,7 @@ namespace Server.Game.Network.ClientPacket
         private readonly int[] Field6 = new int[2];
         private readonly int[] Field7 = new int[2];
         private readonly int[] Field8 = new int[13];
+        private int WeaponSpecial2;
         private readonly SortedList<int, int> Field9 = new SortedList<int, int>();
         private readonly SortedList<int, int> Field10 = new SortedList<int, int>();
         private readonly SortedList<int, int> Field11 = new SortedList<int, int>();
@@ -53,6 +54,7 @@ namespace Server.Game.Network.ClientPacket
             this.Field3 = this.Field10.Count > 0;
 
             packet.CopyToLegacyFields(this.Field8, this.Field6, this.Field7);
+            this.WeaponSpecial2 = packet.GetWeaponSpecial2();
             this.Field4 = packet.CharacterEquipmentChanged;
 
             for (int i = 0; i < packet.ItemInfo3.Length; i++)
@@ -82,7 +84,7 @@ namespace Server.Game.Network.ClientPacket
                     if (this.Field3)
                         AllUtils.ValidateEnabledCoupon(player, this.Field10);
                     if (this.Field4)
-                        AllUtils.ValidateCharacterEquipment(player, player.Equipment, this.Field8, this.Field6, this.Field7);
+                        AllUtils.ValidateCharacterEquipment(player, player.Equipment, this.Field8, this.Field6, this.Field7, this.WeaponSpecial2);
                     if (this.Field5)
                         AllUtils.ValidateItemEquipment(player, this.Field11);
                     if (this.EmoticonsChanged)

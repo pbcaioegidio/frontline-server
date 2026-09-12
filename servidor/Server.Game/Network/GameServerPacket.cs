@@ -240,7 +240,7 @@ namespace Server.Game.Network
             this.WriteB(inv.EquipmentDataChara(eq.SprayId));
             this.WriteB(inv.EquipmentDataChara(eq.NameCardId));
 
-            // 18 x 8B: [0..4] weapons, [5..7] empty, [8] team character, [9..17] parts
+            // 18 x 8B: [0..4] weapons, [5] Arma Especial 2, [6..7] reserved, [8] team character, [9..17] parts
             byte[][] block = new byte[18][];
             for (int i = 0; i < 18; i++)
                 block[i] = new byte[8];
@@ -249,6 +249,7 @@ namespace Server.Game.Network
             block[2] = inv.EquipmentDataChara(eq.WeaponMelee);
             block[3] = inv.EquipmentDataChara(eq.WeaponExplosive);
             block[4] = inv.EquipmentDataChara(eq.WeaponSpecial);
+            block[5] = inv.EquipmentDataChara(eq.WeaponSpecial2);
             block[8] = TeamCharaEntry(account, inv, eq);
             block[9] = inv.EquipmentDataChara(eq.PartHead);
             block[10] = inv.EquipmentDataChara(eq.PartFace);

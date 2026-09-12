@@ -3193,7 +3193,7 @@ namespace Server.Game.Data.Utils
         /// <param name="characterTemps">Personajes temporales</param>
         /// <param name="characterSlots">Slots de personajes</param>
 
-        public static void ValidateCharacterEquipment(Account player, PlayerEquipment equip, int[] equipmentList, int[] characterTemps, int[] characterSlots)
+        public static void ValidateCharacterEquipment(Account player, PlayerEquipment equip, int[] equipmentList, int[] characterTemps, int[] characterSlots, int weaponSpecial2 = 0)
         {
             DBQuery dbQuery = new DBQuery();
             CharacterModel character = player.Character.GetCharacter(characterTemps[0]);
@@ -3226,6 +3226,19 @@ namespace Server.Game.Data.Utils
                 {
                     ValidateEquipmentSlot(equip, dbQuery, index, item.Id);
                 }
+            }
+
+            int special2Id = 0;
+            if (weaponSpecial2 != 0)
+            {
+                ItemsModel special2 = player.Inventory.GetItem(weaponSpecial2);
+                if (special2 != null)
+                    special2Id = special2.Id;
+            }
+            if (equip.WeaponSpecial2 != special2Id)
+            {
+                equip.WeaponSpecial2 = special2Id;
+                dbQuery.AddQuery("weapon_special_2", (object)equip.WeaponSpecial2);
             }
 
             int beretItem = characterTemps[1];

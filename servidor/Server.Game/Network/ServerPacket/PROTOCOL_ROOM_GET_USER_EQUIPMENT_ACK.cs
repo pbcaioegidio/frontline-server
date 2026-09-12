@@ -71,7 +71,7 @@ namespace Server.Game.Network.ServerPacket
             this.WriteD(this.Field2.WeaponMelee);
             this.WriteD(this.Field2.WeaponExplosive);
             this.WriteD(this.Field2.WeaponSpecial);
-            this.WriteD(0);
+            this.WriteD(this.Field2.WeaponSpecial2);
             this.WriteD(0);
             this.WriteD(0);
             this.WriteC((byte)2);

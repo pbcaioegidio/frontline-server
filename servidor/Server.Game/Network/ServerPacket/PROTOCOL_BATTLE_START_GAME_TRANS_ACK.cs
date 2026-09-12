@@ -56,7 +56,7 @@ namespace Server.Game.Network.ServerPacket
             this.WriteD(SafeWeapon(this.Field2.WeaponMelee, 3));
             this.WriteD(SafeWeapon(this.Field2.WeaponExplosive, 4));
             this.WriteD(SafeWeapon(this.Field2.WeaponSpecial, 5));
-            this.WriteD(0);
+            this.WriteD(this.Field2.WeaponSpecial2 != 0 ? SafeWeapon(this.Field2.WeaponSpecial2, 5) : 0);
             this.WriteD(0);
             this.WriteD(0);
             this.WriteD(this.Field4);

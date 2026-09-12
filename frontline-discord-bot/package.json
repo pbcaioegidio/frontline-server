@@ -1,0 +1,25 @@
+{
+  "name": "frontline-discord-bot",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Bot FrontLine | FPS — regras, boas-vindas, saída e música",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "post-regras": "node src/post-regras.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@discordjs/voice": "^0.19.2",
+    "@snazzah/davey": "^0.1.12",
+    "discord-api-types": "^0.38.55",
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "libsodium-wrappers": "^0.8.4",
+    "opusscript": "^0.0.8",
+    "pg": "^8.23.0",
+    "ws": "^8.18.0"
+  }
+}

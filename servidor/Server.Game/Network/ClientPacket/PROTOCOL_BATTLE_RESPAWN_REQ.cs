@@ -22,6 +22,7 @@ namespace Server.Game.Network.ClientPacket
     {
         private int[] Field0;
         private int Field1;
+        private int WeaponSpecial2;
 
         public override void Read()
         {
@@ -29,13 +30,13 @@ namespace Server.Game.Network.ClientPacket
             // 7 weapon records (id,meta) + 8-byte gap + 10 avatar records (id,meta) + flags(u16) + accessory (id,meta) = 154 body bytes.
             // Mapped onto the same Field0 indices ValidateRespawnEQ/Run expect: [0..4]=weapons, [5]=chara, [6..14]=head..beret, [15]=accessory.
             this.Field0 = new int[16 /*0x10*/];
-            // weapons 0..6 (only 0..4 = primary/secondary/melee/explosive/special are consumed; 5,6 are unused extra slots)
+            // weapons 0..6 (0..4 = primary/secondary/melee/explosive/special; 5 = Arma Especial 2; 6 reserved)
             this.Field0[0] = this.ReadD(); this.ReadUD();
             this.Field0[1] = this.ReadD(); this.ReadUD();
             this.Field0[2] = this.ReadD(); this.ReadUD();
             this.Field0[3] = this.ReadD(); this.ReadUD();
             this.Field0[4] = this.ReadD(); this.ReadUD();
-            this.ReadD(); this.ReadUD();
+            this.WeaponSpecial2 = this.ReadD(); this.ReadUD();
             this.ReadD(); this.ReadUD();
             // 8-byte reserved gap
             this.ReadD(); this.ReadD();
@@ -97,6 +98,7 @@ namespace Server.Game.Network.ClientPacket
                 PlayerEquipment Equip = AllUtils.ValidateRespawnEQ(slot, this.Field0);
                 if (Equip != null)
                 {
+                    Equip.WeaponSpecial2 = this.WeaponSpecial2;
                     ComDiv.CheckEquipedItems(Equip, player.Inventory.Items, true);
                     string RoomName = room.Name.ToLower();
                     if (RoomName.Contains("@latam") || RoomName.Contains("@ligacuchillera") || RoomName.Contains("@fc") || RoomName.Contains("@camp") || RoomName.Contains("@evento3") || RoomName.Contains("@torneo") || RoomName.Contains("@ic"))
@@ -113,6 +115,8 @@ namespace Server.Game.Network.ClientPacket
                     if ((this.Field1 & 1) > 0)
                         AllUtils.InsertItem(Equip.WeaponExplosive, slot);
                     AllUtils.InsertItem(Equip.WeaponSpecial, slot);
+                    if (Equip.WeaponSpecial2 != 0)
+                        AllUtils.InsertItem(Equip.WeaponSpecial2, slot);
                     AllUtils.InsertItem(Equip.PartHead, slot);
                     AllUtils.InsertItem(Equip.PartFace, slot);
                     AllUtils.InsertItem(Equip.BeretItem, slot);

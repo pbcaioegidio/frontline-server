@@ -20,6 +20,12 @@ namespace Plugin.Core.Models
 
         public int WeaponSpecial { get; set; }
 
+        /// <summary>
+        /// Segundo slot de arma especial (pairs[5] / Arma Especial 2 no client).
+        /// 0 = vazio; não força default — slot opcional.
+        /// </summary>
+        public int WeaponSpecial2 { get; set; }
+
         public int CharaRedId { get; set; }
 
         public int CharaBlueId { get; set; }

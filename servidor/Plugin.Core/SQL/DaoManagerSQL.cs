@@ -886,6 +886,7 @@ namespace Plugin.Core.SQL
                             WeaponMelee = int.Parse(npgsqlDataReader["weapon_melee"].ToString()),
                             WeaponExplosive = int.Parse(npgsqlDataReader["weapon_explosive"].ToString()),
                             WeaponSpecial = int.Parse(npgsqlDataReader["weapon_special"].ToString()),
+                            WeaponSpecial2 = ReadIntOrDefault(npgsqlDataReader, "weapon_special_2", 0),
                             CharaRedId = int.Parse(npgsqlDataReader["chara_red_side"].ToString()),
                             CharaBlueId = int.Parse(npgsqlDataReader["chara_blue_side"].ToString()),
                             DinoItem = int.Parse(npgsqlDataReader["dino_item_chara"].ToString()),
@@ -4930,6 +4931,21 @@ namespace Plugin.Core.SQL
             {
                 CLogger.Print(ex.Message, LoggerType.Error, ex);
                 return null;
+            }
+        }
+
+        private static int ReadIntOrDefault(NpgsqlDataReader reader, string column, int fallback)
+        {
+            try
+            {
+                int ordinal = reader.GetOrdinal(column);
+                if (reader.IsDBNull(ordinal))
+                    return fallback;
+                return int.Parse(reader[ordinal].ToString());
+            }
+            catch
+            {
+                return fallback;
             }
         }
     }

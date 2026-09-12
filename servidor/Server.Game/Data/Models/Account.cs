@@ -223,6 +223,12 @@ namespace Server.Game.Data.Models
                 return;
             this.IsOnline = Online;
             CLogger.Print($"Account User: {this.Username}, Player UID: {this.PlayerId}, Is {(this.IsOnline ? (object)"Connected" : (object)"Disconnected")}", LoggerType.Info);
+            try
+            {
+                int count = Plugin.Core.StatusFeed.StatusFeedHub.SafeOnlineCount();
+                Plugin.Core.StatusFeed.StatusFeedHub.PublishPlayer(this.PlayerId, this.Nickname, Online, count);
+            }
+            catch { /* StatusFeed opcional */ }
             if (Online || !ConfigLoader.RandomPassword)
                 return;
             ComDiv.UpdateDB("accounts", "password", (object)Bitwise.GenerateRandomPassword(ConfigLoader.RandomPasswordChars, 16 /*0x10*/, ConfigLoader.CryptedPasswordSalt), "player_id", (object)this.PlayerId);

@@ -58,7 +58,7 @@ namespace Server.Game.Network.ServerPacket
             this.WriteD(this.Field2.WeaponMelee);
             this.WriteD(this.Field2.WeaponExplosive);
             this.WriteD(this.Field2.WeaponSpecial);
-            this.WriteD(0);
+            this.WriteD(this.Field2.WeaponSpecial2);
             this.WriteD(0);
             this.WriteD(0);
             this.WriteB(Bitwise.HexStringToByteArray("64 64 64 64 64 00 00 00"));

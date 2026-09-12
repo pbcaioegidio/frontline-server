@@ -55,6 +55,7 @@ namespace Server.Game.Network.ServerPacket
                 block[2] = this.Field3.EquipmentDataChara(this.Field4.WeaponMelee);
                 block[3] = this.Field3.EquipmentDataChara(this.Field4.WeaponExplosive);
                 block[4] = this.Field3.EquipmentDataChara(this.Field4.WeaponSpecial);
+                block[5] = this.Field3.EquipmentDataChara(this.Field4.WeaponSpecial2);
                 block[8] = this.Field3.EquipmentDataChara(this.Field2.Id);
                 block[9] = this.Field3.EquipmentDataChara(this.Field4.PartHead);
                 block[10] = this.Field3.EquipmentDataChara(this.Field4.PartFace);

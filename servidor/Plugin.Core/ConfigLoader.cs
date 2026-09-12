@@ -41,6 +41,11 @@ namespace Plugin.Core
         public static int RconPort;
 
         public static bool RconEnable;
+        public static bool StatusFeedEnable;
+        public static string StatusFeedBindHost;
+        public static string StatusFeedToken;
+        public static int StatusFeedPort;
+        public static int StatusFeedHeartbeatSeconds;
         public static bool RconInfoCommand;
         public static bool RconPrintNotValidIp;
         public static bool RconNotValidIpEnable;
@@ -322,6 +327,16 @@ namespace Plugin.Core
                 RconValidIps.AddRange(Ips.Split(';'));
             }
             else RconValidIps.Add(Ips);
+
+            // StatusFeed (Discord #status) — separado do RCON
+            StatusFeedEnable = CFG.ReadX("StatusFeedEnable", false, "Rcon")
+                || string.Equals(GetEnvironment("PB_STATUS_FEED_ENABLE", ""), "true", StringComparison.OrdinalIgnoreCase)
+                || GetEnvironment("PB_STATUS_FEED_ENABLE", "") == "1";
+            StatusFeedBindHost = GetEnvironment("PB_STATUS_FEED_BIND_HOST", CFG.ReadS("StatusFeedBindHost", "0.0.0.0", "Rcon"));
+            StatusFeedPort = GetEnvironmentInt("PB_STATUS_FEED_PORT", CFG.ReadD("StatusFeedPort", 30001, "Rcon"));
+            StatusFeedToken = GetEnvironment("PB_STATUS_FEED_TOKEN", CFG.ReadS("StatusFeedToken", "", "Rcon"));
+            StatusFeedHeartbeatSeconds = GetEnvironmentInt("PB_STATUS_FEED_HEARTBEAT_SECONDS", CFG.ReadD("StatusFeedHeartbeatSeconds", 120, "Rcon"));
+            Plugin.Core.StatusFeed.StatusFeedHub.Configure(StatusFeedEnable, StatusFeedHeartbeatSeconds);
         }
 
         private static void LoadTimeline()

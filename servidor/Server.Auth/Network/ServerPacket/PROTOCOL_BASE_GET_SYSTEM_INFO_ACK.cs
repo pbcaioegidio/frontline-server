@@ -50,7 +50,8 @@ namespace Server.Auth.Network.ServerPacket
             this.WriteH((short)2315);   // opcode (source[2..3])
             this.WriteH((short)0);      // preamble word (source[4..5])
 
-            this.WriteC((byte)0);                                       // head  throw2PointSlotMax    -> UISystemCtx, Throw2PointSlotMaxDays (client clamps <=100)
+            // >0 libera o cadeado de Arma Especial 2 (Throw2PointSlotMaxDays; client clamp <=100).
+            this.WriteC((byte)100);                                     // head  throw2PointSlotMax    -> UISystemCtx, Throw2PointSlotMaxDays
             this.WriteB(new byte[DismantleSettingSize]);                // 00    dismantleSetting      DISMANTLE_SETTING (4B)
             this.WriteC((byte)0);                                       // 01    reserved01            byte (client ignores)
             this.WriteC((byte)this.Field4[0].Length);                   // 02    missionCardFixHash    StringA<33> (MissionCardFix.dat)

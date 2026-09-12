@@ -106,7 +106,7 @@ namespace Server.Game.Network.ServerPacket
                                 syncServerPacket.WriteD(SafeWeapon(equipment.WeaponMelee, 3));
                                 syncServerPacket.WriteD(SafeWeapon(equipment.WeaponExplosive, 4));
                                 syncServerPacket.WriteD(SafeWeapon(equipment.WeaponSpecial, 5));
-                                syncServerPacket.WriteD(0);
+                                syncServerPacket.WriteD(equipment.WeaponSpecial2 != 0 ? SafeWeapon(equipment.WeaponSpecial2, 5) : 0);
                                 syncServerPacket.WriteD(0);
                                 syncServerPacket.WriteD(0);
                                 syncServerPacket.WriteD(num);
