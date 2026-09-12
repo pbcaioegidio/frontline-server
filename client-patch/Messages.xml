@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<message version="20260602">
+	<SOCKETS_INIT_FAILED> A inicialização do Windows Socket falhou. </SOCKETS_INIT_FAILED>
+	<UPDATER_INIT_FAILED> A inicialização do Launcher falhou. </UPDATER_INIT_FAILED>
+	<FILELIST_OPEN_FAILED> Não foi possível abrir a lista de arquivos.</FILELIST_OPEN_FAILED>
+	<DUPLICATE_EXE> Você não pode executar dois programas ao mesmo tempo. </DUPLICATE_EXE>
+	<RUNTIME_LONG> O Jogo não foi iniciado, o Launcher será fechado. </RUNTIME_LONG>
+	<DO_NOT_EXE> Não foi possível iniciar o Jogo. </DO_NOT_EXE>
+	<DISK_FREE_LACK> Não há espaço em disco suficiente para o Patch.</DISK_FREE_LACK>
+	<NEEDED_FILECHECK> É necessária uma verificação nos arquivos. Pressione o botão de Check. </NEEDED_FILECHECK>
+	<CREATE_GAME_FAIL> Não foi possível iniciar o Jogo. Por favor, tente novamente. </CREATE_GAME_FAIL>
+	<CMDE_UPDATE_START> Falha em Iniciar a atualização. </CMDE_UPDATE_START>
+	<CMDE_UPDATE_PAUSE> Falha em Pausar a atualização. </CMDE_UPDATE_PAUSE>
+	<CMDE_FILECHECK1_FAIL> Falha em iniciar a verificação nos arquivos. </CMDE_FILECHECK1_FAIL>
+	<QUESTION_EXIT> Você tem certeza que deseja sair? </QUESTION_EXIT>
+	<REPOS_CONNECT_FAIL> Não é possível conectar ao servidor de arquivos. </REPOS_CONNECT_FAIL>
+	<INIT_WAIT_MSG> Por favor, espere ... </INIT_WAIT_MSG>
+	<STATE_FILE_CHECK> Check </STATE_FILE_CHECK>
+	<STATE_SIMPLE_VERSION_ACK> Estamos verificando por versões mais recentes. </STATE_SIMPLE_VERSION_ACK>
+	<STATE_SIMPLE_UPDATE_WAIT> Clique no botão Update. </STATE_SIMPLE_UPDATE_WAIT>
+	<STATE_SIMPLE_PATCHDOWN> O Patch está sendo baixado. </STATE_SIMPLE_PATCHDOWN>
+	<STATE_SIMPLE_FILE_UNZIP> Descompactando o Patch. </STATE_SIMPLE_FILE_UNZIP>
+	<STATE_SIMPLE_PATCH_APPLY> O Patch está sendo instalado. </STATE_SIMPLE_PATCH_APPLY>
+	<STATE_SIMPLE_PATCH_END> Você pode iniciar o jogo. </STATE_SIMPLE_PATCH_END>
+	<STATE_SIMPLE_ERROR> Algo deu errado. </STATE_SIMPLE_ERROR>
+	<STATE_SIMPLE_PATCHDOWN_END> O Patch foi baixado. </STATE_SIMPLE_PATCHDOWN_END>
+	<STATE_SIMPLE_VERSION_CHECK> Estamos checando a versão. </STATE_SIMPLE_VERSION_CHECK>
+	<CONNECT_FAIL2> Não foi possível conectar ao servidor. </CONNECT_FAIL2>
+	<NETWORK_INIT_FAIL> O servidor não consegue se conectar por causa de um limite permitido. </NETWORK_INIT_FAIL>
+	<LATESTFILELIST_OPEN_FAILED> Não é possível abrir a mais recente lista de arquivos. </LATESTFILELIST_OPEN_FAILED>
+	<FILELIST_COMPARE_FAILED> A comparação da lista de arquivos falhou. </FILELIST_COMPARE_FAILED>
+	<USERFILELIST_CHANGE_FAILED> Falha ao alterar a lista de arquivos. </USERFILELIST_CHANGE_FAILED>
+	<LATESTFILELIST_DELETE_FAILED> Falha ao excluir a lista de arquivos. </LATESTFILELIST_DELETE_FAILED>
+	<PATCHFILE_DOWNLOAD_FAILED> Falha no download do Patch. </PATCHFILE_DOWNLOAD_FAILED>
+	<FILE_DOWNLOAD_REQ_FAILED> A solicitação do download falhou. </FILE_DOWNLOAD_REQ_FAILED>
+	<FILELIST_DOWN_FAILED> Você não pode baixar a lista de arquivos. </FILELIST_DOWN_FAILED>
+	<LAUNCHER_VER_DIFF> O Launcher foi atualizado. Por favor, tente novamente.  </LAUNCHER_VER_DIFF>
+	<LAUNCHER_DOWNLOAD_FAILED> Falha no download do novo Launcher. </LAUNCHER_DOWNLOAD_FAILED>
+	<LAUNCHER_MODIFIER_RUN_FAILED> Você não pode executar a modificação do Launcher. </LAUNCHER_MODIFIER_RUN_FAILED>
+	<NOT_FOUND_GAME_EXE> O .EXE do Jogo não foi encontrado. </NOT_FOUND_GAME_EXE>
+	<UZIP_ERROR> Falha na descompactação. </UZIP_ERROR>
+	<CONVERT_DOMAIN_TO_IP_FAILED> Não foi possível corrigir o endereço do servidor. </CONVERT_DOMAIN_TO_IP_FAILED>
+	<PATCHFILE_MAY_BE_CORRUPTED> O Patch parece estar corrompido. Por favor, tente novamente mais tarde. </PATCHFILE_MAY_BE_CORRUPTED>
+	<CANNOT_GET_MODULE_NAME> Não foi possível obter o arquivo do módulo. </CANNOT_GET_MODULE_NAME>
+	<CANNOT_GET_FILESYSTEM_NAME> Não é possível obter informações sobre o sistema de arquivos. </CANNOT_GET_FILESYSTEM_NAME>
+	<DOWNLOAD_RESTART_FAILED> Falha em reiniciar o download. </DOWNLOAD_RESTART_FAILED>
+	<SERVER_ACK_TIMEOUT> Você não recebeu uma resposta do servidor. </SERVER_ACK_TIMEOUT>
+	<FAILED_TO_LAUNCHER_UPDATE> O Patch de configuração do Launcher falhou. </FAILED_TO_LAUNCHER_UPDATE>
+	<USER_IS_NOT_ADMIN>Please log in with Windows Administrator privileges and try again.</USER_IS_NOT_ADMIN>
+	<LOGIN_MSG_SOCKETS_CONNECTED_FAILED>Falha na conexão com o Servidor de Login.</LOGIN_MSG_SOCKETS_CONNECTED_FAILED>
+	<LOGIN_MSG_RELOGIN>Faça Login novamente.</LOGIN_MSG_RELOGIN>
+	<LOGIN_MSG_NOT_EXIST_ID>ID e/ou Senha incorretos.</LOGIN_MSG_NOT_EXIST_ID>
+	<LOGIN_MSG_PASSWORD_WRONG>Senha incorreta.</LOGIN_MSG_PASSWORD_WRONG>
+	<LOGIN_MSG_FAIL_GET_LOGIN_INFO>Não foi possível carregar as informações de Login</LOGIN_MSG_FAIL_GET_LOGIN_INFO>
+	<LOGIN_MSG_LOGIN_TIMEOUT>Tempo limite excedido. Conexão encerrada.</LOGIN_MSG_LOGIN_TIMEOUT>
+	<LOGIN_JOIN_LINK>Não possui Conta?</LOGIN_JOIN_LINK>
+	<LOGIN_FORGOT_LINK>Esqueceu sua ID e/ou Senha?</LOGIN_FORGOT_LINK>
+	<LOGIN_BAN_ACCOUNTFRAUD>Conduta inadequada</LOGIN_BAN_ACCOUNTFRAUD>
+	<LOGIN_BAN_BADWORDS>Palavras de baixo calão</LOGIN_BAN_BADWORDS>
+	<LOGIN_BAN_CHEAT>Uso de programas ilegais</LOGIN_BAN_CHEAT>
+	<LOGIN_BAN_BILLINGFRAUD>Fraude na loja / pagamento</LOGIN_BAN_BILLINGFRAUD>
+	<LOGIN_BAN_TEMPORARY>Bloqueio temporário. Entre em contato com o Suporte</LOGIN_BAN_TEMPORARY>
+	<LOGIN_BAN_10FAIL>Você digitou a senha errada mais de %d vezes. (Acesso suspenso por %d minutos)</LOGIN_BAN_10FAIL>
+	<LOGIN_BAN_PERMANENT>Bloqueio permanente</LOGIN_BAN_PERMANENT>
+	<LOGIN_MSG_DORMANT_ACCOUNT>Não é possível realizar login com uma conta inativa. Por favor, visite o site antes de tentar o login novamente</LOGIN_MSG_DORMANT_ACCOUNT>
+	<LOGIN_MSG_ACCOUNT_TRANS>Faça a transferência de sua conta no site antes de acessar o jogo</LOGIN_MSG_ACCOUNT_TRANS>
+	<STR_LOGIN_MSG_ADULT_AUTH_REQUIRED>É necessária a verificação de idade. Você será redirecionado para a página de verificação.</STR_LOGIN_MSG_ADULT_AUTH_REQUIRED>
+	<STR_LOGIN_MSG_ADULT_AUTH_TOKEN_FAIL>A página de verificação de idade está sendo preparada. Por favor, tente entrar novamente em instantes.</STR_LOGIN_MSG_ADULT_AUTH_TOKEN_FAIL>
+<policy>Bem-vindo ao site FrontLine administrado pela ZEPETTO CO. e ZEPETTO BRASIL LTDA. (individual e coletivamente, "Zepetto", "nós" ou "nosso").
+A Zepetto está comprometida em respeitar os direitos e preocupações de privacidade de todos os usuários do nosso site pointblank.zepetto.com (o "Site").
+
+Como tal, estabelecemos e implementamos esta declaração de privacidade para informar os visitantes do Site e os usuários do serviço Zepetto como usamos e protegemos as informações que coletamos.
+
+Se você tiver alguma dúvida sobre essas informações ou sobre nossas práticas de privacidade, consulte a seção intitulada "Dúvidas? Entre em contato conosco" no final desta declaração de privacidade.
+
+Sujeita a aplicação do Ccontrato de Licença de Usuário Final e Termos de Uso do Serviço, a Zepetto não coleta informações de identificação pessoal, a menos que nossos visitantes nos forneçam voluntariamente. No entanto, coletamos determinados tipos de informações e solicitamos informações pessoais em determinadas circunstâncias, como quando você estabelece uma conta. As seções a seguir descrevem que tipo de informações coletamos, quando as coletamos e como as utilizamos.
+
+Por favor, leia também os Termos de Serviço que estabelecem o uso, isenções de responsabilidade e limitações de responsabilidade que regem o uso do Site e do Serviço Zepetto.
+Informações Que Coletamos
+
+Podemos coletar informações diferentes suas quando você usa nosso Serviço. A seguir estão exemplos para ajudá-lo a entender melhor os tipos de informações que coletamos.
+
+1. Informações Que Você Fornece Diretamente
+Quando você usa nosso Serviço, podemos coletar informações que você nos fornece diretamente, incluindo, mas não limitado a:
+
+Informações de Registro e Perfil. Seu nome de usuário, senha e outras informações relacionadas para fins de registro ou criação de um perfil.
+
+Informações de Pagamento. Seus números de cartão de crédito e outras informações de cobrança, como Nome Completo e CPF, para concluir transações.
+
+Informações Compartilhadas Publicamente. Informações que você compartilha publicamente por meio de nossos Serviços, como postagens em fóruns da comunidade, redes sociais e blogs, bate-papo em canais públicos e seu perfil público. (Esteja ciente de que tais informações são informações públicas. Você não deve esperar privacidade ou confidencialidade sob estas circunstâncias, e não seremos responsáveis de forma alguma pela divulgação de tais informações.)
+
+Informações para Suporte ao Cliente. Informações que você fornece quando nos contata para obter assistência ou para relatar um problema.
+
+Lista de Amigos. Sua lista de amigos (por exemplo, se você indicar outros para nossos Serviços ou formar um grupo dentro de nossos Serviços).
+
+Sorteios/Promoções. Informações que você fornece para participar de sorteios e promoções.
+
+2. Informações Coletadas Por Meio da Tecnologia
+Recolhemos informações através da tecnologia para tornar os nossos Serviços mais úteis e interessantes para os nossos utilizadores, incluindo, mas não limitado a:
+
+Cookies. Poderemos usar cookies para rastrear informações gerais e não pessoais sobre nossos usuários para fins estatísticos e de pesquisa de mercado (por exemplo, nome de usuário, páginas visualizadas, tempo gasto em aplicativos, sites visitados imediatamente antes e logo após nossos Serviços, etc.). Esta informação é recolhida de forma agregada e anônima.
+
+Arquivos de Registro (Log). Como a maioria dos serviços de Internet, também podemos usar arquivos de log no lado do servidor. Os dados mantidos nos arquivos de log incluem seu endereço de protocolo de Internet (IP), endereço de controle de acesso ao meio (MAC), tipo de navegador, provedor de serviços de Internet, sites de referência/saída, tipo de dispositivo, carimbo de data/hora e atividade do usuário (por exemplo, uso de recursos, classificações de usuários, estatísticas de jogos).
+
+Arquivos temporários. Além disso, o software que permite nossos sites pode ter arquivos de log e temporários associados que são armazenados em nossos servidores. Esses arquivos armazenam informações da sua conta, configurações de preferências, notificações do sistema, bem como outros dados necessários para permitir que você use nossos serviços. Suas informações também podem existir em backups de servidor realizados regularmente. Esta informação é recolhida de forma agregada e anônima.
+
+Patches. Quando qualquer jogo ou aplicativo é atualizado ou "corrigido", nossa rotina de correção pode verificar seu dispositivo para ver se você possui a versão mais recente dos arquivos.
+
+De forma agregada e anônima, também poderemos coletar outras informações por meio da tecnologia, como informações sobre hardware, sistemas operacionais e padrões de uso de nossos usuários.
+
+Como Usamos Suas Informações
+
+Podemos usar as informações que coletamos para diversos fins, principalmente para operar e melhorar nosso serviço. Nossos usos incluem, mas não se limitam a:
+
+Comunicações. Comunicações com você sobre sua conta e nosso serviço, como novos recursos e ofertas.
+
+Serviços. Fornecer nosso serviço, como atender solicitações e resolver problemas de suporte ao cliente.
+
+Análise. Analisar tendências e comportamento do usuário para melhorar nosso serviço e desenvolver novos serviços.
+
+Proteção. Proteger nosso serviço contra uso indevido e, conforme necessário ou apropriado em nossa determinação, proteger a segurança de nossos usuários, funcionários e terceiros, ou a integridade de nosso serviço.
+
+Por fim, podemos pegar suas informações pessoais e torná-las não pessoalmente identificáveis. Fazemos isso combinando-as com informações sobre outros indivíduos (agregando suas informações com informações sobre outros indivíduos) ou removendo características (por exemplo, seu nome) que tornam as informações pessoalmente identificáveis para você. Este processo é conhecido como despersonalização de suas informações. Dada a natureza não pessoal destas informações, nenhuma restrição se aplica sob esta Política de Privacidade ao nosso direito de usar informações despersonalizadas.
+
+Compartilhamento De Informações Com Terceiros
+
+Não compartilharemos suas informações pessoais com anunciantes terceiros não relacionados.
+Somente compartilharemos suas informações pessoais com terceiros nas seguintes circunstâncias:
+
+Nossos Provedores de Serviços. Poderemos utilizar ou fazer parceria com outras empresas para fornecer nosso serviço, como fornecedores e prestadores de serviços que analisam a interação dos clientes com nosso serviço e realizam pesquisas com consumidores, ou empresas que co-desenvolvem ou co-publicam jogos conosco. Ao fornecerem seus serviços, essas empresas poderão acessar suas informações pessoais, mas nós as instruiremos a manter a confidencialidade de tais informações e a utilizá-las exclusivamente para a execução dos serviços aplicáveis.
+
+Divulgações Obrigatórias. Divulgaremos informações pessoais quando acreditarmos de boa fé que a divulgação é exigida ou permitida por lei (por exemplo, ordem judicial ou intimação) ou tal divulgação ajuda (I) a fazer cumprir nossos termos de uso, concursos, sorteios, promoções, regras do jogo ou restrições semelhantes, ou (II) proteger a segurança de nossos usuários, funcionários e terceiros, ou a integridade de nosso Serviço.
+
+Fusões e Transações Societárias. No caso de passarmos por uma transição comercial, como uma fusão, aquisição, consórcio, alienação ou dissolução corporativa, venda de ativos ou transações semelhantes, poderemos compartilhar, divulgar ou transferir suas informações, incluindo informações pessoais, para o outras organizações que sejam partes de tais transações.
+
+Sorteios e Promoções. Poderemos compartilhar suas informações em conexão com quaisquer sorteios ou promoções que você participe em conexão com nossos serviços, conforme necessário para administrá-los, comercializá-los, patrociná-los, administrá-los ou cumpri-los ou conforme exigido pelas leis, regras ou regulamentos aplicáveis.
+
+Ofertas. Nosso serviço pode exibir "ofertas" hospedadas por fornecedores terceirizados. As ofertas podem, por exemplo, fornecer moeda virtual aos utilizadores em troca da interação com um anúncio ou da conclusão de uma oferta de marketing. Para creditar adequadamente as contas dos usuários e evitar fraudes, um identificador exclusivo, em alguns casos o seu ID de Usuário, pode ser compartilhado com os provedores de ofertas. Esteja ciente de que, após clicar em uma dessas ofertas, você não estará mais em nosso serviço e as informações que você fornecer irão diretamente para o fornecedor terceirizado.
+
+Com sua permissão. Além disso, se você optar ou concordar que suas informações sejam compartilhadas com terceiros, compartilharemos suas informações adequadamente, caso em que o uso de suas informações por terceiros estará sujeito às políticas de privacidade do próprio terceiro.
+
+Conforme discutido acima, podemos usar informações despersonalizadas de qualquer forma, inclusive compartilhando-as com terceiros, sem o seu consentimento. Entre outras coisas, podemos compartilhar algumas das informações que coletamos de você ao instalar um aplicativo móvel com fornecedores e outros prestadores de serviços que trabalham conosco em conexão com a operação do nosso serviço e/ou para fins analíticos que podem exigir a reprodução e exibição de informações despersonalizadas. Você pode optar por sair “opt-out” da coleta de suas informações para fins analíticos de terceiros seguindo as instruções fornecidas pelo nosso fornecedor de análises terceirizado. Se você optar por sair "opt-out" de um provedor de análise terceirizado, essa ação será específica apenas desse provedor e não limitará de outra forma nossa coleta de informações sob os termos desta Política de Privacidade.
+
+Segurança Das Suas Informações
+
+Estamos comprometidos em proteger suas informações, e implementamos medidas de segurança razoáveis para protegê-las. Também atualizamos constantemente nossa tecnologia com o objetivo de proteger melhor suas informações.
+Embora tomemos precauções razoáveis contra possíveis violações de segurança, nenhum site ou transmissão pela Internet é completamente seguro e não podemos garantir que não ocorrerão acessos não autorizados, hackers, perda de dados ou outras violações. Recomendamos que você tome medidas para manter suas informações pessoais seguras, use senhas fortes, saia da sua conta após o uso e use senhas diferentes para serviços diferentes com empresas diferentes. É importante que você também ajude a proteger e manter a segurança da sua conta. Por favor, avise-nos imediatamente sobre qualquer uso não autorizado.
+
+
+Modificação Da Política De Privacidade
+
+Poderemos atualizar e modificar periodicamente nossa política de privacidade para refletir mudanças nos tipos de informações que coletamos, nos meios que usamos para coletar informações e/ou no uso das informações coletadas. Tentaremos notificá-lo sobre qualquer atualização ou modificação. No entanto, você é responsável por revisar periodicamente nossa Política de Privacidade. O seu uso do Site e/ou de quaisquer produtos ou serviços oferecidos pelo Site significa sua concordância com a Política de Privacidade atualizada ou modificada.
+
+Direito de Acesso
+
+Usuários em certas jurisdições têm o direito de acessar informações pessoais mantidas sobre si mesmos. Seu direito de acesso pode ser exercido de acordo com a lei aplicável. Envie quaisquer solicitações de acesso aos seus dados pessoais por escrito para privacy@zepettolatam.com.
+
+Notificação De Alterações
+
+Ao visitar o Site ou usar o Serviço Zepetto, você concorda com a coleta e uso de informações por nós, conforme estabelecido nesta declaração de privacidade. Se decidirmos alterar a nossa declaração de privacidade, publicaremos essas alterações nos nossos sites para que os nossos utilizadores estejam sempre cientes das informações que recolhemos, como as utilizamos e em que circunstâncias, se houver, as divulgamos.
+Dúvidas? Contate-Nos
+
+Caso tenha alguma dúvida, comentário ou preocupação sobre nossa Política de Privacidade ou práticas, não hesite em entrar em contato conosco pelo e-mail: privacy@zepettolatam.com.
+
+Data efetiva (ou Última atualização): 01 de Dezembro de 2024
+</policy>
+<terms>
+Bem-vindo ao FRONTLINE (o "Site"). Por favor, leia os seguintes Termos de Serviço cuidadosamente antes de usar este Site ou abrir uma conta ("Conta") pointblank.zepetto.com, para que você esteja ciente de seus direitos legais e obrigações legais em relação a ZEPETTO CO. e ZEPETTO BRASIL (individual e coletivamente, "nós", “nosso” ou "Zepetto").
+ 
+Este documento contém os termos de uso para sua visita e permanência em pointblank.zepetto.com (ou qualquer URL subsequente que possa substituí-lo) e todos os sites e micro-sites oficialmente associados operados pela Zepetto (coletivamente, o "Site").
+ 
+O "Serviço" inclui o Site, todas as informações, dados, textos, imagens, fotografias, gráficos, músicas, sons, vídeos, mensagens, tags, conteúdo, programação, software ou outros materiais disponibilizados através do Site ou serviços ("Conteúdo"). Quaisquer novos recursos adicionados a ou que aumentem o Serviço também estão sujeitos a estes Termos de Serviço.
+ 
+A Zepetto tem o direito de revisar estes Termos de Serviço a qualquer momento, sem aviso prévio aos seus usuários. Seu uso contínuo do Serviço, deste Site ou de sua Conta será considerado uma aceitação irrevogável dessas revisões.
+ 
+A Zepetto reserva-se o direito de alterar, modificar, suspender ou descontinuar qualquer parte deste Site ou do Serviço a qualquer momento. A Zepetto também pode impor limites a certos recursos ou restringir seu acesso a partes ou a todo o Site ou Serviço a seu exclusivo critério e sem aviso prévio ou responsabilidade.
+ 
+A Zepetto reserva-se o direito de recusar fornecer acesso ao Site ou Serviço ou permitir que você abra uma Conta por qualquer motivo.
+1. Acordo Legal
+ 
+Ao utilizar este Site ou acessar qualquer um de nossos jogos, você concorda em aceitar e ficar vinculado aos termos e condições que aparecem neste documento, e concorda em cumprir quaisquer regras de conduta, termos de uso de serviço, política de privacidade, política de gerenciamento de jogo e qualquer contrato de licença de usuário final aplicável aos nossos jogos, que podem ser alterados de tempo em tempo.
+Você declara que tem capacidade legal para celebrar este Contrato e que não está impedido de receber serviços oferecidos pelo Site sob as leis do Brasil ou de outra jurisdição aplicável. Você entende que os serviços oferecidos podem incluir certas comunicações da Zepetto, como anúncios de serviço, mensagens administrativas ou outras informações, e que essas comunicações constituem os serviços oferecidos pelo Site e você pode não ter o direito de optar por não recebê-las.
+A Zepetto poderá alterar este Contrato, quaisquer regras de conduta, termos de uso de serviço, política de privacidade, política de gerenciamento de jogo e qualquer contrato de licença de usuário final a qualquer momento, a seu exclusivo critério. As alterações e modificações entrarão em vigor imediatamente após serem publicadas no Site. Você concorda e é responsável por verificar este Contrato, as regras de conduta, termos de uso de serviço, política de privacidade, política de gerenciamento de jogo e, qualquer contrato de licença de usuário final periodicamente para que você esteja familiarizado com seus conteúdos, pois eles podem ser alterados ou modificado de tempos em tempos. Ao continuar a usar o Site e seus serviços, você indica que aceita quaisquer termos revisados ou atualizados.
+A Zepetto é a proprietária do Site. O seu uso do Site está sempre sujeito a este Contrato, a quaisquer regras de conduta, termos de uso de serviço, política de privacidade, política de gerenciamento de jogo e qualquer contrato de licença de usuário final aplicável aos nossos jogos. Todas as identidades de usuário criadas no site são regidas por estes termos. Isto inclui, mas não está limitado a, conduta adequada dentro e fora do jogo. Este Contrato é um acréscimo a, e não substitui ou suplanta de forma alguma, qualquer contrato de licença de usuário final que possa acompanhar o software Zepetto (o "CONTRATO DE LICENÇA DE USUÁRIO FINAL") e ao qual o software Zepetto está sujeito. Você também pode estar sujeito a termos e condições adicionais que podem ser aplicados quando você usa ou compra determinados outros serviços da Zepetto, serviços afiliados, conteúdo de terceiros ou software de terceiros.
+Todos os direitos e títulos no e do Site e em qualquer um de nossos jogos publicados (incluindo, sem limitação, quaisquer contas de usuário, títulos, códigos de computador, temas, objetos, personagens, nomes de personagens, histórias, diálogos, frases de efeito, locais, conceitos, obras de arte, animação, sons, musicas, composições, efeitos audiovisuais, métodos de operação, direitos morais, qualquer documentação relacionada, "miniaplicativos" incorporados ao(s) jogo(s), transcrições das salas de bate-papo, informações de perfil do personagem, gravações do jogo , e o(s) software(s) de cliente e servidor do(s) jogo(s) são de propriedade da Zepetto ou foram licenciados para a Zepetto.
+2. Descrição do Serviço
+ 
+A Zepetto oferece jogos gratuitos, de alta qualidade aos nossos membros. Conteúdos adicionais também estão disponíveis em nosso Site. Para acessar nossos jogos, pode ser necessário baixar e instalar determinados softwares. Isto implica o uso de hardware, software e acesso à internet. Ao utilizar o Site, você reconhece que o hardware, o software e o acesso à internet desempenham um papel crucial na sua experiência de usuário. Você concorda que a Zepetto não é responsável por quaisquer problemas de hardware, software ou acesso à internet ou indisponibilidade e concorda em nos isentar de quaisquer problemas. A Zepetto não fornece acesso à internet, e você é responsável por todas as taxas referentes a tarifas telefônicas e de acesso à internet, assim como todos os equipamentos necessários, serviços, reparos ou correções relacionadas em manter a conectividade aos servidores.
+ 
+3. Conta
+Pode ser necessário que você crie uma conta (uma "Conta") para acessar nosso Site e nossos jogos. Apenas uma pessoa pode usar uma conta. Você é responsável por todas as atividades realizadas através de sua conta.
+Ao criar uma identidade de usuário ("ID de Usuário") você concorda em (I) fornecer informações verdadeiras, precisas, atuais e completas conforme solicitado nos campos obrigatórios e (II) manter e atualizar prontamente tal ID de Usuário para mantê-la verdadeira, precisa, atual e completa. As informações que você forneceu estarão sujeitas à nossa Política de Privacidade.
+Você, como criador do seu ID de usuário, é totalmente responsável pela sua identidade. A Zepetto não tolerará identidades de usuário ofensivas ou obscenas. Se um ID de Usuário violar qualquer parte destes termos, poderemos banir imediata, temporária ou permanentemente tal ID de Usuário.
+A Zepetto não é responsável por qualquer uso indevido de sua ID de Usuário. Você concorda em isentar a Zepetto e seu licenciante e afiliados de qualquer uso indevido de tal identidade, incluindo, mas não limitado a, uso indevido por alguém a quem você revelou sua senha.
+Sua ID de Usuário poderá ser desativada se você não a utilizar dentro de seis meses após a data em que foi criada ou por qualquer período contínuo de seis meses após a criação. Se você não usar sua ID de Usuário por seis meses ou mais, ela poderá ser removida e excluída pelo administrador do Site a seu exclusivo critério. Faremos esforços razoáveis para notificá-lo por e-mail antes de excluirmos sua ID de Usuário. Se você nos informar, dentro de cinco dias após o aviso, que deseja manter sua ID de Usuário ativa, não a excluiremos. Se você não nos notificar, sua ID de Usuário será excluída permanentemente, juntamente com seus registros de ID de Usuário, classificações e informações de serviço.
+4. Privacidade
+ 
+Nossa Política de Privacidade, que cobre o uso e proteção de suas informações pessoais, está publicada no Site, atualmente em https://pointblank.zepetto.com/br/member/policy/privacy, e é incorporada aqui por esta referência
+ 
+5. Licença de Uso
+ 
+Sujeito aos termos deste Contrato e a qualquer CONTRATO DE LICENÇA DE USUÁRIO FINAL aplicável, a Zepetto concede a você, apenas para seu uso pessoal, uma licença não exclusiva, revogável e intransferível para usar os serviços oferecidos pelo nosso Site, incluindo acesso aos nossos jogos (os "Serviços "), e uma licença não exclusiva, revogável e intransferível para usar qualquer software (o "Software") em conexão com os Serviços, gratuitamente.
+ 
+Você não pode (a) sublicenciar, alugar, arrendar, emprestar, vender ou de outra forma transferir o Software ou os Serviços (ou qualquer parte deles) (b) modificar, adaptar, fazer engenharia reversa ou descompilar o Software, ou de outra forma tentar derivar o código-fonte do Software; (c) criar quaisquer trabalhos derivados em relação ao Software ou ao Serviço; ou (d) de outra forma usar o Software ou o Serviço exceto conforme expressamente previsto neste Contrato. O Título do Software, e todos os direitos relativos ao Software e Serviço não concedidos especificamente sob este Contrato, incluindo, sem limitação, todos os direitos de reprodução, modificação, distribuição, exibição, desmontagem e descompilação e todos os direitos autorais, patentes, marcas registradas, segredos comerciais e outros direitos e interesses de propriedade são reservados à Zepetto ou ao(s) seu(s) licenciante(s).
+ 
+NEM A Zepetto NEM SEUS LICENCIANTES TÊM QUALQUER RESPONSABILIDADE DE QUALQUER TIPO OU NATUREZA EM CONEXÃO COM O SEU USO DO SOFTWARE (INCLUINDO RESPONSABILIDADE POR QUAISQUER DANOS CONSEQÜENCIAIS OU INCIDENTAIS OU DANOS AO HARDWARE OU SOFTWARE DO SEU COMPUTADOR) E TODO O RISCO DE USO (INCLUINDO, SEM LIMITAÇÃO, QUALQUER DANO AO HARDWARE OU SOFTWARE DO SEU COMPUTADOR) RESIDE COM VOCÊ.
+ 
+Conforme descrito mais especificamente em cada CONTRATO DE LICENÇA DE USUÁRIO FINAL aplicável, a Zepetto e/ou seus licenciantes detêm direito exclusivo, título e interesse (incluindo todos os direitos de propriedade intelectual) no e para o Software, cópias do mesmo, e todas as correções de erros, correções de bugs, patches, atualizações, trabalhos derivados, melhorias, modificações (sejam feitas pela Zepetto, seus licenciantes, você ou de outra forma), incluindo, mas não se limitando a, quaisquer títulos, código de computador, temas, objetos, personagens, nomes de personagens, histórias, diálogos, frases de efeito, locais, conceitos, obras de arte, inventários de personagens, projetos estruturais ou paisagísticos, animações, sons, composições musicais, efeitos audiovisuais, enredos, semelhanças de personagens, métodos de operação, direitos morais, qualquer documentação relacionada e "miniaplicativos" incorporados ao Software. Os direitos descritos na frase anterior são obras protegidas por direitos autorais da Zepetto e/ou de seus licenciantes e são protegidos pelas leis de direitos autorais dos Estados Unidos, Coréia, Japão, tratados e convenções internacionais de direitos autorais, e/ou outras leis aplicáveis. Todos os direitos são reservados. O Software pode conter determinados materiais licenciados, e os licenciantes desses materiais poderão fazer valer os seus direitos no caso de qualquer violação do CONTRATO DE LICENÇA DE USUÁRIO FINAL.
+6. Envios de Usuários
+ 
+"Envios" significam todos os dados, textos, músicas, sons, fotografias, comentários, feedback, sugestões, postagens em fóruns, salas de bate-papo e locais semelhantes no Site, e-mails e informações ou materiais semelhantes que você envia à Zepetto em relação aos jogos e os serviços da Zepetto ou o ato de usar ou jogar estes jogos e serviços. IDs de Usuários e Envios não são confidenciais e se tornarão propriedade da Zepetto após o envio. Você concorda em atribuir e conceder à Zepetto um direito irrevogável, transferível, isento de royalties, e direito perpétuo e licença para todos em todo o mundo, licença transferível e o direito de citar, republicar, usar, reproduzir, modificar, distribuir, transmitir, transmitis via broadcast e de alguma outra forma comunicar, e exibir publicamente os IDs de usuário e Envios em qualquer forma, em qualquer lugar, com ou sem atribuição ao seu ID de Usuário e sem aviso prévio ou compensação para você.
+Você reconhece que é o único responsável pelos Envios que fornece e pelo gerenciamento de sua ID de Usuário. Você, e não a Zepetto, tem total responsabilidade por seus Envios e ID de Usuário, incluindo sua legalidade, confiabilidade, adequação, originalidade e direitos autorais. Você entende que ao usar o Site você pode ser exposto a Envios que sejam ofensivos, indecentes ou censuráveis. A Zepetto não será responsável de forma alguma por qualquer Envio, incluindo, mas não limitado a, quaisquer erros ou omissões em qualquer Envio, ou qualquer perda ou dano de qualquer tipo incorrido como resultado do uso de qualquer Envio publicado, enviado por e-mail , transmitido ou de outra forma disponibilizado através do Site.
+Todos os materiais publicados em fóruns, salas de chat e locais similares no Site são considerados públicos. Portanto, a Zepetto recomenda fortemente que você não publique nenhuma informação pessoal sobre você ou outras pessoas no Site ou através dele. Por uma questão de política, a Zepetto não pré-seleciona nem monitora quaisquer Envios. No entanto, a Zepetto reserva-se o direito de filtrar, recusar ou mover qualquer Envio que esteja disponível através do Site. A Zepetto tem o direito, a seu critério, de remover qualquer Envio considerado questionável ou que viole os termos deste documento.
+Exceto quando expressamente declarado e acordado previamente pela Zepetto, nenhuma relação confidencial será estabelecida caso qualquer usuário deste Site faça qualquer comunicação oral, escrita ou eletrônica à Zepetto (como feedback, perguntas, comentários, sugestões, ideias, etc.). Se algum site da Zepetto exigir ou solicitar que tais informações sejam fornecidas, e que tais informações contenham informações de identificação pessoal (por exemplo, nome, endereço, número de telefone), a Zepetto deverá obtê-las, usá-las e mantê-las de maneira consistente com sua Política de Privacidade. Caso contrário, tal comunicação e qualquer informação enviada com ela será considerada não confidencial, e a Zepetto estará livre para reproduzir, publicar ou de outra forma usar tais informações para quaisquer fins, incluindo, sem limitação, pesquisa, desenvolvimento, uso ou venda de jogos ou serviços incorporando tais informações. Você é totalmente responsável pelo conteúdo de suas comunicações, incluindo sua veracidade e precisão e pela não violação dos direitos de propriedade ou de privacidade de qualquer outra pessoa.
+ 
+7. Conduta do Usuário (Regras de Conduta)
+ 
+Você deve observar estes termos, todas as leis aplicáveis e também regras básicas de etiqueta e cortesia comum ao usar o Site. Qualquer conduta que viole a lei numa comunidade off-line do mundo real também é uma violação destes termos. A Zepetto não tolerará qualquer conduta ilegal ou ofensiva.
+Você concorda em não realizar nenhuma das seguintes ações:
+(a) Fazer upload, postar, enviar por e-mail, transmitir ou de outra forma disponibilizar qualquer Envio (conforme definido abaixo) que seja ilegal, prejudicial, ameaçador, abusivo, assediante, tortuoso, difamatório, vulgar, obsceno, difamatório, invasivo da privacidade de terceiros, odioso ou racialmente, etnicamente ou de outra forma questionável;
+(b) Prejudicar menores de idade, independente da forma;
+(c) Se passar por qualquer pessoa ou entidade, incluindo, mas não limitado a, um funcionário da Zepetto, moderador, líder de fórum, guia ou anfitrião, ou declarar falsamente ou de outra forma deturpar sua afiliação com uma pessoa ou entidade;
+(d) Forjar Sites ou de outra forma manipular identificadores para disfarçar a origem de qualquer Envio transmitido através do Site;
+(e) Fazer upload, postar, enviar por e-mail, transmitir ou de outra forma disponibilizar qualquer Envio que você não tenha o direito de disponibilizar sob qualquer lei ou sob relações contratuais ou fiduciárias;
+(f) Fazer upload, postar, enviar por e-mail, transmitir ou de outra forma disponibilizar qualquer Envio que viole qualquer patente, marca registrada, segredo comercial, direito autoral ou outros direitos de propriedade de qualquer parte;
+(g) Fazer upload, postar, enviar por e-mail, transmitir ou de outra forma disponibilizar qualquer publicidade não solicitada ou não autorizada, materiais promocionais, "junk mail", "spam", "correntes", "esquemas de pirâmide" ou qualquer outra forma de solicitação;
+(h) Fazer upload, postar, enviar por e-mail, transmitir ou de outra forma disponibilizar qualquer material que contenha vírus de software ou qualquer outro código de computador, arquivos ou programas projetados para interromper, destruir ou limitar a funcionalidade de qualquer software ou hardware de computador ou equipamento de telecomunicações;
+(i) Interferir ou interromper o Site ou servidores ou redes conectadas ao Site, ou desobedecer quaisquer requisitos, procedimentos, políticas ou regulamentos de redes conectadas ao Site;
+(j) Perseguir (“Stalk”) ou de outra forma assediar outra pessoa;
+(k) Coletar ou armazenar dados pessoais sobre outros usuários em conexão com as condutas e atividades proibidas estabelecidas nos parágrafos acima;
+(l) Impedir o fluxo de bate-papo no jogo, em fóruns ou em salas de bate-papo com linguagem vulgar, abusividade, uso de gritos excessivos (ALL CAPS), "spamming" ou quaisquer outros métodos perturbadores ou prejudiciais na tentativa de perturbar outros usuários ou funcionários da Zepetto;
+(m) Envolver-se, encorajar ou promover qualquer atividade ilegal ou qualquer atividade que viole quaisquer Termos de Serviço, quaisquer Regras de Conduta ou qualquer Política de Privacidade aplicável; e/ou
+(n) Tomar qualquer ação que possa proibir outros usuários de desfrutar dos serviços do Site ou dos jogos.
+A Zepetto poderá tomar quaisquer ações e impor quaisquer penalidades que julgarmos necessárias para desencorajar e punir qualquer violação destes termos ou qualquer outra conduta ilegal ou inadequada, tudo isso sem aviso prévio ou advertência. A determinação se ocorreu uma violação e quem é o responsável por tal ato fica exclusivamente a critério da Zepetto e é baseada no que consideramos melhor para a comunidade e para o Site. Ao utilizar o Site, você concorda que estará vinculado à determinação da Zepetto quanto à ocorrência de uma violação e a qualquer penalidade que decidirmos implementar.
+ 
+8. Sites de Terceiros
+ 
+Clicar em um hiperlink pode direcioná-lo para fora do site. A Zepetto não endossa nem controla quaisquer sites vinculados a terceiros, não é responsável pelo seu conteúdo e não tem associação com os proprietários ou operadores de tais sites. Além disso, outros sites podem ter Termos de Serviço e Políticas de Privacidade diferentes. Portanto, a Zepetto recomenda fortemente que você se informe sobre as práticas de Sites de terceiros.
+Sua correspondência ou negociações comerciais ou participação em promoções de anunciantes encontrados no ou através do Site, incluindo pagamento e entrega de bens ou serviços relacionados, e quaisquer outros termos, condições, garantias ou representações associadas a tais negociações, são exclusivamente entre você e tal anunciante. Você concorda que a Zepetto não será responsável por qualquer perda ou dano de qualquer tipo incorrido como resultado de tais negociações ou como resultado da presença de tais anunciantes no Site.
+ 
+9. Serviço Oficial e Testes Beta
+ 
+Os jogos são projetados para serem jogados apenas conforme oferecidos por meio de nossos Serviços no Site. Você concorda em não acessar, criar ou fornecer qualquer outro meio pelo qual o jogo possa ser jogado por terceiros, como por meio de emuladores de servidor. Você concorda em não usar qualquer hardware ou software, incluindo, entre outros, ferramentas de terceiros, ou qualquer outro método de suporte que possa de alguma forma influenciar ou dar-lhe uma vantagem no uso dos Serviços que não seja autorizado pela Zepetto, incluindo mas não limitado ao uso de "bots" e/ou qualquer outro método pelo qual o Serviço possa ser reproduzido automaticamente sem intervenção humana. Você reconhece que não tem o direito de criar, publicar, distribuir, criar trabalhos derivados ou usar quaisquer programas de software, utilitários, aplicativos, emuladores ou ferramentas derivadas ou criadas para os jogos, exceto que você pode usar o Software na extensão expressamente permitida por este Contrato e pelo CONTRATO DE LICENÇA DE USUÁRIO FINAL aplicável. Você não pode tomar nenhuma ação que imponha uma carga excessiva ou desproporcional à nossa infraestrutura. Você não pode vender ou leiloar quaisquer contas de jogo, personagens, itens, moedas ou materiais protegidos por direitos autorais, nem pode ajudar outras pessoas a fazê-lo.
+Você poderá ter a oportunidade de testar novos jogos e recursos do site na versão beta. Sua participação como testador Beta está sujeita aos termos e condições abaixo.
+Os testes Beta Fechados são confidenciais. Os jogos Beta, incluindo informações sobre recursos e funcionalidades oferecidas como parte dos jogos, são confidenciais. Se você participar de um teste Beta fechado, deverá proteger e impedir o acesso não autorizado, a cópia, a divulgação e o uso não autorizado dos jogos Beta. Você realizará os testes pessoalmente e não fornecerá acesso aos jogos Beta a nenhuma outra pessoa. Você concorda que a violação das obrigações de confidencialidade acima causará danos irreparáveis à Zepetto, e a Zepetto tem direito (além de quaisquer outros recursos disponíveis) a uma medida cautelar ex parte sem fiança para evitar a violação ou ameaça de violação de suas obrigações. Sua obrigação de manter a confidencialidade dos jogos Beta continuará até que a Zepetto distribua publicamente, ou de outra forma divulgue ao público, sem culpa sua, cada um dos jogos e o conteúdo que você está testando.
+Como testador Beta, você está convidado a jogar jogos Beta com o único propósito de avaliar os jogos e identificar erros. Nada neste Contrato ou neste Site deve ser interpretado como concessão de quaisquer direitos ou privilégios de qualquer tipo em relação aos jogos Beta ou ao conteúdo que você encontra aqui. Os jogos Beta são fornecidos para teste "no estado em que se encontram", "conforme disponível" e não oferecemos nenhuma garantia de qualquer tipo, expressa ou implícita.
+Ao jogar alguns jogos Beta, você pode acumular tesouros, pontos de experiência, equipamentos ou outros indicadores de valor ou status no teste Beta. Esses dados podem ser redefinidos a qualquer momento durante o processo de teste e podem ser redefinidos quando o jogo específico concluir esta fase de teste. Neste caso, todo o histórico e dados do jogador serão apagados e cada jogador retornará ao status de novato.
+Ao jogar um jogo Beta, você concorda que: (I) jogar jogos Beta é por sua conta e risco e que você sabe que os jogos podem incluir bugs conhecidos ou desconhecidos, (II) qualquer valor ou indicador de status que você alcançar através do jogo podem ser apagados a qualquer momento, (III) a Zepetto não tem obrigação de disponibilizar esses jogos para o público jogar gratuitamente por qualquer período de tempo, nem de disponibilizá-los de qualquer outra maneira, (IV) esses jogos podem estar disponíveis apenas por assinatura após que o período de teste estiver concluído ou em qualquer momento no futuro; (V) estes termos se aplicam ao uso dos jogos durante a fase de testes e (VI) se for um teste Beta fechado, você manterá todas as informações (incluindo, entre outras, funções, recursos, gráficos e capturas de tela) sobre os jogos Beta confidenciais conforme declarado acima e não divulgará tais informações a qualquer outra pessoa. As contas de teste beta não são transferíveis em nenhuma circunstância.
+ 
+10. Taxas e Cobranças
+ 
+Certas áreas do Site podem cobrar taxas para acessar e adquirir determinados itens de jogos ou participar de atividades de jogos no Site. QUAISQUER TAXAS APLICÁVEIS E OUTROS ENCARGOS SÃO PAGADOS ANTECIPADAMENTE E NÃO SÃO REEMBOLSÁVEIS NO TODO OU EM PARTE. A Zepetto poderá, de tempos em tempos, modificar, alterar ou complementar suas taxas e métodos de cobrança, e publicar essas alterações neste Contrato ou em outro lugar no Site. Tais modificações, alterações ou suplementos entrarão em vigor imediatamente após a publicação no Site. Se alguma alteração for inaceitável para você, você poderá cancelar sua conta a qualquer momento, mas a Zepetto não reembolsará quaisquer taxas que possam ter sido acumuladas em sua conta antes de tal cancelamento, e não iremos ratear taxas por quaisquer cobranças.
+Você pode pagar quaisquer taxas e encargos aplicáveis através das formas de pagamento autorizadas pela Zepetto.
+ 
+11. Interrupção do Serviço
+ 
+(a) A Zepetto reserva-se o direito de interromper os Serviços de tempos em tempos, de forma regular ou de outra forma, com ou sem aviso prévio, para realizar manutenções. Você concorda que a Zepetto não será responsável por qualquer interrupção dos Serviços, atraso ou falha no desempenho resultante de qualquer causa.
+(b) Você reconhece que os Serviços podem ser interrompidos por motivos alheios ao controle da Zepetto, e a Zepetto não pode garantir que você poderá acessar os Serviços ou sua Conta sempre que desejar. A Zepetto não será responsável por qualquer interrupção dos Serviços, atraso ou falha na execução resultante de qualquer causa.
+(c) A Zepetto tem o direito, a qualquer momento, com ou sem motivo, de alterar e/ou eliminar qualquer aspecto dos Serviços, conforme julgar adequado, a seu exclusivo critério.
+(d) A Zepetto não é obrigada a reembolsar a totalidade ou parte de qualquer taxa da Conta (se houver), em razão de qualquer interrupção dos Serviços devido a qualquer uma das circunstâncias descritas no parágrafo (a), (b) ou (c).
+ 
+12. Ação Disciplinar/Rescisão de Conta
+ 
+A Zepetto PODE SUSPENDER, ENCERRAR, MODIFICAR OU EXCLUIR QUALQUER CONTA A QUALQUER MOMENTO, COM OU SEM MOTIVO, COM OU SEM AVISO PRÉVIO.
+A Zepetto pode emitir e emite avisos, suspensões temporárias e rescisões permanentes de ID de Usuários por violações de usuários. Mantemos o critério exclusivo sobre quando e como impor advertências, penalidades e/ou ações disciplinares. Consideramos a gravidade da violação e o número de infrações ao tomar nossa decisão; no entanto, qualquer determinação ficará a critério absoluto da Zepetto.
+Para evitar dúvidas, você reconhece que a Zepetto tem critério exclusivo com relação a penalidades e ações disciplinares para encerrar sua Conta, mesmo que haja créditos restantes em sua Conta. Se você acha que você ou seu ID de Usuário foram advertidos ou punidos injustamente, entre em contato conosco com uma explicação completa e detalhada. Consideraremos razoavelmente sua explicação.
+Você tem o direito de encerrar ou cancelar sua conta a qualquer momento, mediante notificação à Zepetto. Você entende e concorda que o cancelamento de sua ID de Usuário é seu único direito e solução com relação a qualquer disputa, incluindo, mas não se limitando a, qualquer disputa relacionada ou decorrente de: (I) qualquer termo deste Contrato ou da aplicação da Zepetto ou aplicação deste Contrato; (II) os Envios; (III) sua capacidade de acessar e/ou usar o Site; ou (IV) o valor ou tipo de taxas, sobretaxas, impostos aplicáveis, métodos de cobrança ou qualquer alteração nas taxas, impostos aplicáveis, sobretaxas ou métodos de cobrança.
+Você pode cancelar sua ID de Usuário mediante notificação à Zepetto. A Zepetto reserva-se o direito de cobrar taxas e encargos acumulados e custos incorridos pela Zepetto antes do seu cancelamento. Além disso, você é responsável por quaisquer taxas, encargos e custos incorridos a fornecedores terceirizados ou provedores de conteúdo antes do seu cancelamento. Caso sua ID de Usuário seja rescindida ou cancelada por qualquer motivo, nenhum reembolso será concedido, nenhum tempo online ou outros créditos (por exemplo, pontos/cash em um jogo online) serão creditados a você ou convertidos em dinheiro ou outra forma de reembolso, e você não terá mais acesso ao seu ID de Usuário. Quaisquer contas inadimplentes ou não pagas ou contas com disputas não resolvidas devem ser resolvidas antes que a Zepetto permita que você se registre novamente.
+ 
+13. Indenização
+ 
+A pedido da Zepetto, você concorda em defender, indenizar e isentar (a) a Zepetto, (b) seus acionistas, parceiros, afiliados, diretores, executivos, subsidiárias, funcionários, agentes ou fornecedores, (c) seus licenciantes, distribuidores, provedores de conteúdo , e (d) outros membros dos Serviços, de todos os danos, responsabilidades, reclamações e despesas, incluindo, sem limitação, honorários e custos advocatícios, decorrentes ou relacionados, direta ou indiretamente, a qualquer uso indevido dos Serviços ou violação deste Contrato por você.
+ 
+14. Reconhecimento
+ 
+Você reconhece e concorda que:
+(a) O USAR OS SERVIÇOS, O SOFTWARE PODE MONITORAR A MEMÓRIA DE ACESSO ALEATÓRIO (RAM) E/OU PROCESSOS DE CPU DO SEU COMPUTADOR PARA PROGRAMAS NÃO AUTORIZADOS DE TERCEIROS EXECUTANDO SIMULTANEAMENTE COM O SOFTWARE. UM "PROGRAMA DE TERCEIROS NÃO AUTORIZADO" DEVE SER DEFINIDO COMO QUALQUER SOFTWARE DE TERCEIROS, INCLUINDO, SEM LIMITAÇÃO, QUALQUER "ADD-ON" OU "MOD", QUE, NA DETERMINAÇÃO EXCLUSIVA DA ZEPETTO: (I) PERMITE OU FACILITE TRAPAÇA DE QUALQUER TIPO; (II) PERMITE QUE OS USUÁRIOS MODIFIQUEM OU HACKEEM A INTERFACE, O AMBIENTE E/OU A EXPERIÊNCIA DO SOFTWARE DE QUALQUER FORMA NÃO EXPRESSAMENTE AUTORIZADA PELA ZEPETTO; OU (III) INTERCEPTA, “MINA” OU COLETA INFORMAÇÕES DE OU ATRAVÉS DO SOFTWARE. CASO O SOFTWARE DETECTE UM PROGRAMA DE TERCEIROS NÃO AUTORIZADO, ELE PODE COMUNICAR INFORMAÇÕES À ZEPETTO, INCLUINDO, SEM LIMITAÇÃO, O NOME DA SUA CONTA, DETALHES SOBRE O PROGRAMA DE TERCEIROS NÃO AUTORIZADO DETECTADO E A HORA E DATA EM QUE O PROGRAMA DE TERCEIROS NÃO AUTORIZADO FOI DETECTADO; E/OU E A ZEPETTO PODEM EXERCIR QUALQUER OU TODOS OS SEUS DIREITOS SOB ESTA SEÇÃO DO CONTRATO, COM OU SEM AVISO PRÉVIO AO USUÁRIO.
+(b) QUANDO O SOFTWARE ESTIVER EM FUNCIONAMENTO, A ZEPETTO PODE OBTER CERTAS INFORMAÇÕES DE IDENTIFICAÇÃO SOBRE SEU COMPUTADOR E SEU SISTEMA OPERACIONAL, INCLUINDO, MAS NÃO LIMITADO A, SEUS DISCOS RÍGIDOS, UNIDADE DE PROCESSAMENTO CENTRAL, ENDEREÇO(S) IP, ENDEREÇO MAC E SISTEMA(S) OPERACIONAL, PARA FINS DE MELHORIA DO PROGRAMA E /OU O SERVIÇO, E PARA POLICIAR E EXECUTAR AS DISPOSIÇÕES DESTE CONTRATO E DO CONTRATO DE LICENÇA DE USUÁRIO FINAL.
+(c) A Zepetto pode, com ou sem aviso prévio, divulgar seu(s) endereço(s) de Protocolo de Internet (IP), informações pessoais e informações sobre você e suas atividades em resposta a uma solicitação por escrito de autoridades policiais, uma ordem judicial ou outro processo legal. A Zepetto poderá usar ou divulgar suas informações pessoais se acreditar que isso pode proteger sua segurança ou a segurança de outras pessoas.
+(d) A ZEPETTO PODE GRAVAR SUAS SESSÕES DE CHAT E OUTRAS COMUNICAÇÕES ELETRÔNICAS TRANSMITIDAS OU RECEBIDAS ATRAVÉS DO JOGO E VOCÊ CONCORDA COM TAL MONITORAMENTO OU REGISTRO.
+(e) Você não pode responsabilizar a Zepetto por qualquer perda resultante de atividades comerciais no jogo. Você não pode responsabilizar a Zepetto por qualquer informação que seja passada entre jogadores. A Zepetto não garante a guarda segura das informações que são repassadas entre os jogadores e não se responsabiliza por quaisquer perdas ou consequências decorrentes do uso indevido de tais informações. Você não pode responsabilizar Zepetto por qualquer recurso do jogo ou perda de item. A Zepetto não garante a disponibilidade de quaisquer itens do jogo, quaisquer Serviços ou quaisquer níveis aos jogadores.
+ 
+15. Isenção de Garantias
+ 
+VOCÊ ENTENDE E CONCORDA EXPRESSAMENTE QUE:
+(a) O SEU USO DO SITE É POR SUA CONTA E RISCO. O SITE É FORNECIDO "COMO ESTÁ" E "CONFORME DISPONÍVEL". A Zepetto E SUAS SUBSIDIÁRIAS, AFILIADAS, EXECUTIVOS, FUNCIONÁRIOS, AGENTES, PARCEIROS E LICENCIANTES EXPRESSAMENTE SE ISENTAM A TODAS AS GARANTIAS DE QUALQUER TIPO, EXPRESSAS OU IMPLÍCITAS, INCLUINDO, MAS NÃO LIMITADAS ÀS GARANTIAS IMPLÍCITAS DE COMERCIALIZAÇÃO, ADEQUAÇÃO A UM PROPÓSITO ESPECÍFICO E NÃO VIOLAÇÃO.
+(b) Zepetto E SUAS SUBSIDIÁRIAS, AFILIADAS, EXECUTIVOS, FUNCIONÁRIOS, AGENTES, PARCEIROS E LICENCIANTES NÃO GARANTEM QUE (I) O SITE ATENDERÁ ÀS SUAS NECESSIDADES; (II) O ACESSO AO SITE SERÁ ININTERRUPTO, OPORTUNO, SEGURO OU LIVRE DE ERROS; (III) A QUALIDADE DE QUAISQUER PRODUTOS, SERVIÇOS, INFORMAÇÕES OU OUTRO MATERIAL ADQUIRIDO OU OBTIDO POR VOCÊ ATRAVÉS DO SITE ATENDERÁ ÀS SUAS EXPECTATIVAS; E (IV) QUE QUAISQUER ERROS NO SOFTWARE SERÃO CORRIGIDOS.
+(c) QUALQUER MATERIAL BAIXADO OU OBTIDO DE OUTRA FORMA ATRAVÉS DO USO DO SITE É ACESSADO POR SUA PRÓPRIA CONTA E RISCO, E VOCÊ SERÁ O ÚNICO RESPONSÁVEL POR QUALQUER DANO AO SEU SISTEMA DE COMPUTADOR OU PERDA DE DADOS QUE RESULTE DO DOWNLOAD DE QUALQUER MATERIAL.
+(d) NENHUM CONSELHO OU INFORMAÇÃO, SEJA ORAL OU ESCRITO, OBTIDO POR VOCÊ DA Zepetto OU ATRAVÉS DO SITE CRIARÁ QUALQUER GARANTIA NÃO EXPRESSAMENTE DECLARADA NOS TERMOS DE USO.
+(e) UMA PEQUENA PORCENTAGEM DE USUÁRIOS PODE SOFRER ATAQUES EPILÉPTICOS QUANDO EXPOSTOS A DETERMINADOS PADRÕES DE LUZ OU FUNDOS DE TELA DE UM COMPUTADOR OU ENQUANTO USAM O SITE. CERTAS CONDIÇÕES PODEM INDUZIR SINTOMAS EPILÉPTICOS PREVIAMENTE NÃO DETECTADOS, MESMO EM USUÁRIOS QUE NÃO TÊM HISTÓRICO DE CONVULSÕES OU EPILEPSIA ANTERIORES. SE VOCÊ, OU ALGUÉM DA SUA FAMÍLIA, TIVER UMA CONDIÇÃO EPILÉPTICA, CONSULTE SEU MÉDICO ANTES DE USAR O SERVIÇO. INTERROMPA IMEDIATAMENTE O USO DO SERVIÇO E CONSULTE SEU MÉDICO SE TIVER QUALQUER UM DOS SEGUINTES SINTOMAS AO USAR O SERVIÇO: TONTURAS, VISÃO ALTERADA, CONTRAÇÕES OCULARES OU MUSCULARES, PERDA DE CONSCIÊNCIA, DESORIENTAÇÃO, QUALQUER MOVIMENTO INVOLUNTÁRIO OU CONVULSÕES.
+ 
+16. Limitação de Responsabilidade
+ 
+VOCÊ ENTENDE E CONCORDA EXPRESSAMENTE QUE A Zepetto E SUAS SUBSIDIÁRIAS, AFILIADAS, EXECUTIVOS, FUNCIONÁRIOS, AGENTES, PARCEIROS E LICENCIANTES NÃO SERÃO RESPONSÁVEIS PERANTE VOCÊ POR QUAISQUER DANOS DIRETOS, INDIRETOS, INCIDENTAIS, ESPECIAIS, CONSEQUENCIAIS OU EXEMPLARES, INCLUINDO, MAS NÃO SE LIMITANDO A, DANOS POR PERDA DE LUCROS, BOA VONTADE, USO, DADOS OU OUTRAS PERDAS INTANGÍVEIS (MESMO QUE A Zepetto TENHA SIDO AVISADA DA POSSIBILIDADE DE TAIS DANOS), RESULTANTES DE: (I) A UTILIZAÇÃO OU A INCAPACIDADE DE UTILIZAÇÃO DO SITE; (II) DECLARAÇÕES OU CONDUTA DE TERCEIROS NO SITE; OU (III) QUALQUER OUTRO ASSUNTO RELACIONADO AO SITE. Alguns estados não permitem as limitações de responsabilidade acima mencionadas, portanto elas podem não se aplicar a você e, nesse caso, você concorda que a responsabilidade da Zepetto (ou de qualquer outra parte isenta) para com você será limitada à extensão máxima permitida por lei. Você concorda que a Zepetto não pode ser responsabilizada por qualquer coisa que ocorra ou resulte do acesso ou inscrição aos Serviços.
+ 
+17. Resolução de disputas
+Você concorda em indenizar, defender e isentar a Zepetto, e seus acionistas, subsidiárias, afiliadas, executivos, agentes, marcas conjuntas ou outros parceiros, e funcionários (coletivamente, as "Partes Indenizadas"), às suas custas, de e contra qualquer e todas as reivindicações, ações, procedimentos, e ações judiciais e todas as responsabilidades, danos, acordos, penalidades, multas, custos e despesas relacionados (incluindo, sem limitação, honorários advocatícios razoáveis e outras despesas de resolução de disputas) incorridos por qualquer Parte Indenizada decorrentes de ou relacionado a (a) a hospedagem, operação, gerenciamento e/ou administração dos Serviços por ou em nome da Zepetto, (b) sua violação ou quebra de qualquer termo destes Termos de Serviço ou de qualquer política ou diretrizes aqui mencionadas, ou (c) seu uso ou uso indevido dos Serviços, ou (e) sua violação de qualquer lei ou dos direitos de terceiros.
+18. Geral
+ 
+Você concorda em cumprir integralmente todas as leis e regulamentos de exportação relevantes dos Brasil ("Leis de Exportação") para garantir que nem o Software nem os Serviços sejam exportados, direta ou indiretamente, em violação às Leis de Exportação; ou que se destine a ser usado para quaisquer fins proibidos pelas Leis de Exportação. Nossa falha ou omissão em agir em relação a uma violação sua ou de terceiros não renuncia ao nosso direito de agir em relação a violações subsequentes ou semelhantes. Exceto se permitido de outra forma neste documento, você não poderá ceder ou transferir este Contrato ou seus direitos aqui contidos, e qualquer tentativa em contrário será nula. Este Contrato estabelece todo o entendimento e acordo entre nós e você com relação ao assunto aqui tratado. Não obstante qualquer outra disposição neste Contrato, nenhum descumprimento, atraso ou falha no cumprimento por parte da Zepetto será considerado uma violação deste Contrato se tal descumprimento, atraso ou falha no cumprimento for demonstrado ser devido a causas além do controle razoável da Zepetto.
+Se qualquer disposição deste Contrato for ilegal, nula ou, por qualquer motivo, inexequível, então essa disposição será considerada separável deste Contrato e não afetará a validade e aplicabilidade de quaisquer disposições restantes. Este Contrato é a declaração completa e exclusiva do acordo entre você e a Zepetto em relação ao Serviço, e este Contrato substitui qualquer acordo anterior ou contemporâneo, seja oral ou escrito, e quaisquer outras comunicações a respeito entre você e a Zepetto; desde que, no entanto, este Contrato seja adicional e não substitua ou suplante o CONTRATO DE LICENÇA DE USUÁRIO FINAL aplicável. Este Contrato só poderá ser modificado conforme estabelecido aqui. Os títulos das seções aqui utilizados são apenas para referência e não devem ser interpretados como tendo qualquer efeito legal.
+ 
+19. Encerramento
+ 
+Obrigado novamente por visitar nosso Site. Esperamos que você aproveite sua estadia e aproveite ao máximo a comunidade online que estamos desenvolvendo. Lembre-se de que você é um convidado do Site e aja com a mesma cortesia e respeito que espera de outros convidados. A Zepetto reserva-se sempre o direito de recusar ou encerrar o serviço.
+ 
+Se você tiver alguma dúvida ou preocupação sobre estes Termos de Serviço ou quaisquer questões levantadas nestes Termos de Serviço ou no Site, entre em contato conosco em: privacy@zepettolatam.com
+ 
+Data efetiva (ou Última atualização): 01 de Dezembro de 2024
+</terms>
+</message>
