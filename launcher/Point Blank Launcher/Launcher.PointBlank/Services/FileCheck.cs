@@ -85,17 +85,36 @@ namespace Launcher.PointBlank.Services
                 });
             }).ConfigureAwait(true);
 
+            // Extra fora da lista (ex.: sujeira do instalador) — remove e segue.
+            // Hash errado / faltando continua bloqueando (precisa Update).
+            var removedExtras = new List<string>();
             foreach (string extra in FindProtectedExtras(userFiles.Keys))
             {
-                invalid.Add(extra);
-                Logger.LogFileCheckException("extra:" + extra);
+                string full = Path.Combine(_startupPath, extra);
+                try
+                {
+                    if (File.Exists(full))
+                    {
+                        File.SetAttributes(full, FileAttributes.Normal);
+                        File.Delete(full);
+                        removedExtras.Add(extra);
+                        Logger.Log($"FL Guard removeu extra: {extra}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    invalid.Add(extra);
+                    Logger.LogFileCheckException("extra:" + extra + " (" + ex.Message + ")");
+                }
             }
 
             result.InvalidFiles = invalid.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
             result.Success = result.InvalidFiles.Count == 0;
             if (result.Success)
             {
-                result.Message = "FL Guard: arquivos íntegros. Você já pode jogar.";
+                result.Message = removedExtras.Count > 0
+                    ? $"FL Guard: removeu {removedExtras.Count} arquivo(s) extra. Você já pode jogar."
+                    : "FL Guard: arquivos íntegros. Você já pode jogar.";
             }
             else
             {

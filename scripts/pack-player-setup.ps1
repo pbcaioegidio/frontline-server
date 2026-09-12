@@ -184,6 +184,13 @@ foreach ($f in $excludeFiles) {
 # Remove qualquer *.bak* que tenha escapado
 Get-ChildItem -LiteralPath $stage -Filter "*.bak*" -Recurse -Force -ErrorAction SilentlyContinue |
     Remove-Item -Force -ErrorAction SilentlyContinue
+# Sujeira de pintura de logo: Text_3 so existe em Locale\Brazil\UI_V11 na lista oficial.
+# Se vazar em Locale\_Common\UI_V12, o FL Guard marca EXTRA e confunde o jogador.
+$junkText3 = Join-Path $stage "Locale\_Common\UI_V12\VTexList\Text_3.i3VTexImage"
+if (Test-Path -LiteralPath $junkText3) {
+    Remove-Item -LiteralPath $junkText3 -Force
+    Write-Host "==> Removido extra do stage: Locale\_Common\UI_V12\VTexList\Text_3.i3VTexImage"
+}
 if (Test-Path (Join-Path $stage "LocalConfig.json")) {
     throw "LocalConfig.json ainda no stage - nao publicar instalador com conta de teste"
 }
