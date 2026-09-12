@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,8 +19,18 @@ namespace Launcher.PointBlank
         private const int WsExNoActivate = 0x08000000;
         private const int WsExToolWindow = 0x00000080;
         private const int WsExTopMost = 0x00000008;
+        private const int WmSetIcon = 0x0080;
+        private const int IconSmall = 0;
+        private const int IconBig = 1;
+        private const string GameWindowTitle = "FrontLine";
 
         private static readonly Size SplashSize = new Size(440, 268);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern bool SetWindowText(IntPtr hWnd, string lpString);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
         private readonly Timer _anim;
         private readonly Timer _watch;
@@ -29,6 +41,8 @@ namespace Launcher.PointBlank
         private bool _failed;
         private string _clientRoot;
         private Action _launchGame;
+        private Icon _gameIcon;
+        private IntPtr _gameIconHandle = IntPtr.Zero;
 
         private bool _sawGameWindow;
         private int _goneTicks;
@@ -37,6 +51,7 @@ namespace Launcher.PointBlank
         {
             _clientRoot = clientRoot;
             _launchGame = launchGame;
+            TryLoadGameIcon(clientRoot);
 
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
@@ -64,6 +79,7 @@ namespace Launcher.PointBlank
                 {
                     _sawGameWindow = true;
                     _goneTicks = 0;
+                    BrandGameWindows();
                     return;
                 }
 
@@ -251,6 +267,12 @@ namespace Launcher.PointBlank
         /// </summary>
         private static bool GameWindowAlive()
         {
+            return FindGameWindow(out _) != IntPtr.Zero;
+        }
+
+        private static IntPtr FindGameWindow(out Process proc)
+        {
+            proc = null;
             foreach (string name in new[] { "FrontLine", "PointBlank", "PointBlank.i3Exec" })
             {
                 try
@@ -261,15 +283,60 @@ namespace Launcher.PointBlank
                         {
                             if (p.HasExited) continue;
                             if (p.MainWindowHandle == IntPtr.Zero) continue;
-                            if (string.IsNullOrWhiteSpace(p.MainWindowTitle)) continue;
-                            return true;
+                            // Título pode ser "Point Blank" ainda — conta como janela do jogo
+                            if (p.MainWindowHandle != IntPtr.Zero)
+                            {
+                                proc = p;
+                                return p.MainWindowHandle;
+                            }
                         }
                         catch { }
                     }
                 }
                 catch { }
             }
-            return false;
+            return IntPtr.Zero;
+        }
+
+        private void TryLoadGameIcon(string clientRoot)
+        {
+            try
+            {
+                foreach (string name in new[] { "FrontLine.ico", "Icon.ico" })
+                {
+                    string path = Path.Combine(clientRoot ?? "", name);
+                    if (!File.Exists(path)) continue;
+                    _gameIcon = new Icon(path);
+                    _gameIconHandle = _gameIcon.Handle;
+                    return;
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// O client antigo grava "Point Blank" + ícone genérico na CreateWindow.
+        /// Força título/ícone FrontLine enquanto o Guard acompanha a sessão.
+        /// </summary>
+        private void BrandGameWindows()
+        {
+            try
+            {
+                IntPtr hwnd = FindGameWindow(out Process p);
+                if (hwnd == IntPtr.Zero) return;
+
+                string title = null;
+                try { title = p?.MainWindowTitle; } catch { }
+                if (!string.Equals(title, GameWindowTitle, StringComparison.Ordinal))
+                    SetWindowText(hwnd, GameWindowTitle);
+
+                if (_gameIconHandle != IntPtr.Zero)
+                {
+                    SendMessage(hwnd, WmSetIcon, (IntPtr)IconSmall, _gameIconHandle);
+                    SendMessage(hwnd, WmSetIcon, (IntPtr)IconBig, _gameIconHandle);
+                }
+            }
+            catch { }
         }
 
         public static void Start(string clientRoot, Action launchGame)
@@ -284,6 +351,9 @@ namespace Launcher.PointBlank
             {
                 _anim?.Dispose();
                 _watch?.Dispose();
+                try { _gameIcon?.Dispose(); } catch { }
+                _gameIcon = null;
+                _gameIconHandle = IntPtr.Zero;
             }
             base.Dispose(disposing);
         }
