@@ -92,3 +92,9 @@ scripts/redist/*.exe
 # Manifesto temporario gerado a mao na VPS
 docs/_manifest_fix.json
 
+
+# Artefatos de diagnostico local
+_logo_crops/
+_client-backups/
+**/_logo_crops/
+
