@@ -11,7 +11,8 @@ O jogador **instala uma vez** (Full na VPS / site). Depois só abre o `FLLaunche
 ```text
 [1ª vez]  frontlinebattle.com.br/downloads → Instalador Full (.exe + .bin) → Program Files\FrontLine
 [sempre]  FLLauncher ↔ Socket :9000 → Update (Data/Client) → FL Guard → Start → Auth/Game
-[você]    git tag server-v* / launcher-v* / client-v* → Actions (este repo)
+[você]              git tag server-v* / launcher-v* / client-v* → Actions (este repo)
+          bot: repo frontline-discord-bot → push main → Actions
           site: repo frontline-web + tag site-v* → Actions
           instalador Full: pack-player-setup.ps1 -Upload → Cloudflare R2
 ```
@@ -26,6 +27,7 @@ O jogador **instala uma vez** (Full na VPS / site). Depois só abre o `FLLaunche
 | `launcher-v202609.1.0` | Launcher release | `FLLauncher.exe` → Socket Data + bump `LauncherVersion` |
 | `client-v202609.1.0` | Client patch | Delta `client-patch/` + FileList → bump `ClientVersion` |
 | `site-v202609.1.0` ([frontline-web](https://github.com/pbcaioegidio/frontline-web)) | Site deploy | Build Vite → `/var/www/frontlinebattle` |
+| push `main` ([frontline-discord-bot](https://github.com/pbcaioegidio/frontline-discord-bot)) | Deploy FrontLine Bot | Rebuild/restart do bot na VPS |
 
 Instalador **não** roda no Actions (pasta `client/` fora do git). Full sobe com `-Upload` na VPS.
 
@@ -133,17 +135,27 @@ Atualize também `frontline-web/public/downloads-manifest.json` e faça deploy d
 
 ## Discord bot
 
-Código em [`discord-bot/`](../discord-bot/) **neste** monorepo (não no `frontline-web`). Deploy típico: Docker na VPS / processo Node com `.env` (token, canais, `DATABASE_URL`).
+Repo separado: [frontline-discord-bot](https://github.com/pbcaioegidio/frontline-discord-bot)  
+Actions: [Deploy FrontLine Bot](https://github.com/pbcaioegidio/frontline-discord-bot/actions) — sobe na VPS no **push em `main`** (não usa tag `server-v*`).
 
-Canal de downloads: botão aponta para o instalador no site (`FrontLine-Setup-latest.exe`). Atualizar embed:
+Neste monorepo pode existir pasta espelho (`frontline-discord-bot/` ou `discord-bot/`) só como referência; **deploy real = push no repo do bot**.
+
+Canal de downloads: botão aponta para o instalador no site (`FrontLine-Setup-latest.exe`). Atualizar embed (no repo do bot):
 
 ```powershell
-cd discord-bot
+cd frontline-discord-bot   # clone do repo do bot
 node scripts/update-download.js
 ```
 
 (requer `DISCORD_TOKEN` e message id no script / env).
 
+| Peça | Repo | Como publicar |
+|------|------|----------------|
+| Game server | este (`frontline-server`) | tag `server-v*` |
+| Launcher | este | tag `launcher-v*` |
+| Client patch | este | tag `client-v*` |
+| Site | `frontline-web` | tag `site-v*` |
+| **Bot Discord** | `frontline-discord-bot` | **push `main`** (Actions do bot) |
 ---
 
 ## Como publicar patch de client

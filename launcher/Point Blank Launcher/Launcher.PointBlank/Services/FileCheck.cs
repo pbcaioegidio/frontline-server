@@ -65,7 +65,6 @@ namespace Launcher.PointBlank.Services
                     if (!File.Exists(localPath) || !HashesMatch(localPath, expectedHash))
                     {
                         invalid.Add(relativePath);
-                        Logger.LogFileCheckException(Path.GetFileName(relativePath));
                     }
 
                     int n = Interlocked.Increment(ref done);
@@ -118,11 +117,16 @@ namespace Launcher.PointBlank.Services
             }
             else
             {
-                string sample = string.Join("\n", result.InvalidFiles.Take(8));
+                foreach (string path in result.InvalidFiles)
+                    Logger.LogFileCheckException(path);
+
+                const int showMax = 20;
+                string sample = string.Join("\n", result.InvalidFiles.Take(showMax));
                 int n = result.InvalidFiles.Count;
+                string more = n > showMax ? $"\n… e mais {n - showMax} arquivo(s). Veja o log do launcher." : "";
                 result.Message = n == 1
-                    ? $"FL Guard bloqueou 1 arquivo alterado ou extra.\n{sample}"
-                    : $"FL Guard bloqueou {n} arquivos alterados ou extras.\n{sample}";
+                    ? $"FL Guard detectou 1 arquivo alterado ou faltando:\n\n{sample}"
+                    : $"FL Guard detectou {n} arquivos alterados ou faltando:\n\n{sample}{more}";
             }
             return result;
         }

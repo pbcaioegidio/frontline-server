@@ -403,12 +403,108 @@ namespace Launcher.PointBlank
 
             if (!result.Success)
             {
-                MessageBox.Show(result.Message, "FRONTLINE", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                bool canRestore = result.InvalidFiles != null && result.InvalidFiles.Count > 0;
+                if (canRestore)
+                {
+                    DialogResult choice = MessageBox.Show(
+                        result.Message + "\n\nDeseja restaurar o padrão baixando estes arquivos do servidor?",
+                        "FRONTLINE — FL Guard",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning,
+                        MessageBoxDefaultButton.Button1);
+
+                    if (choice == DialogResult.Yes)
+                    {
+                        bool restored = await RestoreIntegrityFilesAsync(result.InvalidFiles);
+                        if (restored)
+                        {
+                            TEXT_STATUS.Text = "FL Guard: conferindo de novo após restaurar...";
+                            await StartFileCheckAsync();
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(result.Message, "FRONTLINE", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
                 FinishCheckFailed(result.Message);
                 return;
             }
 
             FinishCheckSuccess();
+        }
+
+        /// <summary>
+        /// Baixa do Socket só os arquivos inválidos do Check e grava no client.
+        /// </summary>
+        private async Task<bool> RestoreIntegrityFilesAsync(List<string> invalidFiles)
+        {
+            if (invalidFiles == null || invalidFiles.Count == 0)
+                return false;
+            if (_connection == null)
+            {
+                MessageBox.Show(
+                    "Sem conexão com o servidor de patch (Socket).\nNão foi possível restaurar.",
+                    "FRONTLINE",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return false;
+            }
+
+            SetButtonsEnable(false, false, false);
+            SetButtonsVisible(false, false, false);
+            FILE_TEXT.Visible = true;
+            FileBar.Width = 0;
+            TotalBar.Width = 0;
+            TEXT_STATUS.Text = "Restaurando arquivos padrão...";
+            Logger.Log($"FL Guard restore: {invalidFiles.Count} arquivo(s).");
+
+            try
+            {
+                var progress = new Progress<UpdateDownloadProgress>(p =>
+                {
+                    FILE_TEXT.Text = $"Arquivo {p.CurrentFile}";
+                    FileBar.Width = p.TotalBytes > 0
+                        ? (int)(p.BytesReceived * 463 / Math.Max(1, p.TotalBytes))
+                        : 0;
+                    TotalBar.Width = p.TotalFiles > 0
+                        ? (int)(p.CurrentFileIndex * 463 / p.TotalFiles)
+                        : 0;
+                    TEXT_STATUS.Text =
+                        $"Restaurando [{p.CurrentFileIndex}/{p.TotalFiles}] {Path.GetFileName(p.CurrentFile)}";
+                });
+
+                var downloadService = new PatchDownloadService(Application.StartupPath, _connection);
+                bool needsRestart = await downloadService.DownloadRelativePathsAsync(invalidFiles, progress);
+
+                if (needsRestart)
+                {
+                    TEXT_STATUS.Text = "Reiniciando para aplicar o launcher...";
+                    MessageBox.Show(
+                        "O launcher foi restaurado.\nVai fechar e abrir de novo.",
+                        "FRONTLINE",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    SelfUpdateHelper.StartRestartAndExit(Application.StartupPath);
+                    return false;
+                }
+
+                Logger.Log("FL Guard restore: download concluído.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"FL Guard restore falhou: {ex.Message}");
+                MessageBox.Show(
+                    "Não foi possível restaurar alguns arquivos.\n" + ex.Message,
+                    "FRONTLINE",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                FinishCheckFailed("Falha ao restaurar. Tente de novo ou use Update.");
+                return false;
+            }
         }
         private void FinishCheckFailed(string message)
         {

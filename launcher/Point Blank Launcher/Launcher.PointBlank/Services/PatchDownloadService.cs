@@ -17,6 +17,31 @@ namespace Launcher.PointBlank.Services
             _clientPath = clientPath;
             _connection = connection;
         }
+        public async Task<bool> DownloadRelativePathsAsync(
+            IList<string> relativePaths,
+            IProgress<UpdateDownloadProgress> progress = null)
+        {
+            if (relativePaths == null || relativePaths.Count == 0)
+                return false;
+
+            var files = new List<UpdateFile>();
+            foreach (string rel in relativePaths)
+            {
+                string path = IntegrityRules.NormalizeLocal(rel);
+                if (string.IsNullOrWhiteSpace(path))
+                    continue;
+                files.Add(new UpdateFile
+                {
+                    Path = path.Replace('\\', '/'),
+                    Zip = null,
+                    Size = 0,
+                    Md5 = null
+                });
+            }
+
+            return await DownloadFilesAsync(files, progress).ConfigureAwait(true);
+        }
+
         public async Task<bool> DownloadFilesAsync(
             List<UpdateFile> filesToUpdate,
             IProgress<UpdateDownloadProgress> progress = null)
