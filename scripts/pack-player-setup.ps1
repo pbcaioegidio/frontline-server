@@ -2,13 +2,13 @@
 # Uso:
 #   .\scripts\pack-player-setup.ps1 -Mode Slim
 #   .\scripts\pack-player-setup.ps1 -Mode Full -Upload
-#       → sobe .exe + .bin na VPS (/var/frontline/downloads) — caminho oficial
+#       → ZIP local + sobe pro Cloudflare R2 (caminho oficial do site)
 #   .\scripts\pack-player-setup.ps1 -Mode Slim -GitHubRelease
 #       → LEGADO (GitHub Releases ~2 GB; Full nao serve)
 #
 # Requisitos: Inno Setup 6 (ISCC). Se faltar: winget install JRSoftware.InnoSetup
-# -Upload: $env:FL_VPS_SSH + opcional $env:FL_DOWNLOAD_BASE=https://www.frontlinebattle.com.br
-# -GitHubRelease: legado Slim; preferir -Upload
+# -Upload: docs/r2-secrets.local.env + AWS CLI (local → R2). NAO usa VPS.
+# -GitHubRelease: legado Slim; preferir -Upload (R2)
 
 param(
     [ValidateSet("Slim", "Full")]
@@ -139,7 +139,7 @@ if ($Mode -eq "Slim") {
     Write-Warning "Modo Slim: SEM pasta Pack (so teste). Jogadores devem usar -Mode Full."
     $excludeDirs += "Pack"
 } else {
-    Write-Host "==> Modo Full: inclui Pack (instalador grande; GitHub Releases max ~2 GB - use -Upload na VPS)."
+    Write-Host "==> Modo Full: inclui Pack (instalador grande; use -Upload para R2)."
 }
 
 # Dados de jogador / maquina — nao podem ir no instalador publico.
@@ -299,7 +299,7 @@ if ($sizeGb -ge 1) {
 
 if ($GitHubRelease) {
     if ((Get-Item $exeOut).Length -gt 1900MB) {
-        Write-Warning "Arquivo > 1.9 GB - GitHub Releases nao aceita. Use -Upload (VPS) ou hospede o Full fora do GitHub."
+        Write-Warning "Arquivo > 1.9 GB - GitHub Releases nao aceita. Use -Upload (R2)."
         Write-Host "EXE local: $exeOut"
     } else {
     $ghCmd = $null
@@ -376,50 +376,44 @@ Slim = sem pasta Pack. Full = client completo.
 }
 
 if ($Upload) {
-    if (-not $VpsHost) { $VpsHost = $env:FL_VPS_SSH }
-    if (-not $VpsHost) {
-        throw "Defina -VpsHost ou env FL_VPS_SSH. Nao use IP no codigo."
+    # Oficial: ZIP local → Cloudflare R2 (site BAIXAR). NAO sobe instalador pra VPS.
+    if (-not $PublicDownloadBase) {
+        $PublicDownloadBase = $env:FL_DOWNLOAD_BASE
+        if (-not $PublicDownloadBase) { $PublicDownloadBase = "https://downloads.frontlinebattle.com.br" }
     }
-    if (-not $PublicDownloadBase) { $PublicDownloadBase = $env:FL_DOWNLOAD_BASE }
 
-    Write-Host ("==> Upload para {0} ..." -f $VpsHost)
-    ssh -o BatchMode=yes $VpsHost "sudo mkdir -p $VpsDir && sudo chown ubuntu:ubuntu $VpsDir"
-    # DiskSpanning: Setup.exe + Setup-1.bin, Setup-2.bin, ...
-    $parts = @(Get-ChildItem $OutDir -File | Where-Object {
-        $_.BaseName -eq $outName -or $_.Name -like "$outName-*.bin"
-    })
-    if ($parts.Count -eq 0) { $parts = @(Get-Item $exeOut) }
-    foreach ($p in $parts) {
-        Write-Host ("    scp {0} ({1} MB)" -f $p.Name, [math]::Round($p.Length/1MB,1))
-        scp -o BatchMode=yes $p.FullName "${VpsHost}:$VpsDir/"
-        if ($LASTEXITCODE -ne 0) { throw "scp falhou: $($p.Name)" }
-    }
-    $base = Split-Path $exeOut -Leaf
-    # Inno DiskSpanning usa o basename do .exe para achar as fatias (-1.bin, -2.bin, …).
-    # Symlinks FrontLine-Setup-latest* apontam para a versão recém-enviada.
-    $binLinks = @(Get-ChildItem $OutDir -File | Where-Object { $_.Name -like "$outName-*.bin" } | ForEach-Object {
-        if ($_.Name -match '-(\d+)\.bin$') {
-            "ln -sfn '$($_.Name)' 'FrontLine-Setup-latest-$($Matches[1]).bin'"
+    $zipOut = Join-Path $OutDir "FrontLine-Setup-latest.zip"
+    $zipStage = Join-Path $env:TEMP ("FrontLine-Setup-zip-" + [guid]::NewGuid().ToString("N").Substring(0, 8))
+    New-Item -ItemType Directory -Force -Path $zipStage | Out-Null
+    try {
+        Copy-Item $exeOut (Join-Path $zipStage "FrontLine-Setup-latest.exe") -Force
+        Get-ChildItem $OutDir -File | Where-Object { $_.Name -like "$outName-*.bin" } | ForEach-Object {
+            if ($_.Name -match '-(\d+)\.bin$') {
+                Copy-Item $_.FullName (Join-Path $zipStage "FrontLine-Setup-latest-$($Matches[1]).bin") -Force
+            }
         }
-    })
-    # Symlinks latest + ZIP unico para o site (jogador baixa 1 arquivo).
-    # Strip CR: ssh remoto quebra com CRLF do Windows em "cd $VpsDir".
-    $remoteZip = @"
-cd $VpsDir
-ln -sfn '$base' FrontLine-Setup-latest.exe
-$($binLinks -join "`n")
-rm -f FrontLine-Setup-latest.zip
-zip -0 FrontLine-Setup-latest.zip FrontLine-Setup-latest.exe FrontLine-Setup-latest-*.bin
-ls -lh FrontLine-Setup-latest.zip FrontLine-Setup-latest.exe
-"@
-    $remoteZip = ($remoteZip -replace "`r", "").Trim()
-    ssh -o BatchMode=yes $VpsHost $remoteZip
-    if ($LASTEXITCODE -ne 0) { throw "Falha ao criar symlinks/ZIP na VPS" }
-    if (-not $PublicDownloadBase) { $PublicDownloadBase = "https://www.frontlinebattle.com.br" }
+        if (Test-Path $zipOut) { Remove-Item $zipOut -Force }
+        Write-Host "==> ZIP local (store) ..."
+        Push-Location $zipStage
+        try {
+            & tar -a -cf $zipOut --format=zip *
+            if ($LASTEXITCODE -ne 0) { throw "tar zip falhou" }
+        } finally { Pop-Location }
+        Write-Host ("==> ZIP OK: {0} ({1:N1} MB)" -f $zipOut, ((Get-Item $zipOut).Length / 1MB))
+
+        $r2Script = Join-Path $PSScriptRoot "upload-installer-r2.ps1"
+        if (-not (Test-Path $r2Script)) { throw "Falta $r2Script" }
+        Write-Host "==> Upload Cloudflare R2 (local) ..."
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $r2Script -Source $zipOut
+        if ($LASTEXITCODE -ne 0) { throw "upload-installer-r2.ps1 falhou" }
+    } finally {
+        Remove-Item $zipStage -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
     $baseUrl = $PublicDownloadBase.TrimEnd('/')
-    Write-Host ("==> ZIP:      {0}/downloads/FrontLine-Setup-latest.zip" -f $baseUrl)
-    Write-Host ("==> Site:     {0}/#download" -f $baseUrl)
-    Write-Host "    (jogador baixa 1 ZIP, extrai e roda o .exe)"
+    Write-Host ("==> ZIP R2:   {0}/FrontLine-Setup-latest.zip" -f $baseUrl)
+    Write-Host "==> Site:     https://www.frontlinebattle.com.br/#download"
+    Write-Host "    (jogador baixa 1 ZIP no R2, extrai e roda o .exe)"
 }
 
 if (-not $KeepStage) {

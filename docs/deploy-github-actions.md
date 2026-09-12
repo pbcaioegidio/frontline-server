@@ -13,7 +13,7 @@ O jogador **instala uma vez** (Full na VPS / site). Depois só abre o `FLLaunche
 [sempre]  FLLauncher ↔ Socket :9000 → Update (Data/Client) → FL Guard → Start → Auth/Game
 [você]    git tag server-v* / launcher-v* / client-v* → Actions (este repo)
           site: repo frontline-web + tag site-v* → Actions
-          instalador Full: pack-player-setup.ps1 -Upload → /var/frontline/downloads/
+          instalador Full: pack-player-setup.ps1 -Upload → Cloudflare R2
 ```
 
 ---
@@ -83,12 +83,11 @@ A chave **pública** do FileList fica no launcher. A **privada nunca** vai no gi
 ```text
 /opt/frontline/servidor/          # game server + socket
 /var/www/frontlinebattle/         # site (Actions frontline-web)
-/var/frontline/downloads/         # instalador Full (.exe + .bin)
-  FrontLine-Setup-latest.exe      # symlink → versão atual
-  FrontLine-Setup-latest-N.bin    # symlinks das fatias (mesmo basename do .exe)
+# Instalador Full oficial: Cloudflare R2 (downloads.frontlinebattle.com.br)
+# /var/frontline/downloads/     # LEGADO — manter vazio (nao hospedar ZIP aqui)
 ```
 
-Nginx: [`docs/nginx-frontlinebattle.conf`](nginx-frontlinebattle.conf) — site + `location /downloads/`.
+Nginx: [`docs/nginx-frontlinebattle.conf`](nginx-frontlinebattle.conf) — site. Download do ZIP vem do R2.
 
 Domínio DNS (KingHost): `A` `@` e `www` → IP da VPS. **Apague o AAAA** do `@` se ainda apontar IPv6 da King (senão Let’s Encrypt / visitantes IPv6 vão para o lugar errado).  
 Firewall Oracle Cloud: liberar **TCP 80 e 443** no Security List / NSG (iptables na VM já aceita; 443 no cloud pode estar fechado).
@@ -107,21 +106,28 @@ Site público: `http://www.frontlinebattle.com.br` (HTTPS `www` com cert Let’s
 
 ---
 
-## Instalador Full (VPS)
+## Instalador Full (Cloudflare R2)
+
+O site (**BAIXAR**) aponta pro R2 — **não** use a VPS como host do ZIP.
 
 ```powershell
 cd c:\Users\pbcai\Downloads\source
-$env:FL_VPS_SSH = "ubuntu@SEU_IP"   # nunca commitar IP
-$env:FL_DOWNLOAD_BASE = "https://www.frontlinebattle.com.br"
-
+# secrets locais (nao commit): docs/r2-secrets.local.env
 .\scripts\pack-player-setup.ps1 -Mode Full -Upload
+# → gera dist\*.exe + bins, ZIP local, sobe FrontLine-Setup-latest.zip no R2
 ```
 
-Atualize também `frontline-web/public/downloads-manifest.json` e faça deploy do site se a lista de arquivos mudar.
+Ou só o upload se o pack já existir:
 
-### Legado: GitHub Releases (`frontline-downloads`)
+```powershell
+.\scripts\upload-installer-r2.ps1 -Source .\dist\FrontLine-Setup-latest.zip
+```
 
-**Depreciado.** Full não cabe no limite ~2 GB do GitHub. O script [`publish-installer-release.ps1`](../scripts/publish-installer-release.ps1) e `-GitHubRelease` existem só por compatibilidade Slim/teste — o caminho oficial é `-Upload` na VPS. Pode apagar o repo `frontline-downloads`.
+Atualize também `frontline-web/public/downloads-manifest.json` e faça deploy do site se a lista/tamanho mudar.
+
+### Legado: GitHub Releases / VPS `/downloads`
+
+**Depreciado.** Full não cabe no GitHub (~2 GB). VPS `/var/frontline/downloads` **não** é mais o caminho oficial (enche disco; site usa R2).
 
 ---
 
