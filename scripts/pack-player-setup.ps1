@@ -134,7 +134,20 @@ if (-not (Test-Path $icon) -or (Get-Item $icon).Length -lt 4096) {
     throw "Icone invalido: $icon"
 }
 
-$excludeDirs = @("CEF\Cache", "_fl_backup", "_fl_publish_tmp", "tools", ".git")
+$excludeDirs = @(
+    "CEF\Cache",
+    "CEF\UserData",
+    "CEF\GPUCache",
+    "Shader\Cache",
+    "_fl_backup",
+    "_fl_publish_tmp",
+    "_icon_bak",
+    "_tmp_extract_shop",
+    "Gui\Loading\_preview",
+    "CHEAT_BLOCKER\Temp",
+    "tools",
+    ".git"
+)
 if ($Mode -eq "Slim") {
     Write-Warning "Modo Slim: SEM pasta Pack (so teste). Jogadores devem usar -Mode Full."
     $excludeDirs += "Pack"
@@ -142,15 +155,28 @@ if ($Mode -eq "Slim") {
     Write-Host "==> Modo Full: inclui Pack (instalador grande; use -Upload para R2)."
 }
 
-# Dados de jogador / maquina — nao podem ir no instalador publico.
+# Dados de jogador / maquina / lixo de build — nao podem ir no instalador publico.
 # launcher.svl e obrigatorio (versao do launcher); sem ele o FLLauncher quebra na abertura.
 $excludeFiles = @(
     "LocalConfig.json",
     "UserFileList.sig.bak",
+    "UserFileList.dat.bak_pre50",
+    "UserFileList.sig.bak_pre50",
     "FrontLine.exe.bak-admin",
     "FrontLine.exe.bak",
+    "FLLauncher.exe.bak",
+    "BC.log",
+    "CrashTrace.log",
+    "FLLauncher.log",
+    "Cef.log",
     "Thumbs.db",
-    "desktop.ini"
+    "desktop.ini",
+    "_preview_eventportal.png",
+    "_preview_eventportal_OLD.png",
+    "_preview_logo_text01.png",
+    "_preview_vertical.png",
+    "frontline_gnb.png",
+    "vertical.jpg"
 )
 
 $xd = @()
@@ -191,6 +217,24 @@ if (Test-Path -LiteralPath $junkText3) {
     Remove-Item -LiteralPath $junkText3 -Force
     Write-Host "==> Removido extra do stage: Locale\_Common\UI_V12\VTexList\Text_3.i3VTexImage"
 }
+# Pastas/arquivos de preview/bak que nao podem ir no Full
+@(
+    "_icon_bak",
+    "_tmp_extract_shop",
+    "Gui\Loading\_preview"
+) | ForEach-Object {
+    $p = Join-Path $stage $_
+    if (Test-Path -LiteralPath $p) {
+        Remove-Item -LiteralPath $p -Recurse -Force
+        Write-Host "==> Removido do stage: $_"
+    }
+}
+Get-ChildItem -LiteralPath $stage -Force -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '^(?i)_preview_|\.bak$|\.log$|frontline_gnb\.png$|^vertical\.jpg$' } |
+    ForEach-Object {
+        Remove-Item -LiteralPath $_.FullName -Force
+        Write-Host "==> Removido do stage: $($_.Name)"
+    }
 if (Test-Path (Join-Path $stage "LocalConfig.json")) {
     throw "LocalConfig.json ainda no stage - nao publicar instalador com conta de teste"
 }
