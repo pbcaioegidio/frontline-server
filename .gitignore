@@ -98,3 +98,7 @@ _logo_crops/
 _client-backups/
 **/_logo_crops/
 
+
+# FLLauncher self-contained >100MB — hotfix/Socket, nao git
+client-patch/FLLauncher.exe
+
