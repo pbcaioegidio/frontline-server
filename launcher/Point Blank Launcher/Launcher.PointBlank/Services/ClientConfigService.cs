@@ -1,4 +1,5 @@
 ﻿using Launcher.PointBlank.Models;
+using System;
 using System.IO;
 using System.Xml.Linq;
 
@@ -76,6 +77,24 @@ namespace Launcher.PointBlank.Services
                 return configured;
 
             return "FrontLine.exe";
+        }
+
+        /// <summary>Grava CLIENT_VERSION (e demais campos) no config.zpt após patch.</summary>
+        public void Save(ClientConfig config)
+        {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+            string encryptedPath = Path.Combine(_folderPath, EncryptedFileName);
+            string xml =
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<CLIENT_CONFIG>\n" +
+                $"  <CLIENT_VERSION>{config.ClientVersion}</CLIENT_VERSION>\n" +
+                $"  <IP_ADRESS>{config.IpAddress}</IP_ADRESS>\n" +
+                $"  <PORT>{config.Port}</PORT>\n" +
+                $"  <EXECUTABLE>{config.Executable}</EXECUTABLE>\n" +
+                $"  <USE_BASE64_LOGIN>{config.UseBase64Login.ToString().ToLowerInvariant()}</USE_BASE64_LOGIN>\n" +
+                $"  <USE_TOKEN_LOGIN>{config.UseTokenLogin.ToString().ToLowerInvariant()}</USE_TOKEN_LOGIN>\n" +
+                "</CLIENT_CONFIG>\n";
+            ConfigCryptoService.EncryptFile(encryptedPath, xml);
         }
     }
 }

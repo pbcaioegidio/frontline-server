@@ -655,6 +655,34 @@ namespace Launcher.PointBlank
                 // Mantém tela pedindo Entrar se o auto-login falhar.
             }
         }
+        private void MarkLocalVersionsFromServer()
+        {
+            try
+            {
+                if (_connectionResult == null)
+                    return;
+
+                if (!string.IsNullOrEmpty(_connectionResult.LauncherVersion))
+                {
+                    var launcherCfg = LauncherConfigService.FromFolder(Application.StartupPath);
+                    launcherCfg.Save(new LauncherConfig { LauncherVersion = _connectionResult.LauncherVersion });
+                }
+
+                if (!string.IsNullOrEmpty(_connectionResult.ClientVersion))
+                {
+                    var clientSvc = ClientConfigService.FromFolder(Application.StartupPath);
+                    ClientConfig local = clientSvc.Load();
+                    local.ClientVersion = _connectionResult.ClientVersion;
+                    clientSvc.Save(local);
+                    Logger.Log($"CLIENT_VERSION local -> {_connectionResult.ClientVersion}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Aviso ao gravar versoes locais: " + ex.Message);
+            }
+        }
+
         private bool CheckClientVersion()
         {
             ClientConfigService clientConfigService = ClientConfigService.FromFolder(Application.StartupPath);
@@ -771,6 +799,7 @@ namespace Launcher.PointBlank
 
                 if (filesToUpdate.Count == 0)
                 {
+                    MarkLocalVersionsFromServer();
                     FileBar.Width = 463;
                     TotalBar.Width = 463;
                     FILE_TEXT.Visible = false;
@@ -799,23 +828,7 @@ namespace Launcher.PointBlank
                 PatchDownloadService downloadService = new PatchDownloadService(Application.StartupPath, _connection);
                 bool needsRestart = await downloadService.DownloadFilesAsync(filesToUpdate, progress);
 
-                // Marca versão local = server para não pedir Update de novo após reinício
-                try
-                {
-                    if (_connectionResult != null && !string.IsNullOrEmpty(_connectionResult.LauncherVersion))
-                    {
-                        var cfgSvc = LauncherConfigService.FromFolder(Application.StartupPath);
-                        cfgSvc.Save(new LauncherConfig { LauncherVersion = _connectionResult.LauncherVersion });
-                    }
-                    if (_connectionResult != null && !string.IsNullOrEmpty(_connectionResult.ClientVersion))
-                    {
-                        // ClientVersion fica em config.zpt — só bump de launcher.svl aqui
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("Aviso ao gravar LauncherVersion local: " + ex.Message);
-                }
+                MarkLocalVersionsFromServer();
 
                 if (needsRestart)
                 {
