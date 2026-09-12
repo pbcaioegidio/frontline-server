@@ -193,10 +193,22 @@ jobs:
           ufl = os.environ["UFL"].lower()
           p = Path(os.environ["ROOT"]) / "runtime/Data/ServerConfig.json"
           t = p.read_text(encoding="utf-8")
-          t2, n = re.subn(r'("UserFileList"\s*:\s*")[^"]*(")', r"\1" + ufl + r"\2", t, count=1)
+          t2, n = re.subn(
+              r'("UserFileList"\s*:\s*")[^"]*(")',
+              lambda m: m.group(1) + ufl + m.group(2),
+              t,
+              count=1,
+          )
           if n != 1:
               raise SystemExit("UserFileList nao encontrado em ServerConfig.json")
-          t2, n2 = re.subn(r'("AccessUFL"\s*:\s*")[^"]*(")', r"\1true\2", t2, count=1)
+          t2, n2 = re.subn(
+              r'("AccessUFL"\s*:\s*")[^"]*(")',
+              lambda m: m.group(1) + "true" + m.group(2),
+              t2,
+              count=1,
+          )
+          import json
+          json.loads(t2)  # falha se JSON invalido
           p.write_text(t2, encoding="utf-8")
           print("ServerConfig UserFileList=", ufl, "AccessUFL n=", n2)
           PY
