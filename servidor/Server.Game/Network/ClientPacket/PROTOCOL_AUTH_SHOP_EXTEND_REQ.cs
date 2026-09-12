@@ -62,6 +62,7 @@ namespace Server.Game.Network.ClientPacket
                 this.ReadD();                       // unused
                 this.ReadD();                       // unused
                 this.ReadC();                       // buy kind
+                CLogger.Print($"EXTEND_REQ GoodId={goods.GoodId} BuyType={goods.BuyType}", LoggerType.Info);
                 this.list_0.Add(goods);
             }
         }

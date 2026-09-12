@@ -20,8 +20,9 @@ Relacionado:
 |------|--------|
 | **Gateway Discord** | Tempo real *dentro* do Discord (discord.js). |
 | **Postgres NOTIFY** | Push quando `accounts.online` muda (Auth **e** Game, sem porta extra). |
-| **WebSocket StatusFeed** | Snapshot no connect, heartbeat, eventos do processo Game; bot pode priorizar WS e cair no LISTEN se WS cair. |
-| **Poll Docker** | Só saúde de containers (~30s). |
+| **WebSocket StatusFeed** | Snapshot no connect, heartbeat, eventos do processo Game; bot prioriza WS e cai no LISTEN se WS cair. |
+| **Docker Events** | Saúde dos containers no `#status` em tempo quase real (`/events`). |
+| **Docker logs follow** | `#logs` via `/logs?follow=1`; flush ~0,8s (críticos imediato). |
 
 Fluxo:
 

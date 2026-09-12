@@ -11,13 +11,15 @@ const DOCKER_SOCK = process.env.DOCKER_SOCK || "/var/run/docker.sock";
 const SERVER_CONTAINER = process.env.SERVER_DOCKER_CONTAINER || "servidor-server-1";
 const SOCKET_CONTAINER = process.env.SOCKET_DOCKER_CONTAINER || "servidor-socket-1";
 const DB_CONTAINER = process.env.DB_DOCKER_CONTAINER || "servidor-db-1";
-// Poll só para Docker/saúde; jogadores online vêm via WS StatusFeed + LISTEN (fallback).
-const INTERVAL_MS = Math.max(15_000, Number(process.env.STATUS_INTERVAL_MS || 30_000));
+// Docker health: Events API em tempo real; poll só como fallback.
+const INTERVAL_MS = Math.max(30_000, Number(process.env.STATUS_INTERVAL_MS || 120_000));
 const DATABASE_URL = process.env.DATABASE_URL || "";
 const LISTEN_CHANNEL = "frontline_online";
 const NOTIFY_COALESCE_MS = Math.max(500, Number(process.env.STATUS_NOTIFY_COALESCE_MS || 1500));
+const DOCKER_EVENT_COALESCE_MS = Math.max(200, Number(process.env.STATUS_DOCKER_EVENT_COALESCE_MS || 400));
 const STATUS_FEED_URL = (process.env.STATUS_FEED_URL || "").replace(/\/$/, "");
 const STATUS_FEED_TOKEN = process.env.STATUS_FEED_TOKEN || "";
+const WATCHED_CONTAINERS = new Set([SERVER_CONTAINER, SOCKET_CONTAINER, DB_CONTAINER]);
 
 function snapshotKey(data) {
   return [
@@ -132,6 +134,7 @@ function setupPublicStatus(client) {
   /** @type {null | Awaited<ReturnType<typeof collect>>} */
   let lastData = null;
   let notifyTimer = null;
+  let dockerEventTimer = null;
   let feedConnected = false;
 
   const collect = async () => {
@@ -254,6 +257,90 @@ function setupPublicStatus(client) {
     })().catch(() => {});
   };
 
+  const scheduleDockerRefresh = (reason) => {
+    if (dockerEventTimer) clearTimeout(dockerEventTimer);
+    dockerEventTimer = setTimeout(() => {
+      console.log(`[status] docker event → refresh (${reason})`);
+      tick().catch((e) => console.warn("[status] docker refresh:", e.message));
+    }, DOCKER_EVENT_COALESCE_MS);
+  };
+
+  /** Docker Events API — start/die/health em tempo quase real. */
+  const startDockerEvents = () => {
+    if (!fs.existsSync(DOCKER_SOCK)) {
+      console.warn("[status] sem docker.sock — só poll");
+      return;
+    }
+
+    let delay = 2000;
+    const connect = () => {
+      const filters = encodeURIComponent(
+        JSON.stringify({
+          type: ["container"],
+          event: ["start", "die", "kill", "oom", "health_status", "restart", "stop", "destroy"],
+        })
+      );
+      const req = http.request(
+        {
+          socketPath: DOCKER_SOCK,
+          path: `/events?filters=${filters}`,
+          method: "GET",
+          headers: { Host: "localhost" },
+        },
+        (res) => {
+          if (res.statusCode && res.statusCode >= 400) {
+            console.warn(`[status] docker events HTTP ${res.statusCode}`);
+            res.resume();
+            setTimeout(connect, delay);
+            delay = Math.min(60_000, delay * 2);
+            return;
+          }
+          delay = 2000;
+          console.log("[status] Docker Events conectado");
+          let buf = "";
+          res.on("data", (chunk) => {
+            buf += chunk.toString("utf8");
+            let idx;
+            while ((idx = buf.indexOf("\n")) >= 0) {
+              const line = buf.slice(0, idx).trim();
+              buf = buf.slice(idx + 1);
+              if (!line) continue;
+              try {
+                const ev = JSON.parse(line);
+                const name =
+                  ev?.Actor?.Attributes?.name ||
+                  ev?.Actor?.Attributes?.["com.docker.compose.service"] ||
+                  "";
+                const status = String(ev?.status || ev?.Action || "");
+                if (WATCHED_CONTAINERS.has(name)) {
+                  scheduleDockerRefresh(`${name}:${status}`);
+                }
+              } catch {
+                /* ignore */
+              }
+            }
+          });
+          res.on("end", () => {
+            console.warn("[status] Docker Events acabou — reconecta");
+            setTimeout(connect, delay);
+            delay = Math.min(60_000, delay * 2);
+          });
+          res.on("error", (e) => {
+            console.warn("[status] Docker Events erro:", e.message);
+          });
+        }
+      );
+      req.on("error", (e) => {
+        console.warn("[status] Docker Events connect:", e.message);
+        setTimeout(connect, delay);
+        delay = Math.min(60_000, delay * 2);
+      });
+      req.end();
+    };
+
+    connect();
+  };
+
   const startStatusFeed = () => {
     if (!STATUS_FEED_URL || !STATUS_FEED_TOKEN) {
       console.log("[status] StatusFeed WS desligado (STATUS_FEED_URL/TOKEN)");
@@ -318,8 +405,9 @@ function setupPublicStatus(client) {
     }, INTERVAL_MS);
     startListen();
     startStatusFeed();
+    startDockerEvents();
     console.log(
-      `[status] público em ${CHANNEL_STATUS} · poll ${Math.round(INTERVAL_MS / 1000)}s · NOTIFY ${LISTEN_CHANNEL}` +
+      `[status] público em ${CHANNEL_STATUS} · Docker Events + poll ${Math.round(INTERVAL_MS / 1000)}s · NOTIFY ${LISTEN_CHANNEL}` +
         (STATUS_FEED_URL ? ` · WS ${STATUS_FEED_URL}` : "")
     );
   };
