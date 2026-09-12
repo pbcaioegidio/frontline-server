@@ -161,6 +161,50 @@ jobs:
           ssh "$REMOTE" "cd '$ROOT' && C=(docker compose -f docker-compose.vps.yml); [ -f docker-compose.hostnet.yml ] && C+=(-f docker-compose.hostnet.yml); \"\${C[@]}\" restart socket"
           echo "OK client patch $VER"
 
+      - name: Sync AccessUFL (Auth ServerConfig) com MD5 do patch
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_SSH_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          USER="${VPS_USER:-ubuntu}"
+          ROOT="${VPS_PATH:-/opt/frontline/servidor}"
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          REMOTE="$USER@$VPS_HOST"
+          # MD5 gerado no build (ufl-md5.txt) — fallback: hash do .dat no stage
+          if [ -f out/client-patch/ufl-md5.txt ]; then
+            UFL="$(tr -d '[:space:]' < out/client-patch/ufl-md5.txt | tr 'A-F' 'a-f')"
+          else
+            UFL="$(md5sum out/client-patch/files/UserFileList.dat | awk '{print tolower($1)}')"
+          fi
+          test -n "$UFL"
+          echo "AccessUFL MD5=$UFL"
+          ssh "$REMOTE" "export ROOT='$ROOT' UFL='$UFL'; bash -s" <<'REMOTE'
+          set -euo pipefail
+          python3 <<'PY'
+          import os, re
+          from pathlib import Path
+          ufl = os.environ["UFL"].lower()
+          p = Path(os.environ["ROOT"]) / "runtime/Data/ServerConfig.json"
+          t = p.read_text(encoding="utf-8")
+          t2, n = re.subn(r'("UserFileList"\s*:\s*")[^"]*(")', r"\1" + ufl + r"\2", t, count=1)
+          if n != 1:
+              raise SystemExit("UserFileList nao encontrado em ServerConfig.json")
+          t2, n2 = re.subn(r'("AccessUFL"\s*:\s*")[^"]*(")', r"\1true\2", t2, count=1)
+          p.write_text(t2, encoding="utf-8")
+          print("ServerConfig UserFileList=", ufl, "AccessUFL n=", n2)
+          PY
+          REMOTE
+          # Recarrega Auth/Game (jogadores conectados caem neste restart — necessario p/ AccessUFL)
+          ssh "$REMOTE" "cd '$ROOT' && C=(docker compose -f docker-compose.vps.yml); [ -f docker-compose.hostnet.yml ] && C+=(-f docker-compose.hostnet.yml); \"\${C[@]}\" restart server"
+          echo "OK AccessUFL sync"
+
       - name: Smoke — ClientVersion + manifest
         env:
           SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
@@ -177,4 +221,4 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
-          ssh "$USER@$VPS_HOST" "grep -E '^ClientVersion=$VER' '$ROOT/runtime/Socket/Config/config.ini' && test -f '$ROOT/runtime/Socket/Data/Client/UserFileList.dat' && test -f '$ROOT/runtime/Socket/Info/manifest.json' && python3 -c \"import json; m=json.load(open('$ROOT/runtime/Socket/Info/manifest.json')); assert m.get('clientVersion')=='$VER', m; print('files', len(m.get('files') or []))\""
+          ssh "$USER@$VPS_HOST" "grep -E '^ClientVersion=$VER' '$ROOT/runtime/Socket/Config/config.ini' && test -f '$ROOT/runtime/Socket/Data/Client/UserFileList.dat' && test -f '$ROOT/runtime/Socket/Info/manifest.json' && python3 -c \"import json; m=json.load(open('$ROOT/runtime/Socket/Info/manifest.json')); assert m.get('clientVersion')=='$VER', m; print('files', len(m.get('files') or []))\" && grep -oE '\"UserFileList\"[[:space:]]*:[[:space:]]*\"[^\"]+\"' '$ROOT/runtime/Data/ServerConfig.json'"
