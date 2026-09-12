@@ -130,6 +130,9 @@ namespace Plugin.Core.XML
                                             Period = bool.Parse(attributes.GetNamedItem("Period").Value),
                                             Priority = bool.Parse(attributes.GetNamedItem("Priority").Value)
                                         };
+                                        var imageAttr = attributes.GetNamedItem("Image");
+                                        if (imageAttr != null && byte.TryParse(imageAttr.Value, out byte imageIdx))
+                                            eventBoostModel.Image = imageIdx;
                                         EventBoostXML.Events.Add(eventBoostModel);
                                     }
                                 }
