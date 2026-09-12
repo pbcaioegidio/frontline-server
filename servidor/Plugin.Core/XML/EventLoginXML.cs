@@ -116,6 +116,10 @@ namespace Plugin.Core.XML
                                             Priority = bool.Parse(attributes.GetNamedItem("Priority").Value),
                                             Goods = new List<int>()
                                         };
+                                        // Image escolhe Gui/EventPortal/img_*_<N>.i3i (+0x153). Default no ctor = 1.
+                                        var imageAttr = attributes.GetNamedItem("Image");
+                                        if (imageAttr != null && byte.TryParse(imageAttr.Value, out byte imageIdx))
+                                            A_1.Image = imageIdx;
                                         EventLoginXML.StaticMethod1(A_0_1, A_1);
                                         EventLoginXML.Events.Add(A_1);
                                     }

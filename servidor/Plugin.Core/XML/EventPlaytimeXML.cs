@@ -229,6 +229,11 @@ namespace Plugin.Core.XML
                 if (eventElement.TryGetProperty("Priority", out JsonElement priorityElement))
                     Event.Priority = priorityElement.GetBoolean();
 
+                // Image → Gui/EventPortal/img_*_<N>.i3i (u8 no portal). Ausente → 0.
+                if (eventElement.TryGetProperty("Image", out JsonElement imageElement) &&
+                    imageElement.TryGetInt32(out int imageIdx))
+                    Event.Image = (byte)(imageIdx < 0 ? 0 : imageIdx > 255 ? 255 : imageIdx);
+
                 // Parsear la estructura de niveles y recompensas
                 if (eventElement.TryGetProperty("Minutes", out JsonElement minutesElement))
                 {

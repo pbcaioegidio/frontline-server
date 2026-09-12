@@ -116,6 +116,9 @@ namespace Plugin.Core.XML
                                             Priority = bool.Parse(attributes.GetNamedItem("Priority").Value),
                                             Ranks = new List<int[]>()
                                         };
+                                        var imageAttr = attributes.GetNamedItem("Image");
+                                        if (imageAttr != null && byte.TryParse(imageAttr.Value, out byte imageIdx))
+                                            A_1.Image = imageIdx;
                                         EventRankUpXML.StaticMethod1(A_0_1, A_1);
                                         EventRankUpXML.Events.Add(A_1);
                                     }
