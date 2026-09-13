@@ -35,6 +35,7 @@ namespace Server.Game.Network.ClientPacket
         private byte Field16;
         private byte Field17;
         private byte Field18;
+        private byte Field23; // AiType — mesmo layout do CREATE_REQ
         private RoomCondition Field19;
         private RoomState Field20;
         private RoomWeaponsFlag Field21;
@@ -66,9 +67,14 @@ namespace Server.Game.Network.ClientPacket
             this.Field17 = this.ReadC();
             this.Field7 = this.ReadB(4);
             this.Field18 = this.ReadC();
+            // Igual PROTOCOL_ROOM_CREATE_REQ: H + senha(4) + pad(68) + AiCount/AiLevel/AiType.
+            // Antes lia AiLevel no meio do pad — dificuldade “Nível X” só funcionava na criação.
             int num3 = (int)this.ReadH();
+            this.ReadS(4);
+            this.ReadB(68);
             this.Field15 = this.ReadC();
             this.Field16 = this.ReadC();
+            this.Field23 = this.ReadC();
         }
 
         
@@ -103,6 +109,7 @@ namespace Server.Game.Network.ClientPacket
                 room.KillCam = this.Field18;
                 room.AiCount = this.Field15;
                 room.AiLevel = this.Field16;
+                room.AiType = this.Field23;
                 room.SetSlotCount(this.Field9, false, true);
                 room.CountPlayers = this.Field12;
                 if (((this.Field20 < RoomState.READY ? 1 : (this.Field1.Equals("") ? 1 : (!this.Field1.Equals(player.Nickname) ? 1 : 0))) | (flag1 ? 1 : 0) | (flag2 ? 1 : 0)) != 0 || this.Field21 != room.WeaponsFlag || this.Field9 != room.CountMaxSlots)
