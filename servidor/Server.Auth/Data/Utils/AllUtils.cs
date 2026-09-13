@@ -54,8 +54,6 @@ namespace Server.Auth.Data.Utils
         public static void ValidatePlayerInventoryStatus(Account Player)
         {
             Player.Inventory.LoadBasicItems();
-            // Arma Especial 2: item 1707109 (cupom 1700109), não o stub 1600109.
-            InventoryUnlocks.EnsureThrow2Slot(Player.PlayerId, Player.Inventory);
             if (Player.Rank >= 46)
                 Player.Inventory.LoadGeneralBeret();
             if (Player.IsGM())

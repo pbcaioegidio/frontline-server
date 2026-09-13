@@ -95,8 +95,8 @@ namespace Server.Game.Network.ClientPacket
                     return;
                 }
 
-                // Throw2 / Arma Especial 2: catálogo tem cash > 0 só para o client enviar Confirm;
-                // cobrança real é isenta (grátis permanente no private).
+                // Arma Especial 2: se algum dia o client resolver esse good, o unlock
+                // sai de graça (o cadeado é liberado, não vendido).
                 if (goods.TrueForAll(g => InventoryUnlocks.IsThrow2UnlockGood(g.Id)))
                 {
                     CLogger.Print($"EXTEND_REQ Throw2 free unlock GoodIds={string.Join(",", goods.ConvertAll(g => g.Id))}", LoggerType.Info);

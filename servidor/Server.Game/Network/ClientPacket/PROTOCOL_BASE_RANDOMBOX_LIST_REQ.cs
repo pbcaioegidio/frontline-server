@@ -41,7 +41,6 @@ namespace Server.Game.Network.ClientPacket
                         player.LoadedShop = true;
                         player.LoadedPackedGoods = true;
                         ShopCatalog121Sender.SendFullCatalog(this.Client, player, true);
-                        Throw2UnlockHelper.TrySendAfterShopCatalog(this.Client, player);
                     }
                     SendPackedRandomBoxList();
                 }

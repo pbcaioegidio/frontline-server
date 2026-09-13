@@ -1,56 +1,40 @@
 using Plugin.Core;
 using Plugin.Core.Enums;
-using Plugin.Core.Managers;
-using Plugin.Core.Models;
 using Plugin.Core.SQL;
 using System;
-using System.Collections.Generic;
 
 namespace Plugin.Core.Utility
 {
     /// <summary>
-    /// Arma Especial 2 — o cadeado faz FindGoods(160010901) fixo.
-    /// Sem esse GoodId no packed catalog → Aviso vazio, qty 0, Confirm morto.
+    /// Arma Especial 2 (item 1600109 / 1600110).
+    ///
+    /// O cadeado NÃO é resolvível pelo servidor neste build de client: o
+    /// ItemGroup.dat do client lista os itens de efeito 16000xx e pula de
+    /// 1600080 para 1600163 — sem entrada para 1600109/1600110. Sem isso o
+    /// client não resolve o good do BuyExtend e o Aviso abre vazio (0 dias /
+    /// 0 Gold), sem enviar EXTEND_REQ. Comparação: o ExtraGrenade (1600035)
+    /// está no ItemGroup.dat e tem os goods 170003501..04 gravados no
+    /// Shop.dat local, por isso funciona sem o servidor mandar nada.
+    ///
+    /// Enquanto o client não for corrigido, os goods ficam invisíveis para
+    /// não poluir a loja com cards sem PEF (risco de "Please Wait").
     /// </summary>
     public static class InventoryUnlocks
     {
-        private const uint FarFutureCount = 4212312359U;
-
-        /// <summary>GoodsId que o client Resolve no botão Gold do cadeado.</summary>
-        public const int Throwing2PadlockGoodsId = 160010901;
-
         public const int Throwing2ItemId = 1600109;
-        public const int Throwing2EffectItemId = 1707109;
+        public const int Throwing2ItemIdAlt = 1600110;
 
         public static bool IsThrow2UnlockGood(int goodId)
         {
             int baseId = goodId / 100;
-            return baseId == 1600109 || baseId == 1600110 || baseId == 1700109;
+            return baseId == Throwing2ItemId || baseId == Throwing2ItemIdAlt;
         }
 
-        public static void EnsureThrow2Slot(long playerId, PlayerInventory inventory)
-        {
-            if (inventory == null || playerId <= 0)
-                return;
-
-            if (inventory.GetItem(Throwing2ItemId) == null)
-            {
-                ComDiv.TryCreateItem(
-                    new ItemsModel(Throwing2ItemId, "Increase Throwing 2 Slot [Active]", ItemEquipType.Temporary, FarFutureCount),
-                    inventory,
-                    playerId);
-            }
-
-            if (inventory.GetItem(Throwing2EffectItemId) == null)
-            {
-                ComDiv.TryCreateItem(
-                    new ItemsModel(Throwing2EffectItemId, "Increase Throwing 2 Slot [Active]", ItemEquipType.Temporary, FarFutureCount),
-                    inventory,
-                    playerId);
-            }
-        }
-
-        public static void EnsureThrow2ShopCatalog()
+        /// <summary>
+        /// Devolve o catálogo ao padrão do ExtraGrenade (invisível) e remove o
+        /// cupom 1700109 que tinha sido criado para tentar abrir o cadeado.
+        /// </summary>
+        public static void ResetThrow2ShopCatalog()
         {
             try
             {
@@ -59,31 +43,17 @@ namespace Plugin.Core.Utility
                     conn.Open();
                     using (var cmd = conn.CreateCommand())
                     {
-                        // variant 01 → GoodsId 160010901 (o único que o padlock FindGoods).
-                        // consume=1 (dias). Cadeado/Aviso lê PriceGold (+ period no packed);
-                        // cash sozinho deixa "Gold necessário 0" e Confirm morto.
                         cmd.CommandText = @"
 UPDATE system_shop
-SET item_name = 'Increase Throwing 2 Slot',
-    item_visible = true,
-    item_consume = 1,
-    ""Item_count_list"" = '30',
-    price_cash_list = '0',
-    price_gold_list = '100',
-    variant_code_list = '01'
+SET item_visible = false,
+    item_consume = 2,
+    ""Item_count_list"" = '1,1,1,1',
+    variant_code_list = '04,06,08,12',
+    price_cash_list = '250,0,1200,4000',
+    price_gold_list = '0,1,0,0'
 WHERE item_id IN (1600109, 1600110);
 
-INSERT INTO system_shop_effects
-  (coupon_id, coupon_name, coupon_count_day_list, price_cash_list, price_gold_list,
-   shop_tag, coupon_visible, discount_percent)
-VALUES
-  (1700109, 'Increase Throwing 2 Slot', '1,3,7,30', '0,0,0,0', '100,270,500,1500', 0, TRUE, 0)
-ON CONFLICT (coupon_id) DO UPDATE SET
-  coupon_name = EXCLUDED.coupon_name,
-  coupon_count_day_list = '1,3,7,30',
-  price_cash_list = '0,0,0,0',
-  price_gold_list = '100,270,500,1500',
-  coupon_visible = TRUE;
+DELETE FROM system_shop_effects WHERE coupon_id = 1700109;
 ";
                         cmd.ExecuteNonQuery();
                     }
@@ -91,44 +61,8 @@ ON CONFLICT (coupon_id) DO UPDATE SET
             }
             catch (Exception ex)
             {
-                CLogger.Print($"InventoryUnlocks.EnsureThrow2ShopCatalog: {ex.Message}", LoggerType.Warning);
+                CLogger.Print($"InventoryUnlocks.ResetThrow2ShopCatalog: {ex.Message}", LoggerType.Warning);
             }
-        }
-
-        public static GoodsItem FindThrow2MaxGoods()
-        {
-            int[] prefer = { Throwing2PadlockGoodsId, 160011001, 170010904, 170010901 };
-            lock (ShopManager.ShopBuyableList)
-            {
-                foreach (int id in prefer)
-                {
-                    foreach (GoodsItem g in ShopManager.ShopBuyableList)
-                    {
-                        if (g.Id == id)
-                            return g;
-                    }
-                }
-            }
-            lock (ShopManager.ShopAllList)
-            {
-                foreach (int id in prefer)
-                {
-                    foreach (GoodsItem g in ShopManager.ShopAllList)
-                    {
-                        if (g.Id == id)
-                            return g;
-                    }
-                }
-            }
-            return null;
-        }
-
-        public static List<GoodsItem> Throw2UnlockCart()
-        {
-            GoodsItem g = FindThrow2MaxGoods();
-            if (g == null)
-                return null;
-            return new List<GoodsItem> { g };
         }
     }
 }

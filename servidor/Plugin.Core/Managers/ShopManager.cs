@@ -103,9 +103,10 @@ namespace Plugin.Core.Managers
 
         public static void Load(int Type)
         {
-            // Cupom Throw2 (1700109) + esconde stub 1600109 antes de montar a loja.
+            // Arma Especial 2 depende do client (ItemGroup.dat); mantém os goods
+            // invisíveis para não deixar cards sem PEF na loja.
             if (Type == 1)
-                InventoryUnlocks.EnsureThrow2ShopCatalog();
+                InventoryUnlocks.ResetThrow2ShopCatalog();
 
             LoadRepairableItems(Type);
             LoadShopItems(Type);
@@ -135,16 +136,6 @@ namespace Plugin.Core.Managers
             }
 
             CLogger.Print($"Plugin carregado: {ShopBuyableList.Count} itens compraveis", LoggerType.Info);
-            int throw2 = 0;
-            foreach (GoodsItem g in ShopBuyableList)
-            {
-                if (InventoryUnlocks.IsThrow2UnlockGood(g.Id))
-                {
-                    throw2++;
-                    CLogger.Print($"Throw2 good packed GoodId={g.Id} ItemId={g.Item.Id} Cash={g.PriceCash} Gold={g.PriceGold} Count={g.Item.Count}", LoggerType.Info);
-                }
-            }
-            CLogger.Print($"Throw2 goods no catálogo: {throw2}", LoggerType.Info);
             CLogger.Print($"Plugin carregado: {ItemRepairs.Count} itens reparaveis", LoggerType.Info);
             CLogger.Print($"Plugin carregado: {ItemLimited.Count} itens limitados", LoggerType.Info);
         }
@@ -1183,10 +1174,7 @@ namespace Plugin.Core.Managers
             buf[off + 4] = 1;
             buf[off + 5] = g.Visibility == 4 ? (byte)4 : (byte)1;
 
-            // period (+12) = Item.Count. BuyExtend/Aviso do cadeado lê esse campo para o
-            // seletor de dias; deixar 0 → qty 0 e Confirm aborta antes do EXTEND_REQ.
-            int period = g.Item != null ? (int)g.Item.Count : 0;
-            WriteGoodsOption(buf, off, 0, g.PriceGold, g.PriceCash, period, 0);
+            WriteGoodsOption(buf, off, 0, g.PriceGold, g.PriceCash, 0);
 
             // Per-item ribbon from system_shop.shop_tag / system_shop_effects.shop_tag.
             // Written at option0.code (+22). Never put goodId%100 here — that painted
@@ -1207,8 +1195,8 @@ namespace Plugin.Core.Managers
             int promoRatio = g.PriceGold > 0 ? g.PriceGold : g.PriceCash;
             int fullRatio = fullGold > 0 ? fullGold : fullCash;
 
-            WriteGoodsOption(buf, off, 6, promoRatio, g.PriceCash, period, 0);
-            WriteGoodsOption(buf, off, 7, fullRatio, fullCash, period, 0);
+            WriteGoodsOption(buf, off, 6, promoRatio, g.PriceCash, 0);
+            WriteGoodsOption(buf, off, 7, fullRatio, fullCash, 0);
 
             // Re-apply Tag after flash-sale options (they do not touch +22, keep invariant).
             buf[off + GOODS_SALETYPE_OFFSET] = (byte)g.Tag;
@@ -1217,13 +1205,13 @@ namespace Plugin.Core.Managers
         // One buy-info option: 17-byte stride starting at record+6.
         // option0.code (+22) is SaleType/shop_tag — callers overwrite via GOODS_SALETYPE_OFFSET.
         // Do not write goodId%100 into code; variant identity is already in GoodsID.
-        private static void WriteGoodsOption(byte[] buf, int off, int option, int gold, int cash, int period, int code)
+        private static void WriteGoodsOption(byte[] buf, int off, int option, int gold, int cash, int code)
         {
             int o = off + 6 + option * 17;
             WriteIntLE(buf, o + 0, gold);
             WriteIntLE(buf, o + 4, cash);
             WriteIntLE(buf, o + 8, 0);
-            WriteIntLE(buf, o + 12, period);
+            WriteIntLE(buf, o + 12, 0);
             buf[o + 16] = (byte)code;
         }
 

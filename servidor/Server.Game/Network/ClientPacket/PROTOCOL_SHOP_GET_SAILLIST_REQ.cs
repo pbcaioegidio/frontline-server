@@ -38,8 +38,6 @@ namespace Server.Game.Network.ClientPacket
                     player.LoadedShop = true;
                     player.LoadedPackedGoods = true;
                     ShopCatalog121Sender.SendFullCatalog(this.Client, player, true);
-                    // Depois do packed — não no USER_ENTER (Please Wait).
-                    Throw2UnlockHelper.TrySendAfterShopCatalog(this.Client, player);
                 }
 
                 this.Client.SendPacket(new PROTOCOL_SHOP_TAG_INFO_ACK());
