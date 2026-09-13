@@ -57,6 +57,8 @@ namespace Server.Game.Data.Models
         public bool AntiKickGM;
         public bool LoadedShop;
         public bool LoadedPackedGoods;
+        /// <summary>ACK sintético Throw2 já enviado nesta sessão (após packed shop).</summary>
+        public bool Throw2UnlockAckSent;
         public bool UpdateSeasonpass = true;
         public bool RefreshLobbyInfo;
         public CouponEffects Effects;

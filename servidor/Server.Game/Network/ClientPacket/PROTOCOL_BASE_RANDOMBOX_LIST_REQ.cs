@@ -8,6 +8,7 @@ using Plugin.Core.Models;
 using Plugin.Core.Utility;
 using Plugin.Core.XML;
 using Server.Game.Data.Models;
+using Server.Game.Data.Utils;
 using Server.Game.Network.ServerPacket;
 
 namespace Server.Game.Network.ClientPacket
@@ -40,6 +41,7 @@ namespace Server.Game.Network.ClientPacket
                         player.LoadedShop = true;
                         player.LoadedPackedGoods = true;
                         ShopCatalog121Sender.SendFullCatalog(this.Client, player, true);
+                        Throw2UnlockHelper.TrySendAfterShopCatalog(this.Client, player);
                     }
                     SendPackedRandomBoxList();
                 }

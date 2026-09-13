@@ -11,6 +11,7 @@ using Plugin.Core.Models;
 using Plugin.Core.Utility;
 using Plugin.Core.XML;
 using Server.Game.Data.Models;
+using Server.Game.Data.Utils;
 using Server.Game.Network.ServerPacket;
 using System;
 using System.Runtime.CompilerServices;
@@ -37,6 +38,8 @@ namespace Server.Game.Network.ClientPacket
                     player.LoadedShop = true;
                     player.LoadedPackedGoods = true;
                     ShopCatalog121Sender.SendFullCatalog(this.Client, player, true);
+                    // Depois do packed — não no USER_ENTER (Please Wait).
+                    Throw2UnlockHelper.TrySendAfterShopCatalog(this.Client, player);
                 }
 
                 this.Client.SendPacket(new PROTOCOL_SHOP_TAG_INFO_ACK());
