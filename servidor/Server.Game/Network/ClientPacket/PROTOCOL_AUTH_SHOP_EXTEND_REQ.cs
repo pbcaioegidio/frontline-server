@@ -95,6 +95,16 @@ namespace Server.Game.Network.ClientPacket
                     return;
                 }
 
+                // Throw2 / Arma Especial 2: catálogo tem cash > 0 só para o client enviar Confirm;
+                // cobrança real é isenta (grátis permanente no private).
+                if (goods.TrueForAll(g => InventoryUnlocks.IsThrow2UnlockGood(g.Id)))
+                {
+                    CLogger.Print($"EXTEND_REQ Throw2 free unlock GoodIds={string.Join(",", goods.ConvertAll(g => g.Id))}", LoggerType.Info);
+                    num1 = 0;
+                    num2 = 0;
+                    num3 = 0;
+                }
+
                 // Reject the whole cart (no charge) if a season good is ineligible.
                 if (!AllUtils.PreflightSeasonGoods(player, goods, out _))
                 {
