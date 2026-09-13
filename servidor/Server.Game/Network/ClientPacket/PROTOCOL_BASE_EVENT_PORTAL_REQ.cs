@@ -29,8 +29,9 @@ namespace Server.Game.Network.ClientPacket
                 Account player = this.Client.GetAccount();
                 if (player == null)
                     return;
-                if (!player.LoadedShop)
-                    player.LoadedShop = true;
+                // NÃO setar LoadedShop aqui. Antes marcava true sem SendFullCatalog →
+                // GET_SAILLIST seguinte pulava o packed goods → FindGoods NULL no Throw2
+                // (popup "0 Gold" / Confirm sem EXTEND_REQ).
                 if (!(Bitwise.ReadFile(Environment.CurrentDirectory + "/Data/Raws/EventPortal.dat") == this.Field0))
                     this.Client.SendPacket(new PROTOCOL_BASE_EVENT_PORTAL_ACK(true));
                 else

@@ -17,8 +17,8 @@ namespace Plugin.Core.Utility
     {
         private const uint FarFutureCount = 4212312359U;
 
-        /// <summary>Variant 100 dias do stub (item 1600109 + code 04).</summary>
-        public const int Throwing2GoodsIdMax = 160010904;
+        /// <summary>Variant 100 dias do cupom 1700109 (GoodsId = coupon + index).</summary>
+        public const int Throwing2GoodsIdMax = 170010904;
 
         public const int Throwing2ItemId = 1600109;
         public const int Throwing2EffectItemId = 1707109;
@@ -98,7 +98,8 @@ ON CONFLICT (coupon_id) DO UPDATE SET
 
         public static GoodsItem FindThrow2MaxGoods()
         {
-            int[] prefer = { Throwing2GoodsIdMax, 160010901, 170010904, 170010901 };
+            // Preferir cupom 1700109xx (Shop.dat local não tem Throw2; packed 1037 é a fonte).
+            int[] prefer = { 170010904, 170010901, Throwing2GoodsIdMax, 160010904, 160010901 };
             lock (ShopManager.ShopBuyableList)
             {
                 foreach (int id in prefer)

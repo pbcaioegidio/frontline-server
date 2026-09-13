@@ -72,7 +72,16 @@ namespace Server.Game.Network.ClientPacket
                         Client.SendPacket(new PROTOCOL_BASE_GET_CHARA_INFO_ACK(Player));
                         Client.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(Player));
 
-                        // Arma Especial 2: ACK de compra grátis (100 dias) → client seta RemainingDays.
+                        // Garante packed shop (Throw2 só existe no servidor; Shop.dat local não tem).
+                        if (!Player.LoadedShop)
+                        {
+                            Player.LoadedShop = true;
+                            Player.LoadedPackedGoods = true;
+                            ShopCatalog121Sender.SendFullCatalog(Client, Player, true);
+                            CLogger.Print($"Throw2 shop catalog enviado no USER_ENTER PlayerId={Player.PlayerId}", LoggerType.Info);
+                        }
+
+                        // Arma Especial 2: ACK de compra grátis (cupom 1700109) → RemainingDays.
                         var throw2Cart = InventoryUnlocks.Throw2UnlockCart();
                         if (throw2Cart != null)
                         {
