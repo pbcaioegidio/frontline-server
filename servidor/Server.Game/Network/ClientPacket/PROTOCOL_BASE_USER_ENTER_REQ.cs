@@ -71,6 +71,15 @@ namespace Server.Game.Network.ClientPacket
                         Client.SendPacket(new PROTOCOL_BASE_GET_MYINFO_RECORD_ACK(Player.Statistic));
                         Client.SendPacket(new PROTOCOL_BASE_GET_CHARA_INFO_ACK(Player));
                         Client.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(Player));
+
+                        // Arma Especial 2: ACK de compra grátis (100 dias) → client seta RemainingDays.
+                        var throw2Cart = InventoryUnlocks.Throw2UnlockCart();
+                        if (throw2Cart != null)
+                        {
+                            Client.SendPacket(new PROTOCOL_INVENTORY_GET_INFO_ACK(0, Player, throw2Cart));
+                            Client.SendPacket(new PROTOCOL_AUTH_SHOP_GOODS_BUY_ACK(1U, throw2Cart, Player));
+                            CLogger.Print($"Throw2 unlock ACK enviado PlayerId={Player.PlayerId} GoodId={throw2Cart[0].Id}", LoggerType.Info);
+                        }
                     }
                     else
                     {
