@@ -60,15 +60,16 @@ namespace Plugin.Core.Utility
                     using (var cmd = conn.CreateCommand())
                     {
                         // variant 01 → GoodsId 160010901 (o único que o padlock FindGoods).
-                        // consume=1 (dias), cash>0 (senão Confirm não manda 1082).
+                        // consume=1 (dias). Cadeado/Aviso lê PriceGold (+ period no packed);
+                        // cash sozinho deixa "Gold necessário 0" e Confirm morto.
                         cmd.CommandText = @"
 UPDATE system_shop
 SET item_name = 'Increase Throwing 2 Slot',
     item_visible = true,
     item_consume = 1,
     ""Item_count_list"" = '30',
-    price_cash_list = '100',
-    price_gold_list = '0',
+    price_cash_list = '0',
+    price_gold_list = '100',
     variant_code_list = '01'
 WHERE item_id IN (1600109, 1600110);
 
@@ -76,12 +77,12 @@ INSERT INTO system_shop_effects
   (coupon_id, coupon_name, coupon_count_day_list, price_cash_list, price_gold_list,
    shop_tag, coupon_visible, discount_percent)
 VALUES
-  (1700109, 'Increase Throwing 2 Slot', '1,3,7,30', '100,270,500,1500', '0,0,0,0', 0, TRUE, 0)
+  (1700109, 'Increase Throwing 2 Slot', '1,3,7,30', '0,0,0,0', '100,270,500,1500', 0, TRUE, 0)
 ON CONFLICT (coupon_id) DO UPDATE SET
   coupon_name = EXCLUDED.coupon_name,
   coupon_count_day_list = '1,3,7,30',
-  price_cash_list = '100,270,500,1500',
-  price_gold_list = '0,0,0,0',
+  price_cash_list = '0,0,0,0',
+  price_gold_list = '100,270,500,1500',
   coupon_visible = TRUE;
 ";
                         cmd.ExecuteNonQuery();
