@@ -25,7 +25,6 @@ namespace Server.Game.Network.ClientPacket
 
         public override void Read() => this.Field0 = (long)this.ReadUD();
 
-        
         public override void Run()
         {
             try
@@ -34,6 +33,9 @@ namespace Server.Game.Network.ClientPacket
                 if (player == null)
                     return;
                 ItemsModel itemsModel = player.Inventory.GetItem(this.Field0);
+                CLogger.Print(
+                    $"DELETE_ITEM_REQ obj={this.Field0} found={(itemsModel != null)} itemId={(itemsModel != null ? itemsModel.Id : 0)} nick={player.Nickname}",
+                    LoggerType.Info);
                 PlayerBonus bonus = player.Bonus;
                 if (itemsModel == null)
                     this.Field1 = 2147483648U /*0x80000000*/;
@@ -154,6 +156,9 @@ namespace Server.Game.Network.ClientPacket
                     else
                         this.Field1 = 2147483648U /*0x80000000*/;
                 }
+                CLogger.Print(
+                    $"DELETE_ITEM_ACK status={this.Field1} obj={this.Field0} nick={player.Nickname}",
+                    LoggerType.Info);
                 this.Client.SendPacket(new PROTOCOL_AUTH_SHOP_DELETE_ITEM_ACK(this.Field1, this.Field0));
             }
             catch (Exception ex)

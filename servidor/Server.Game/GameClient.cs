@@ -698,7 +698,9 @@ namespace Server.Game
                     case 1052: packet = new PROTOCOL_INVENTORY_USE_ITEM_REQ(); break;
                     case 1053:
                     case 1056: packet = new PROTOCOL_AUTH_SHOP_AUTH_GIFT_REQ(); break;
-                    case 1055: packet = new PROTOCOL_AUTH_SHOP_DELETE_ITEM_REQ(); break;
+                    // 1055 = builds antigos; o client 122 envia Excluir Item como 1058 (0x422).
+                    case 1055:
+                    case 1058: packet = new PROTOCOL_AUTH_SHOP_DELETE_ITEM_REQ(); break;
                     case 1060: packet = new PROTOCOL_AUTH_GET_POINT_CASH_REQ(); break;
                     case 1061: packet = new PROTOCOL_AUTH_USE_ITEM_CHECK_NICK_REQ(); break;
                     case 1063: packet = new PROTOCOL_BASE_CHECK_NICK_REQ(); break;

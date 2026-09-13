@@ -52,7 +52,7 @@ namespace Server.Game.Network.ClientPacket
 
             while (this.MStream.Length - this.MStream.Position >= RecordSize)
             {
-                this.ReadD();                       // item db index
+                int itemDbIndex = this.ReadD();     // item db index (client inventory row)
                 this.ReadC();                       // auth type
                 CartGoods goods = new CartGoods()
                 {
@@ -62,7 +62,9 @@ namespace Server.Game.Network.ClientPacket
                 this.ReadD();                       // unused
                 this.ReadD();                       // unused
                 this.ReadC();                       // buy kind
-                CLogger.Print($"EXTEND_REQ GoodId={goods.GoodId} BuyType={goods.BuyType}", LoggerType.Info);
+                CLogger.Print(
+                    $"EXTEND_REQ itemDb={itemDbIndex} GoodId={goods.GoodId} BuyType={goods.BuyType}",
+                    LoggerType.Info);
                 this.list_0.Add(goods);
             }
         }
@@ -91,6 +93,8 @@ namespace Server.Game.Network.ClientPacket
                 List<GoodsItem> goods = ShopManager.GetGoods(this.list_0, out num1, out num2, out num3);
                 if (goods.Count == 0)
                 {
+                    string cart = string.Join(",", this.list_0.ConvertAll(g => $"{g.GoodId}:{g.BuyType}"));
+                    CLogger.Print($"{this.GetType().Name}; GetGoods vazio cart=[{cart}]", LoggerType.Warning);
                     this.Client.SendPacket((GameServerPacket)new PROTOCOL_AUTH_SHOP_GOODS_BUY_ACK(2147487767U));
                     return;
                 }
