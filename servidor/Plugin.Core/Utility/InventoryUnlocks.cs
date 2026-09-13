@@ -9,17 +9,15 @@ using System.Collections.Generic;
 namespace Plugin.Core.Utility
 {
     /// <summary>
-    /// Arma Especial 2 (Throwing 2 Point).
-    /// Client Shop.dat period-codes: 04=1d, 06=3d, 08=7d, 12=30d.
-    /// variant_code 01 → UI qty 0 → Confirm no-op (sem EXTEND_REQ).
+    /// Arma Especial 2 — o cadeado faz FindGoods(160010901) fixo.
+    /// Sem esse GoodId no packed catalog → Aviso vazio, qty 0, Confirm morto.
     /// </summary>
     public static class InventoryUnlocks
     {
         private const uint FarFutureCount = 4212312359U;
 
-        // GoodsId = itemId + period code (ex.: 160010912 = 30 dias)
-        public const int Throwing2GoodsId30d = 160010912;
-        public const int Throwing2GoodsId1d = 160010904;
+        /// <summary>GoodsId que o client Resolve no botão Gold do cadeado.</summary>
+        public const int Throwing2PadlockGoodsId = 160010901;
 
         public const int Throwing2ItemId = 1600109;
         public const int Throwing2EffectItemId = 1707109;
@@ -27,11 +25,7 @@ namespace Plugin.Core.Utility
         public static bool IsThrow2UnlockGood(int goodId)
         {
             int baseId = goodId / 100;
-            // period-code goods: 160010904 / 06 / 08 / 12 (div 100 → 1600109)
-            // effect goods: 170010901..04
-            return baseId == 1600109 || baseId == 1600110 || baseId == 1700109
-                || goodId == 160010904 || goodId == 160010906
-                || goodId == 160010908 || goodId == 160010912;
+            return baseId == 1600109 || baseId == 1600110 || baseId == 1700109;
         }
 
         public static void EnsureThrow2Slot(long playerId, PlayerInventory inventory)
@@ -65,16 +59,17 @@ namespace Plugin.Core.Utility
                     conn.Open();
                     using (var cmd = conn.CreateCommand())
                     {
-                        // Period codes oficiais (não 01,02,03,04 — isso gera qty 0 na UI).
+                        // variant 01 → GoodsId 160010901 (o único que o padlock FindGoods).
+                        // consume=1 (dias), cash>0 (senão Confirm não manda 1082).
                         cmd.CommandText = @"
 UPDATE system_shop
 SET item_name = 'Increase Throwing 2 Slot',
     item_visible = true,
     item_consume = 1,
-    ""Item_count_list"" = '1,3,7,30',
-    price_cash_list = '100,270,500,1500',
-    price_gold_list = '0,0,0,0',
-    variant_code_list = '04,06,08,12'
+    ""Item_count_list"" = '30',
+    price_cash_list = '100',
+    price_gold_list = '0',
+    variant_code_list = '01'
 WHERE item_id IN (1600109, 1600110);
 
 INSERT INTO system_shop_effects
@@ -101,12 +96,7 @@ ON CONFLICT (coupon_id) DO UPDATE SET
 
         public static GoodsItem FindThrow2MaxGoods()
         {
-            int[] prefer =
-            {
-                Throwing2GoodsId30d, // 160010912
-                160010908, 160010906, Throwing2GoodsId1d,
-                170010904, 170010901
-            };
+            int[] prefer = { Throwing2PadlockGoodsId, 160011001, 170010904, 170010901 };
             lock (ShopManager.ShopBuyableList)
             {
                 foreach (int id in prefer)
