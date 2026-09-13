@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<List>
+  <Event 
+      Id="1" 
+      Begin="2510010000" 
+      Ended="2612012359" 
+      Name="FrontLine Login" 
+      Description="Login" 
+      Subtitle=""
+      Period="true" 
+      Priority="false" Image="0">
+    <Rewards>
+      <!-- good visível no catálogo packed (Kar98k TSR Wraith 1d) — evita skip/Please Wait -->
+      <Item GoodId="10568404" />
+    </Rewards>
+  </Event>
+</List>

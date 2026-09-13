@@ -70,10 +70,21 @@ jobs:
           ssh "$REMOTE" "mkdir -p '$ROOT' && mkdir -p /tmp/fl-deploy"
           scp /tmp/servidor-src.tgz "$REMOTE:/tmp/fl-deploy/servidor-src.tgz"
 
-          # Migration SQL (fora de servidor/) — Throw2 / Arma Especial 2
-          if [ -f database/migrations/migration_throw2_slot_unlock_20260912.sql ]; then
-            scp database/migrations/migration_throw2_slot_unlock_20260912.sql \
-              "$REMOTE:/tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql"
+          # Migration SQL (fora de servidor/)
+          for mig in \
+            database/migrations/migration_throw2_slot_unlock_20260912.sql \
+            database/migrations/migration_portal_rewards_packed_20260913.sql \
+            database/migrations/migration_event_portal_image_subtitle_20260728.sql
+          do
+            if [ -f "$mig" ]; then
+              scp "$mig" "$REMOTE:/tmp/fl-deploy/$(basename "$mig")"
+            fi
+          done
+
+          # Seeds de eventos (Play/Login) — runtime não vem no tar
+          if [ -d servidor/runtime-seed/Data/Events ]; then
+            scp -r servidor/runtime-seed/Data/Events \
+              "$REMOTE:/tmp/fl-deploy/events-seed"
           fi
 
           ssh "$REMOTE" bash -s <<EOF
@@ -103,12 +114,27 @@ jobs:
           fi
           COMPOSE+=(--env-file .env)
 
-          # Aplica migration Throw2 se veio no deploy
-          if [ -f /tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql ]; then
-            echo "Aplicando migration_throw2_slot_unlock_20260912.sql"
-            docker cp /tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql servidor-db-1:/tmp/migration_throw2.sql
-            docker exec servidor-db-1 psql -U postgres -d pb -f /tmp/migration_throw2.sql
-            rm -f /tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql
+          apply_mig() {
+            local f="\$1"
+            local base
+            base=\$(basename "\$f")
+            if [ -f "\$f" ]; then
+              echo "Aplicando \$base"
+              docker cp "\$f" servidor-db-1:/tmp/"\$base"
+              docker exec servidor-db-1 psql -U postgres -d pb -f /tmp/"\$base"
+              rm -f "\$f"
+            fi
+          }
+          apply_mig /tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql
+          apply_mig /tmp/fl-deploy/migration_event_portal_image_subtitle_20260728.sql
+          apply_mig /tmp/fl-deploy/migration_portal_rewards_packed_20260913.sql
+
+          if [ -d /tmp/fl-deploy/events-seed ]; then
+            mkdir -p "\$ROOT/runtime/Data/Events"
+            cp -f /tmp/fl-deploy/events-seed/Play.json "\$ROOT/runtime/Data/Events/Play.json" 2>/dev/null || true
+            cp -f /tmp/fl-deploy/events-seed/Login.xml "\$ROOT/runtime/Data/Events/Login.xml" 2>/dev/null || true
+            rm -rf /tmp/fl-deploy/events-seed
+            echo "Events seed atualizado (Play.json / Login.xml)"
           fi
 
           "\${COMPOSE[@]}" up -d --build server

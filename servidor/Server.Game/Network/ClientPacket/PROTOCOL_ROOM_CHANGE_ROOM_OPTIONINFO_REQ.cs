@@ -31,7 +31,10 @@ namespace Server.Game.Network.ClientPacket
             this.Field7 = this.ReadB(4);
             this.Field8 = this.ReadC();
             this.ReadH();
-            this.ReadB(68);
+            // Client 122 pode mandar pad menor que 68 — não forçar ReadB fixo.
+            long left = this.MStream.Length - this.MStream.Position;
+            if (left > 0L)
+                this.ReadB((int)left);
         }
 
         public override void Run()

@@ -1,0 +1,64 @@
+{
+  "List": {
+    "Event": [
+      {
+        "Id": 1,
+        "Begin": 2511130420,
+        "Ended": 2612012359,
+        "Name": "FRONTLINE",
+        "Description": "PLAYING TIME",
+        "Period": false,
+        "Priority": true,
+        "Minutes": {
+          "Time": [
+            {
+              "Index": 1,
+              "Play": 10,
+              "Reward": {
+                "Goods": [
+                  { "Id": 10568404 },
+                  { "Id": 10569204 },
+                  { "Id": 10569404 }
+                ]
+              }
+            },
+            {
+              "Index": 2,
+              "Play": 30,
+              "Reward": {
+                "Goods": [
+                  { "Id": 10569904 },
+                  { "Id": 10570904 },
+                  { "Id": 10384106 }
+                ]
+              }
+            },
+            {
+              "Index": 3,
+              "Play": 60,
+              "Reward": {
+                "Goods": [
+                  { "Id": 10389406 },
+                  { "Id": 10568406 },
+                  { "Id": 10570506 }
+                ]
+              }
+            },
+            {
+              "Index": 4,
+              "Play": 90,
+              "Reward": {
+                "Goods": [
+                  { "Id": 10569208 },
+                  { "Id": 10384108 },
+                  { "Id": 10570908 }
+                ]
+              }
+            }
+          ]
+        },
+        "Image": 0
+      }
+    ]
+  }
+}

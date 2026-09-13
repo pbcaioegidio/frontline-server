@@ -75,11 +75,27 @@ namespace Server.Game.Network.ClientPacket
             Field9 = ReadB(4);
             Field20 = ReadC();
             int num3 = (int)ReadH();
-            Field2 = ReadS(4);
-            ReadB(68);
-            Field17 = ReadC();
-            Field18 = ReadC();
-            Field19 = ReadC();
+            // Mesmo trailer do CHANGE: senha+pad+AI se couber; senão drena o resto.
+            long left = MStream.Length - MStream.Position;
+            if (left >= 75L)
+            {
+                Field2 = ReadS(4);
+                ReadB(68);
+                Field17 = ReadC();
+                Field18 = ReadC();
+                Field19 = ReadC();
+            }
+            else if (left >= 4L)
+            {
+                Field2 = ReadS(4);
+                left = MStream.Length - MStream.Position;
+                if (left > 0L)
+                    ReadB((int)left);
+            }
+            else if (left > 0L)
+            {
+                ReadB((int)left);
+            }
         }
 
         
@@ -135,8 +151,10 @@ namespace Server.Game.Network.ClientPacket
                                     }
                                     roomModel.SetSlotCount(Field10, true, false);
                                     roomModel.CountPlayers = Field13;
-                                    if (roomModel.AddPlayer(player) >= 0)
+                                    int slotId = roomModel.AddPlayer(player);
+                                    if (slotId >= 0)
                                     {
+                                        roomModel.Leader = slotId;
                                         player.ResetPages();
                                         channel.AddRoom(roomModel);
                                         Client.SendPacket(new PROTOCOL_ROOM_CREATE_ACK(Field0, roomModel));
