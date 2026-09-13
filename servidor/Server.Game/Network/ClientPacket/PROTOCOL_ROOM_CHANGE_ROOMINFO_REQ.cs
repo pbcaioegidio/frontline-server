@@ -67,13 +67,23 @@ namespace Server.Game.Network.ClientPacket
             this.Field17 = this.ReadC();
             this.Field7 = this.ReadB(4);
             this.Field18 = this.ReadC();
-            // Igual PROTOCOL_ROOM_CREATE_REQ: H + senha(4) + pad(68) + AiCount/AiLevel/AiType.
             int num3 = (int)this.ReadH();
-            this.FieldPassword = this.ReadS(4);
-            this.ReadB(68);
-            this.Field15 = this.ReadC();
-            this.Field16 = this.ReadC();
-            this.Field23 = this.ReadC();
+            // CREATE manda senha(4)+pad(68)+Ai* (~75B). A engrenagem do client 122 manda
+            // só o pad (~70B) — senha vai no 3602. Ler 75B no CHANGE causava EndOfStream
+            // → sem ACK 3601 → Please Wait em loop.
+            long left = this.MStream.Length - this.MStream.Position;
+            if (left >= 75L)
+            {
+                this.FieldPassword = this.ReadS(4);
+                this.ReadB(68);
+                this.Field15 = this.ReadC();
+                this.Field16 = this.ReadC();
+                this.Field23 = this.ReadC();
+            }
+            else if (left > 0L)
+            {
+                this.ReadB((int)left);
+            }
         }
 
         public override void Run()
