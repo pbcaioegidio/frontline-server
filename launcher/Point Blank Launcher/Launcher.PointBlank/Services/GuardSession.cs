@@ -105,8 +105,7 @@ namespace Launcher.PointBlank.Services
 
         private async Task HeartbeatLoopAsync(CancellationToken ct)
         {
-            await Task.Delay(3000, ct).ConfigureAwait(false);
-
+            // 1º heartbeat na hora — evita FG-110 ao entrar no Game antes do poll antigo de 3s.
             while (!ct.IsCancellationRequested)
             {
                 try
@@ -168,7 +167,9 @@ namespace Launcher.PointBlank.Services
         /// </summary>
         private async Task CapturePollLoopAsync(CancellationToken ct)
         {
-            await Task.Delay(4000, ct).ConfigureAwait(false);
+            // Leve atraso só para o ring começar a encher; poll não afeta liveness.
+            try { await Task.Delay(1500, ct).ConfigureAwait(false); }
+            catch (OperationCanceledException) { return; }
 
             while (!ct.IsCancellationRequested)
             {

@@ -639,7 +639,9 @@ namespace Plugin.Core.Security
                         cmd.Parameters.AddWithValue("@p", playerId);
                         using (var r = cmd.ExecuteReader())
                         {
-                            if (!r.Read()) return false;
+                            // Sem linha ainda: Guard ainda não registrou — não kicka no keep-alive.
+                            // HeartbeatGuard (com grace) trata ausência prolongada.
+                            if (!r.Read()) return true;
                             string status = r.IsDBNull(1) ? "" : r.GetString(1);
                             if (string.Equals(status, "closed", StringComparison.OrdinalIgnoreCase))
                                 return false;
