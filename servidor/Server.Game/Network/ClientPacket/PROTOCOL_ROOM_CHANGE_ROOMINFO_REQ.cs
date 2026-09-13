@@ -9,7 +9,6 @@ using Plugin.Core.Enums;
 using Server.Game.Data.Models;
 using Server.Game.Network.ServerPacket;
 using System;
-using System.Runtime.CompilerServices;
 
 
 namespace Server.Game.Network.ClientPacket
@@ -36,6 +35,7 @@ namespace Server.Game.Network.ClientPacket
         private byte Field17;
         private byte Field18;
         private byte Field23; // AiType — mesmo layout do CREATE_REQ
+        private string FieldPassword;
         private RoomCondition Field19;
         private RoomState Field20;
         private RoomWeaponsFlag Field21;
@@ -68,16 +68,14 @@ namespace Server.Game.Network.ClientPacket
             this.Field7 = this.ReadB(4);
             this.Field18 = this.ReadC();
             // Igual PROTOCOL_ROOM_CREATE_REQ: H + senha(4) + pad(68) + AiCount/AiLevel/AiType.
-            // Antes lia AiLevel no meio do pad — dificuldade “Nível X” só funcionava na criação.
             int num3 = (int)this.ReadH();
-            this.ReadS(4);
+            this.FieldPassword = this.ReadS(4);
             this.ReadB(68);
             this.Field15 = this.ReadC();
             this.Field16 = this.ReadC();
             this.Field23 = this.ReadC();
         }
 
-        
         public override void Run()
         {
             try
@@ -88,8 +86,11 @@ namespace Server.Game.Network.ClientPacket
                 RoomModel room = player.Room;
                 if (room == null || room.Leader != player.SlotId)
                     return;
-                bool flag1 = !room.Name.Equals(this.Field0);
-                bool flag2 = room.Rule != this.Field3 || room.Stage != this.Field4 || room.RoomType != this.Field19;
+
+                bool nameChanged = !room.Name.Equals(this.Field0);
+                bool modeChanged = room.Rule != this.Field3 || room.Stage != this.Field4 || room.RoomType != this.Field19
+                    || room.MapId != this.Field2 || this.Field21 != room.WeaponsFlag || this.Field9 != room.CountMaxSlots;
+
                 room.Name = this.Field0;
                 room.MapId = this.Field2;
                 room.Rule = this.Field3;
@@ -102,34 +103,47 @@ namespace Server.Game.Network.ClientPacket
                 room.Limit = this.Field13;
                 room.WatchRuleFlag = room.RoomType == RoomCondition.Ace ? (byte)142 : this.Field14;
                 room.BalanceType = room.RoomType == RoomCondition.Ace ? TeamBalance.None : this.Field5;
-                room.BalanceType = this.Field5;
-                room.RandomMaps = this.Field6;
-                room.CountdownIG = this.Field17;
-                room.LeaderAddr = this.Field7;
+                room.RandomMaps = this.Field6 ?? new byte[24];
+                room.CountdownIG = NormalizeCountdown(this.Field17);
+                room.LeaderAddr = this.Field7 ?? new byte[4];
                 room.KillCam = this.Field18;
                 room.AiCount = this.Field15;
                 room.AiLevel = this.Field16;
                 room.AiType = this.Field23;
-                room.SetSlotCount(this.Field9, false, true);
+                room.WeaponsFlag = this.Field21;
                 room.CountPlayers = this.Field12;
-                if (((this.Field20 < RoomState.READY ? 1 : (this.Field1.Equals("") ? 1 : (!this.Field1.Equals(player.Nickname) ? 1 : 0))) | (flag1 ? 1 : 0) | (flag2 ? 1 : 0)) != 0 || this.Field21 != room.WeaponsFlag || this.Field9 != room.CountMaxSlots)
+                if (!string.IsNullOrEmpty(this.FieldPassword))
+                    room.Password = this.FieldPassword;
+
+                room.SetSlotCount(this.Field9, false, true);
+
+                if (this.Field20 < RoomState.READY || string.IsNullOrEmpty(this.Field1) || !this.Field1.Equals(player.Nickname) || nameChanged || modeChanged)
                 {
                     room.State = this.Field20 < RoomState.READY ? RoomState.READY : this.Field20;
-                    room.LeaderName = this.Field1.Equals("") || !this.Field1.Equals(player.Nickname) ? player.Nickname : this.Field1;
-                    room.WeaponsFlag = this.Field21;
-                    room.CountMaxSlots = this.Field9;
-                    room.CountdownIG = (byte)0;
+                    room.LeaderName = string.IsNullOrEmpty(this.Field1) || !this.Field1.Equals(player.Nickname) ? player.Nickname : this.Field1;
                     if (room.ResetReadyPlayers() > 0)
                         room.UpdateSlotsInfo();
                 }
+
+                CLogger.Print(
+                    $"CHANGE_ROOMINFO room={room.RoomId} map={(int)room.MapId} type={(int)room.RoomType} killTime={room.KillTime} slots={room.GetSlotCount()} cd={room.CountdownIG} bal={(int)room.BalanceType} killCam={room.KillCam}",
+                    LoggerType.Info);
+
                 room.UpdateRoomInfo();
                 using (PROTOCOL_ROOM_CHANGE_ROOM_OPTIONINFO_ACK Packet = new PROTOCOL_ROOM_CHANGE_ROOM_OPTIONINFO_ACK(room))
                     room.SendPacketToPlayers(Packet);
             }
             catch (Exception ex)
             {
-                CLogger.Print("PROTOCOL_BATTLE_CHANGE_ROOMINFO_REQ: " + ex.Message, LoggerType.Error, ex);
+                CLogger.Print("PROTOCOL_ROOM_CHANGE_ROOMINFO_REQ: " + ex.Message, LoggerType.Error, ex);
             }
+        }
+
+        private static byte NormalizeCountdown(byte value)
+        {
+            if (value == 3 || value == 5 || value == 7 || value == 9)
+                return value;
+            return 5;
         }
     }
 }

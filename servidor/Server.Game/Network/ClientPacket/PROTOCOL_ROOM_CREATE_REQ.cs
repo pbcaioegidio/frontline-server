@@ -66,16 +66,12 @@ namespace Server.Game.Network.ClientPacket
             Field15 = ReadC();
             Field16 = ReadC();
             Field7 = (TeamBalance)ReadH();
-            if (Field7 == TeamBalance.Count || Field7 == TeamBalance.Rank)
-            {
+            if (Field7 != TeamBalance.Count && Field7 != TeamBalance.Rank)
                 Field7 = TeamBalance.None;
-            }
-            else
-            {
-                Field7 = TeamBalance.None;
-            }
             Field8 = ReadB(24);
-            Field21 = ReadC() == 0 ? (byte)5 : (byte)3;
+            Field21 = ReadC();
+            if (Field21 != 3 && Field21 != 5 && Field21 != 7 && Field21 != 9)
+                Field21 = 5;
             Field9 = ReadB(4);
             Field20 = ReadC();
             int num3 = (int)ReadH();
@@ -139,7 +135,6 @@ namespace Server.Game.Network.ClientPacket
                                     }
                                     roomModel.SetSlotCount(Field10, true, false);
                                     roomModel.CountPlayers = Field13;
-                                    roomModel.CountMaxSlots = Field10;
                                     if (roomModel.AddPlayer(player) >= 0)
                                     {
                                         player.ResetPages();

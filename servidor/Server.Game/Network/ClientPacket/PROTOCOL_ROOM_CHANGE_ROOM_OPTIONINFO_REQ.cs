@@ -48,11 +48,18 @@ namespace Server.Game.Network.ClientPacket
                 room.KillTime = this.Field1;
                 room.Limit = this.Field2;
                 room.WatchRuleFlag = room.RoomType == RoomCondition.Ace ? (byte)142 : this.Field3;
-                room.BalanceType = this.Field4;
-                room.RandomMaps = this.Field5;
-                room.CountdownIG = this.Field6;
-                room.LeaderAddr = this.Field7;
+                room.BalanceType = room.RoomType == RoomCondition.Ace ? TeamBalance.None : this.Field4;
+                room.RandomMaps = this.Field5 ?? new byte[24];
+                room.CountdownIG = NormalizeCountdown(this.Field6);
+                room.LeaderAddr = this.Field7 ?? new byte[4];
                 room.KillCam = this.Field8;
+
+                CLogger.Print(
+                    $"CHANGE_OPTIONINFO room={room.RoomId} killTime={room.KillTime} limit={room.Limit} cd={room.CountdownIG} bal={(int)room.BalanceType} killCam={room.KillCam}",
+                    LoggerType.Info);
+
+                // ACK de opções + ROOMINFO completo — sem 3601 a UI externa (mapa/tempo) não refresca.
+                room.UpdateRoomInfo();
                 using (PROTOCOL_ROOM_CHANGE_ROOM_OPTIONINFO_ACK Packet = new PROTOCOL_ROOM_CHANGE_ROOM_OPTIONINFO_ACK(room))
                     room.SendPacketToPlayers(Packet);
             }
@@ -60,6 +67,13 @@ namespace Server.Game.Network.ClientPacket
             {
                 CLogger.Print("PROTOCOL_ROOM_CHANGE_ROOM_OPTIONINFO_REQ: " + ex.Message, LoggerType.Error, ex);
             }
+        }
+
+        private static byte NormalizeCountdown(byte value)
+        {
+            if (value == 3 || value == 5 || value == 7 || value == 9)
+                return value;
+            return 5;
         }
     }
 }

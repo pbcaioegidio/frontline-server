@@ -196,7 +196,7 @@ namespace Server.Game.Data.Models
             1
         };
 
-        public byte[] RandomMaps;
+        public byte[] RandomMaps = new byte[24];
         public byte[] LeaderAddr = new byte[4];
 
         public byte[] HitParts = new byte[35]
@@ -346,8 +346,8 @@ namespace Server.Game.Data.Models
                 flag += 8;
             if (this.Flag.HasFlag((Enum)RoomStageFlag.REAL_IP))
                 flag += 16 /*0x10*/;
-            //if (this.Flag.HasFlag((Enum)RoomStageFlag.TEAM_BALANCE) || this.BalanceType == TeamBalance.Count)
-            //    flag += 32 /*0x20*/;
+            if (this.Flag.HasFlag((Enum)RoomStageFlag.TEAM_BALANCE) || this.BalanceType != TeamBalance.None)
+                flag += 32 /*0x20*/;
             if (this.Flag.HasFlag((Enum)RoomStageFlag.OBSERVER))
                 flag += 64 /*0x40*/;
             if (this.Flag.HasFlag((Enum)RoomStageFlag.INTER_ENTER) || this.Limit > (byte)0 && this.IsStartingMatch())
@@ -1426,11 +1426,7 @@ namespace Server.Game.Data.Models
         public void SetSlotCount(int Count, bool IsCreateRoom, bool IsUpdateRoom)
         {
             MapMatch mapLimit = SystemMapXML.GetMapLimit((int)MapId, (int)Rule);
-            if (mapLimit == null)
-            {
-                return;
-            }
-            if (Count > mapLimit.Limit)
+            if (mapLimit != null && Count > mapLimit.Limit)
             {
                 Count = mapLimit.Limit;
             }
@@ -1446,19 +1442,28 @@ namespace Server.Game.Data.Models
             {
                 Count = 1;
             }
-            if (IsCreateRoom)
+            if (Count > 16)
             {
-                lock (Slots)
+                Count = 16;
+            }
+            // Criação e alteração pela engrenagem: abre/fecha slots vazios.
+            // Antes só rodava em create — quantidade na UI nunca mudava no update.
+            lock (Slots)
+            {
+                foreach (SlotModel item in Slots.Where((SlotModel s) => s.Id != 16 && s.Id != 17))
                 {
-                    foreach (SlotModel item in Slots.Where((SlotModel slotModel_0) => slotModel_0.Id != 16 && slotModel_0.Id != 17))
+                    if (item.Id >= Count)
                     {
-                        if (item.Id >= Count)
-                        {
+                        if (item.PlayerId == 0L)
                             item.State = SlotState.CLOSE;
-                        }
+                    }
+                    else if (item.State == SlotState.CLOSE)
+                    {
+                        item.State = SlotState.EMPTY;
                     }
                 }
             }
+            CountMaxSlots = Count;
             if (IsUpdateRoom)
             {
                 UpdateSlotsInfo();

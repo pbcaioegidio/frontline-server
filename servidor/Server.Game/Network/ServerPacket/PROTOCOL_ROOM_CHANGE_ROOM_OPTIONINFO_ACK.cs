@@ -18,7 +18,7 @@ namespace Server.Game.Network.ServerPacket
             this.WriteC(this.Field0.WatchRuleFlag);
             this.WriteH((ushort)this.Field0.BalanceType);
             this.WriteB(this.Field0.RandomMaps);
-            this.WriteC(this.Field0.CountdownIG == 0 ? (byte)5 : (byte)5);
+            this.WriteC(this.Field0.CountdownIG == 0 ? (byte)5 : this.Field0.CountdownIG);
             this.WriteB(this.Field0.LeaderAddr);
             this.WriteC(this.Field0.KillCam);
             this.WriteH((short)0);

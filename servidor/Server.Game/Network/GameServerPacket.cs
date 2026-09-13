@@ -117,7 +117,7 @@ namespace Server.Game.Network
             this.WriteC(room.WatchRuleFlag);
             this.WriteH((ushort)room.BalanceType);
             this.WriteB(room.RandomMaps);
-            this.WriteC(room.CountdownIG == 0 ? (byte)5 : (byte)5);
+            this.WriteC(room.CountdownIG == 0 ? (byte)5 : room.CountdownIG);
             this.WriteB(room.LeaderAddr);
             this.WriteC(room.KillCam);
             this.WriteH((short)0);
