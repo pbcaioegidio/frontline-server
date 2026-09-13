@@ -7,6 +7,7 @@ services:
   server:
     network_mode: host
     environment:
+      TZ: America/Sao_Paulo
       PB_DB_HOST: 127.0.0.1
       PB_BIND_HOST: 0.0.0.0
       PB_ADVERTISE_HOST: ${PB_ADVERTISE_HOST:?defina PB_ADVERTISE_HOST}

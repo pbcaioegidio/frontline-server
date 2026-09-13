@@ -14,7 +14,8 @@ namespace Plugin.Core.Logging
                 using (var w = new Utf8JsonWriter(stream))
                 {
                     w.WriteStartObject();
-                    w.WriteString("ts", e.TsUtc.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"));
+                    // Horário local do processo (TZ=America/Sao_Paulo no compose).
+                    w.WriteString("ts", e.TsUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffzzz"));
                     w.WriteNumber("seq", e.Seq);
                     w.WriteString("lvl", e.Level.ToString().ToLowerInvariant());
                     w.WriteString("cat", e.Cat.ToString().ToLowerInvariant());
