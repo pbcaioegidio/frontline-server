@@ -47,6 +47,10 @@ services:
       PB_DB_NAME: ${PB_DB_NAME:-pb}
       PB_DB_USER: ${PB_DB_USER:-postgres}
       PB_DB_PASS: ${PB_DB_PASS}
+      # Diagnóstico do cadeado Arma Especial 2 (SYSTEM_INFO)
+      PB_THROW2_MAXDAYS: ${PB_THROW2_MAXDAYS:-100}
+      PB_SYSINFO_FILL: ${PB_SYSINFO_FILL:-}
+      PB_SYSINFO_FILL_VALUE: ${PB_SYSINFO_FILL_VALUE:-99}
     ports:
       - "${PB_AUTH_PORT:-39190}:39190/tcp"
       - "${PB_GAME_PORT_1:-39191}:39191/tcp"
