@@ -135,6 +135,16 @@ namespace Plugin.Core.Managers
             }
 
             CLogger.Print($"Plugin carregado: {ShopBuyableList.Count} itens compraveis", LoggerType.Info);
+            int throw2 = 0;
+            foreach (GoodsItem g in ShopBuyableList)
+            {
+                if (InventoryUnlocks.IsThrow2UnlockGood(g.Id))
+                {
+                    throw2++;
+                    CLogger.Print($"Throw2 good packed GoodId={g.Id} ItemId={g.Item.Id} Cash={g.PriceCash} Gold={g.PriceGold}", LoggerType.Info);
+                }
+            }
+            CLogger.Print($"Throw2 goods no catálogo: {throw2}", LoggerType.Info);
             CLogger.Print($"Plugin carregado: {ItemRepairs.Count} itens reparaveis", LoggerType.Info);
             CLogger.Print($"Plugin carregado: {ItemLimited.Count} itens limitados", LoggerType.Info);
         }
