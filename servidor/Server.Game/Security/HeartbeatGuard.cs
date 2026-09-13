@@ -23,8 +23,8 @@ namespace Server.Game.Security
         public static void Start()
         {
             if (_timer != null) return;
-            _timer = new Timer(_ => Tick(), null, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(20));
-            CLogger.Print("[FL GUARD] HeartbeatGuard iniciado (checa live_sessions a cada 20s)", LoggerType.Info);
+            _timer = new Timer(_ => Tick(), null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
+            CLogger.Print("[FL GUARD] HeartbeatGuard iniciado (checa live_sessions a cada 2s)", LoggerType.Info);
         }
 
         public static void Stop()

@@ -163,9 +163,17 @@ jobs:
           print('manifest + LauncherVersion=', ver)
           PY"
 
-          # Mesmo conjunto de composes usado pelo server-deploy (o socket roda em host network)
-          ssh "$REMOTE" "cd '$ROOT' && C=(docker compose -f docker-compose.vps.yml); [ -f docker-compose.hostnet.yml ] && C+=(-f docker-compose.hostnet.yml); \"\${C[@]}\" restart socket"
-          echo "OK launcher $VER em $DEST_L e $DEST_C"
+          # Sync Socket source (EndLiveSession etc.) e rebuild — restart sem build
+          # não aplica mudanças em Launcher.Services.
+          SOCK_SRC="launcher/Point Blank Services/Launcher.Services"
+          SOCK_DST="/opt/frontline/launcher/Point Blank Services/Launcher.Services"
+          ssh "$REMOTE" "mkdir -p '$SOCK_DST'"
+          tar -C "$SOCK_SRC" -czf /tmp/socket-src.tgz \
+            --exclude='bin' --exclude='obj' --exclude='**/bin' --exclude='**/obj' .
+          scp /tmp/socket-src.tgz "$REMOTE:/tmp/fl-deploy-socket-src.tgz"
+          ssh "$REMOTE" "cd '$SOCK_DST' && tar -xzf /tmp/fl-deploy-socket-src.tgz && rm -f /tmp/fl-deploy-socket-src.tgz"
+          ssh "$REMOTE" "cd '$ROOT' && C=(docker compose -f docker-compose.vps.yml); [ -f docker-compose.hostnet.yml ] && C+=(-f docker-compose.hostnet.yml); \"\${C[@]}\" --env-file .env up -d --build socket"
+          echo "OK launcher $VER em $DEST_L e $DEST_C (+ socket rebuild)"
 
       - name: Baixa UserFileList da VPS
         id: ufl

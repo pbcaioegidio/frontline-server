@@ -50,11 +50,50 @@ namespace Launcher.PointBlank.Services
 
         public void Stop()
         {
+            // Goodbye best-effort antes de cancelar o loop — invalida live_sessions na hora.
+            try
+            {
+                Task closed = SendClosedAsync();
+                closed.Wait(TimeSpan.FromSeconds(1.2));
+            }
+            catch { }
+
             try { _cts?.Cancel(); } catch { }
             try { _loop?.Wait(3000); } catch { }
             _loop = null;
             _ring?.Dispose();
             _ring = null;
+        }
+
+        /// <summary>
+        /// Último heartbeat com status=closed para o Socket marcar a sessão como morta
+        /// sem esperar o timeout do HeartbeatGuard.
+        /// </summary>
+        private async Task SendClosedAsync()
+        {
+            if (_playerId <= 0 || string.IsNullOrEmpty(_host) || _port <= 0)
+                return;
+
+            string hbJson = JsonConvert.SerializeObject(new
+            {
+                player_id = _playerId,
+                session_id = _sessionId,
+                fingerprint = _hw?.Fingerprint ?? "",
+                status = "closed",
+                status_reason = "guard_stop",
+                modules_hash = "",
+                capture_blocked_streak = 0
+            });
+
+            using (var client = new LAUNCHER_TCP_CLIENT_REQ())
+            {
+                await client.ConnectAsync(_host, _port).ConfigureAwait(false);
+                await client.SendAsync(LAUNCHER_OPCODE_REQ.LAUNCHER_CONNECT_REQ).ConfigureAwait(false);
+                await client.ReceiveAsync().ConfigureAwait(false);
+                await client.SendAsync(LAUNCHER_OPCODE_REQ.LAUNCHER_HEARTBEAT_REQ,
+                    System.Text.Encoding.UTF8.GetBytes(hbJson)).ConfigureAwait(false);
+                try { await client.ReceiveAsync().ConfigureAwait(false); } catch { }
+            }
         }
 
         private async Task LoopAsync(CancellationToken ct)

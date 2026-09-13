@@ -634,13 +634,18 @@ namespace Plugin.Core.Security
                 {
                     conn.Open();
                     using (var cmd = new NpgsqlCommand(@"
-                        SELECT last_heartbeat FROM live_sessions WHERE player_id = @p", conn))
+                        SELECT last_heartbeat, status FROM live_sessions WHERE player_id = @p", conn))
                     {
                         cmd.Parameters.AddWithValue("@p", playerId);
-                        object o = cmd.ExecuteScalar();
-                        if (o == null || o == DBNull.Value) return false;
-                        DateTime last = Convert.ToDateTime(o);
-                        return (DateTimeUtil.Now() - last).TotalSeconds <= Math.Max(15, timeoutSeconds);
+                        using (var r = cmd.ExecuteReader())
+                        {
+                            if (!r.Read()) return false;
+                            string status = r.IsDBNull(1) ? "" : r.GetString(1);
+                            if (string.Equals(status, "closed", StringComparison.OrdinalIgnoreCase))
+                                return false;
+                            DateTime last = r.GetDateTime(0);
+                            return (DateTimeUtil.Now() - last).TotalSeconds <= Math.Max(5, timeoutSeconds);
+                        }
                     }
                 }
             }
@@ -668,10 +673,11 @@ namespace Plugin.Core.Security
                         SELECT u.pid FROM unnest(@ids) AS u(pid)
                         LEFT JOIN live_sessions s ON s.player_id = u.pid
                         WHERE s.player_id IS NULL
+                           OR lower(coalesce(s.status, '')) = 'closed'
                            OR s.last_heartbeat < now() - make_interval(secs => @sec)", conn))
                     {
                         cmd.Parameters.Add(new NpgsqlParameter("ids", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Bigint) { Value = ids.ToArray() });
-                        cmd.Parameters.AddWithValue("@sec", Math.Max(15, timeoutSeconds));
+                        cmd.Parameters.AddWithValue("@sec", Math.Max(5, timeoutSeconds));
                         using (var r = cmd.ExecuteReader())
                             while (r.Read()) stale.Add(r.GetInt64(0));
                     }

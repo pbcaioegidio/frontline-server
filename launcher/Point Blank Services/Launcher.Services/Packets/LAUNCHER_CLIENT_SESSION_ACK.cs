@@ -315,6 +315,13 @@ namespace Launcher.Server.Network
                         "{\"streak\":" + blockedStreak + "}", 4, "FG-114");
                 }
 
+                if (string.Equals(status, "closed", StringComparison.OrdinalIgnoreCase))
+                {
+                    repo.EndLiveSession(playerId, string.IsNullOrWhiteSpace(statusReason) ? "guard_stop" : statusReason);
+                    SendJson(LAUNCHER_OPCODE_ACK.LAUNCHER_HEARTBEAT_ACK, new { ok = true, closed = true });
+                    return;
+                }
+
                 repo.UpsertLiveSession(playerId, sessionId, fingerprint, RemoteIp(), status, statusReason, modulesHash);
                 var jobs = repo.PeekAndDeliverCaptures(playerId, 2);
 

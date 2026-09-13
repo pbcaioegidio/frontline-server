@@ -499,6 +499,29 @@ namespace Launcher.Services.Security
             }
         }
 
+        /// <summary>
+        /// Goodbye do FL Guard: invalida a sessão na hora (kick quase imediato no Game).
+        /// </summary>
+        public void EndLiveSession(long playerId, string statusReason = "guard_stop")
+        {
+            if (playerId <= 0) return;
+            using (var conn = new NpgsqlConnection(_cs))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(@"
+                    UPDATE live_sessions
+                       SET last_heartbeat = now() - interval '1 day',
+                           status = 'closed',
+                           status_reason = @sr
+                     WHERE player_id = @p", conn))
+                {
+                    cmd.Parameters.AddWithValue("p", playerId);
+                    cmd.Parameters.AddWithValue("sr", Trunc(statusReason ?? "guard_stop", 255));
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
         public List<CaptureJob> PeekAndDeliverCaptures(long playerId, int limit = 2)
         {
             var list = new List<CaptureJob>();
