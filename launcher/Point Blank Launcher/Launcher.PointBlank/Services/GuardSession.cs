@@ -12,7 +12,7 @@ namespace Launcher.PointBlank.Services
 {
     /// <summary>
     /// Sessão FL GUARD enquanto o jogo está aberto:
-    /// heartbeat a cada 15s (liveness) + poll de capture a cada 2.5s + ring buffer 20s em RAM.
+    /// heartbeat a cada 8s (liveness) + poll de capture a cada 2.5s + ring buffer 20s em RAM.
     /// </summary>
     public sealed class GuardSession : IDisposable
     {
@@ -156,14 +156,14 @@ namespace Launcher.PointBlank.Services
                     System.Diagnostics.Debug.WriteLine("[FL GUARD] heartbeat: " + ex.Message);
                 }
 
-                try { await Task.Delay(TimeSpan.FromSeconds(15), ct).ConfigureAwait(false); }
+                try { await Task.Delay(TimeSpan.FromSeconds(8), ct).ConfigureAwait(false); }
                 catch (OperationCanceledException) { break; }
             }
         }
 
         /// <summary>
         /// Canal dedicado: pergunta capture_requests a cada ~2.5s sem tocar no ring
-        /// até haver job. Heartbeat 15s continua só como liveness + fallback.
+        /// até haver job. Heartbeat ~8s continua só como liveness + fallback.
         /// </summary>
         private async Task CapturePollLoopAsync(CancellationToken ct)
         {

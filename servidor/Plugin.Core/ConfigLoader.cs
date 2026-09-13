@@ -248,7 +248,7 @@ namespace Plugin.Core
             OtpOneShot = configEngine.ReadX("OtpOneShot", false, "Security");
             HardBanSubnet = configEngine.ReadX("HardBanSubnet", false, "Security");
             RequireLauncherHeartbeat = configEngine.ReadX("RequireLauncherHeartbeat", false, "Security");
-            HeartbeatTimeoutSeconds = configEngine.ReadD("HeartbeatTimeoutSeconds", 12, "Security");
+            HeartbeatTimeoutSeconds = configEngine.ReadD("HeartbeatTimeoutSeconds", 45, "Security");
             ProbationHours = configEngine.ReadD("ProbationHours", 48, "Security");
             ProbationMaxMatchesPerHour = configEngine.ReadD("ProbationMaxMatchesPerHour", 10, "Security");
             SpeedKickViolations = configEngine.ReadD("SpeedKickViolations", 8, "Security");
