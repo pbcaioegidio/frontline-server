@@ -95,16 +95,6 @@ namespace Server.Game.Network.ClientPacket
                     return;
                 }
 
-                // Arma Especial 2: se algum dia o client resolver esse good, o unlock
-                // sai de graça (o cadeado é liberado, não vendido).
-                if (goods.TrueForAll(g => InventoryUnlocks.IsThrow2UnlockGood(g.Id)))
-                {
-                    CLogger.Print($"EXTEND_REQ Throw2 free unlock GoodIds={string.Join(",", goods.ConvertAll(g => g.Id))}", LoggerType.Info);
-                    num1 = 0;
-                    num2 = 0;
-                    num3 = 0;
-                }
-
                 // Reject the whole cart (no charge) if a season good is ineligible.
                 if (!AllUtils.PreflightSeasonGoods(player, goods, out _))
                 {

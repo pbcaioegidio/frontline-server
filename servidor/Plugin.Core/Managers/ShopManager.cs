@@ -103,11 +103,6 @@ namespace Plugin.Core.Managers
 
         public static void Load(int Type)
         {
-            // Arma Especial 2 depende do client (ItemGroup.dat); mantém os goods
-            // invisíveis para não deixar cards sem PEF na loja.
-            if (Type == 1)
-                InventoryUnlocks.ResetThrow2ShopCatalog();
-
             LoadRepairableItems(Type);
             LoadShopItems(Type);
             LoadShopEffects(Type);
