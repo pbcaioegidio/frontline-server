@@ -31,6 +31,9 @@ namespace Launcher.PointBlank.Network
         LAUNCHER_HEARTBEAT_ACK = 5001,
         LAUNCHER_CAPTURE_UPLOAD = 5002,
         LAUNCHER_CAPTURE_ACK = 5003,
+        /// <summary>Poll leve de capture_requests (fora do ciclo de heartbeat 15s).</summary>
+        LAUNCHER_CAPTURE_POLL_REQ = 5004,
+        LAUNCHER_CAPTURE_POLL_ACK = 5005,
 
         LAUNCHER_ERROR_ACK = 9000
     }

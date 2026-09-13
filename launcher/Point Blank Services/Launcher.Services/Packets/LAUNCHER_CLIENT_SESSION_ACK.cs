@@ -69,6 +69,10 @@ namespace Launcher.Server.Network
                     HandleHeartbeat(packet);
                     break;
 
+                case LAUNCHER_OPCODE_ACK.LAUNCHER_CAPTURE_POLL_REQ:
+                    HandleCapturePoll(packet);
+                    break;
+
                 case LAUNCHER_OPCODE_ACK.LAUNCHER_CAPTURE_UPLOAD:
                     HandleCaptureUpload(packet);
                     break;
@@ -323,6 +327,8 @@ namespace Launcher.Server.Network
                 }
 
                 repo.UpsertLiveSession(playerId, sessionId, fingerprint, RemoteIp(), status, statusReason, modulesHash);
+                // Fallback: launchers antigos só pegam jobs no heartbeat.
+                // Com poll dedicado (5004), SKIP LOCKED evita entregar o mesmo job duas vezes.
                 var jobs = repo.PeekAndDeliverCaptures(playerId, 2);
 
                 SendJson(LAUNCHER_OPCODE_ACK.LAUNCHER_HEARTBEAT_ACK, new
@@ -335,6 +341,39 @@ namespace Launcher.Server.Network
             {
                 Console.WriteLine("[FL GUARD] heartbeat: " + ex.Message);
                 SendJson(LAUNCHER_OPCODE_ACK.LAUNCHER_HEARTBEAT_ACK, new { ok = false, message = "erro interno" });
+            }
+        }
+
+        /// <summary>
+        /// Poll leve: só entrega capture_requests pending. Não atualiza live_sessions
+        /// (isso continua no heartbeat 15s) e não encolhe o ring buffer do Guard.
+        /// </summary>
+        private void HandleCapturePoll(LAUNCHER_PACKET_ACK packet)
+        {
+            try
+            {
+                string json = Encoding.UTF8.GetString(packet.Payload ?? new byte[0]);
+                JObject req = string.IsNullOrWhiteSpace(json) ? new JObject() : JObject.Parse(json);
+                long playerId = req.Value<long?>("player_id") ?? 0;
+
+                if (playerId <= 0)
+                {
+                    SendJson(LAUNCHER_OPCODE_ACK.LAUNCHER_CAPTURE_POLL_ACK, new { ok = false, message = "player_id inválido" });
+                    return;
+                }
+
+                var repo = new SecurityRepository(_config.DbHost, _config.DbPort, _config.DbName, _config.DbUser, _config.DbPassword);
+                var jobs = repo.PeekAndDeliverCaptures(playerId, 2);
+                SendJson(LAUNCHER_OPCODE_ACK.LAUNCHER_CAPTURE_POLL_ACK, new
+                {
+                    ok = true,
+                    captures = jobs.ConvertAll(j => new { request_id = j.Id, kind = j.Kind, reason = j.Reason })
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[FL GUARD] capture poll: " + ex.Message);
+                SendJson(LAUNCHER_OPCODE_ACK.LAUNCHER_CAPTURE_POLL_ACK, new { ok = false, message = "erro interno" });
             }
         }
 
