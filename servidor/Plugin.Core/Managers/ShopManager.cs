@@ -428,14 +428,17 @@ namespace Plugin.Core.Managers
                             good.Tag = (ItemTag)shopTag;
                             RegisterLoadedShopTag(shopTag);
                             good.Title = 0;
-                            good.AuthType = 1;
+                            // Cupons de efeito são aluguel por tempo (1/3/7/30 dias).
+                            // AuthType=1 + Count=1 fazia o client 121 mostrar "1H" em todas as
+                            // opções, com preços diferentes (180/320/600/1800).
+                            good.AuthType = 2;
                             good.BuyType2 = 1;
-                            good.BuyType3 = 2;
+                            good.BuyType3 = 1;
                             good.Visibility = bool.Parse($"{reader["coupon_visible"]}") ? 0 : 4;
 
                             good.Item.SetItemId(itemId);
                             good.Item.Name = $"{reader["coupon_name"]} ({dayCount} days)";
-                            good.Item.Count = 1U;
+                            good.Item.Count = (uint)dayCount * 86400U;
 
                             int itemCategory = ComDiv.GetIdStatics(good.Item.Id, 1);
 
