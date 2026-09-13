@@ -80,6 +80,17 @@ jobs:
           set -euo pipefail
           ROOT='$ROOT'
           cd "\$ROOT"
+          # Remove o que o tar vai repor, senão arquivo apagado no git fica órfão
+          # aqui e quebra o build (runtime/ e .env não vêm no tar, ficam intactos).
+          for entry in \$(tar -tzf /tmp/fl-deploy/servidor-src.tgz | cut -d/ -f1 | sort -u); do
+            case "\$entry" in
+              ''|'.'|'..'|runtime|.env) continue ;;
+            esac
+            case "\$entry" in
+              *[!A-Za-z0-9._-]*) continue ;;
+            esac
+            rm -rf "./\$entry"
+          done
           tar -xzf /tmp/fl-deploy/servidor-src.tgz
           rm -f /tmp/fl-deploy/servidor-src.tgz
           if [ ! -f .env ]; then
