@@ -162,6 +162,8 @@ $excludeFiles = @(
     "UserFileList.sig.bak",
     "UserFileList.dat.bak_pre50",
     "UserFileList.sig.bak_pre50",
+    "UserFileList.dat.bad_sig",
+    "UserFileList.sig.bad_sig",
     "FrontLine.exe.bak-admin",
     "FrontLine.exe.bak",
     "FLLauncher.exe.bak",
@@ -210,6 +212,23 @@ foreach ($f in $excludeFiles) {
 # Remove qualquer *.bak* que tenha escapado
 Get-ChildItem -LiteralPath $stage -Filter "*.bak*" -Recurse -Force -ErrorAction SilentlyContinue |
     Remove-Item -Force -ErrorAction SilentlyContinue
+Get-ChildItem -LiteralPath $stage -Filter "*.bad_sig" -Recurse -Force -ErrorAction SilentlyContinue |
+    Remove-Item -Force -ErrorAction SilentlyContinue
+Get-ChildItem -LiteralPath $stage -Filter "*.log" -Recurse -Force -ErrorAction SilentlyContinue |
+    Remove-Item -Force -ErrorAction SilentlyContinue
+# Pastas CEF de usuário (conta/cache) — nunca no instalador público
+@(
+    "CEF\UserData",
+    "CEF\Cache",
+    "CEF\GPUCache",
+    "Shader\Cache"
+) | ForEach-Object {
+    $p = Join-Path $stage $_
+    if (Test-Path -LiteralPath $p) {
+        Remove-Item -LiteralPath $p -Recurse -Force
+        Write-Host "==> Removido do stage: $_"
+    }
+}
 # Sujeira de pintura de logo: Text_3 so existe em Locale\Brazil\UI_V11 na lista oficial.
 # Se vazar em Locale\_Common\UI_V12, o FL Guard marca EXTRA e confunde o jogador.
 $junkText3 = Join-Path $stage "Locale\_Common\UI_V12\VTexList\Text_3.i3VTexImage"
