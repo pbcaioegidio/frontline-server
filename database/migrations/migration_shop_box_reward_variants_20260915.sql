@@ -4,11 +4,12 @@
 BEGIN;
 
 -- PBIC 2015: so tinha 06/08/12; odds usam tambem 04 (1d)
+-- gold=1 no 04 evita filtro de junk (preço 0) no matching packed
 UPDATE system_shop SET
   variant_code_list = '04,' || variant_code_list,
   "Item_count_list" = '86400,' || "Item_count_list",
   price_cash_list = '0,' || price_cash_list,
-  price_gold_list = '0,' || price_gold_list
+  price_gold_list = '1,' || price_gold_list
 WHERE item_id IN (103219, 104218, 105120, 106058, 301104)
   AND variant_code_list IS NOT NULL
   AND variant_code_list NOT LIKE '%04%'
