@@ -88,8 +88,7 @@ namespace Server.Game.StatusFeed
             EventRankUpXML.Reload();
             EventVisitXML.Reload();
             EventXmasXML.Reload();
-            foreach (var manager in GameXender.All)
-                GameXender.UpdateEvents(manager);
+            GameXender.UpdateEvents();
             CLogger.Print("[StatusFeedControl] events reload OK", LoggerType.Command);
             return (true, "Eventos recarregados e portal atualizado");
         }
@@ -133,8 +132,7 @@ namespace Server.Game.StatusFeed
         {
             string root = AppDomain.CurrentDomain.BaseDirectory;
             string logs = Path.Combine(root, "Logs");
-            if (!Directory.Exists(logs))
-                return (true, "Pasta Logs/ inexistente — nada a limpar");
+            Directory.CreateDirectory(logs);
 
             int files = 0;
             int dirs = 0;
@@ -157,8 +155,13 @@ namespace Server.Game.StatusFeed
                 }
                 catch { /* keep going */ }
             }
+
+            // JsonlSink / logger precisam das pastas de volta
+            Directory.CreateDirectory(logs);
+            Directory.CreateDirectory(Path.Combine(logs, "events"));
+
             CLogger.Print($"[StatusFeedControl] clearlogs files={files} dirs={dirs}", LoggerType.Command);
-            return (true, $"Logs limpos ({files} arquivo(s), {dirs} pasta(s))");
+            return (true, $"Logs limpos ({files} arquivo(s), {dirs} pasta(s)) — pastas recriadas");
         }
     }
 }
