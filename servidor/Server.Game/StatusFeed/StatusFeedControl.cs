@@ -3,9 +3,11 @@ using Plugin.Core.Enums;
 using Plugin.Core.Filters;
 using Plugin.Core.JSON;
 using Plugin.Core.Managers;
+using Plugin.Core.Settings;
 using Plugin.Core.XML;
 using System;
 using System.IO;
+using System.Text;
 
 namespace Server.Game.StatusFeed
 {
@@ -24,11 +26,17 @@ namespace Server.Game.StatusFeed
                 if (cmd == "clearlogs" || (cmd == "reload" && target == "logs"))
                     return ClearLogs();
 
+                if (cmd == "togglelog" || cmd == "logmode" || (cmd == "reload" && target == "logmode"))
+                    return ToggleLogMode();
+
                 if (cmd != "reload")
-                    return (false, "cmd desconhecido (use reload|clearlogs)");
+                    return (false, "cmd desconhecido (use reload|clearlogs|togglelog)");
 
                 switch (target)
                 {
+                    case "all":
+                    case "tudo":
+                        return ReloadAll();
                     case "config":
                         return ReloadConfig();
                     case "shop":
@@ -44,7 +52,7 @@ namespace Server.Game.StatusFeed
                     case "anexos":
                         return ReloadAttachments();
                     default:
-                        return (false, "target inválido: config|shop|events|rules|attachments");
+                        return (false, "target inválido: all|config|shop|events|rules|attachments");
                 }
             }
             catch (Exception ex)
@@ -52,6 +60,42 @@ namespace Server.Game.StatusFeed
                 CLogger.Print("[StatusFeedControl] " + ex.Message, LoggerType.Warning, ex);
                 return (false, ex.Message);
             }
+        }
+
+        private static (bool, string) ReloadAll()
+        {
+            var sb = new StringBuilder();
+            void step(string name, Func<(bool, string)> fn)
+            {
+                var (ok, msg) = fn();
+                sb.Append(ok ? "✓ " : "✗ ").Append(name).Append(": ").Append(msg).Append(" | ");
+            }
+            step("config", ReloadConfig);
+            step("shop", ReloadShop);
+            step("events", ReloadEvents);
+            step("rules", ReloadRules);
+            step("attachments", ReloadAttachments);
+            CLogger.Print("[StatusFeedControl] reload all done", LoggerType.Command);
+            string text = sb.ToString().TrimEnd(' ', '|');
+            return (true, "Reload completo — " + text);
+        }
+
+        private static (bool, string) ToggleLogMode()
+        {
+            ConfigLoader.ShowMoreInfo = !ConfigLoader.ShowMoreInfo;
+            try
+            {
+                var cfg = new ConfigEngine("Config/Settings.ini");
+                if (cfg.KeyExists("MoreInfo", "Server"))
+                    cfg.WriteX("MoreInfo", ConfigLoader.ShowMoreInfo, "Server");
+            }
+            catch (Exception ex)
+            {
+                CLogger.Print("[StatusFeedControl] togglelog persist: " + ex.Message, LoggerType.Warning);
+            }
+            string mode = ConfigLoader.ShowMoreInfo ? "Alto" : "Padrão";
+            CLogger.Print($"[StatusFeedControl] log mode = {mode}", LoggerType.Command);
+            return (true, $"Modo de log: {mode}");
         }
 
         private static (bool, string) ReloadConfig()
@@ -109,6 +153,7 @@ namespace Server.Game.StatusFeed
             MissionConfigXML.Reload();
             MissionStreamXML.Reload();
             SChannelXML.Reload();
+            ChannelTypeConditionManager.Reload();
             SynchronizeXML.Reload();
             SystemMapXML.Reload();
             ClanRankXML.Reload();
@@ -125,7 +170,7 @@ namespace Server.Game.StatusFeed
             NickFilter.Reload();
             global::Server.Game.Data.XML.ChannelsXML.Reload();
             CLogger.Print("[StatusFeedControl] attachments reload OK", LoggerType.Command);
-            return (true, "Anexos recarregados (titles/missions/ranks/boxes/…)");
+            return (true, "Anexos recarregados (titles/missions/ranks/boxes/canais/…)");
         }
 
         private static (bool, string) ClearLogs()
