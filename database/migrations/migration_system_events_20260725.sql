@@ -93,9 +93,9 @@ INSERT INTO system_event_login_rewards (event_id, ordinal, good_id) VALUES
 ON CONFLICT (event_id, ordinal) DO NOTHING;
 
 INSERT INTO system_event_boost (id, begin_date, ended_date, boost_type, boost_value, bonus_exp, bonus_gold, percent, name, description, period, priority) VALUES
-    (1, 2509270000, 2610272359, 'Mode', 0, 5000, 10000, 10, 'Point Blank', 'Point Blank', false, false),
-    (2, 2509270000, 2610272359, 'PcCafe', 1, 250, 1000, 10, 'Point Blank', 'Point Blank!', false, false),
-    (3, 2509270000, 2610272359, 'PcCafe', 2, 500, 5000, 10, 'Point Blank', 'Point Blank', false, false)
+    (1, 2509270000, 2610272359, 'Mode', 0, 5000, 10000, 10, 'FRONTLINE', 'FRONTLINE', false, false),
+    (2, 2509270000, 2610272359, 'PcCafe', 1, 250, 1000, 10, 'FRONTLINE', 'VIP Prata (PC Café)', false, false),
+    (3, 2509270000, 2610272359, 'PcCafe', 2, 500, 5000, 10, 'FRONTLINE', 'VIP Ouro (PC Café)', false, false)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO system_event_rankup (id, begin_date, ended_date, name, description, period, priority) VALUES

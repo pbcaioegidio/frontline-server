@@ -74,7 +74,8 @@ jobs:
           for mig in \
             database/migrations/migration_throw2_slot_unlock_20260912.sql \
             database/migrations/migration_portal_rewards_packed_20260913.sql \
-            database/migrations/migration_event_portal_image_subtitle_20260728.sql
+            database/migrations/migration_event_portal_image_subtitle_20260728.sql \
+            database/migrations/migration_event_portal_frontline_names_20260914.sql
           do
             if [ -f "$mig" ]; then
               scp "$mig" "$REMOTE:/tmp/fl-deploy/$(basename "$mig")"
@@ -128,6 +129,7 @@ jobs:
           apply_mig /tmp/fl-deploy/migration_throw2_slot_unlock_20260912.sql
           apply_mig /tmp/fl-deploy/migration_event_portal_image_subtitle_20260728.sql
           apply_mig /tmp/fl-deploy/migration_portal_rewards_packed_20260913.sql
+          apply_mig /tmp/fl-deploy/migration_event_portal_frontline_names_20260914.sql
 
           if [ -d /tmp/fl-deploy/events-seed ]; then
             mkdir -p "\$ROOT/runtime/Data/Events"
