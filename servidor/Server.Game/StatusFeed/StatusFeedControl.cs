@@ -29,8 +29,11 @@ namespace Server.Game.StatusFeed
                 if (cmd == "togglelog" || cmd == "logmode" || (cmd == "reload" && target == "logmode"))
                     return ToggleLogMode();
 
+                if (cmd == "settings" || cmd == "showsettings" || (cmd == "reload" && target == "settings"))
+                    return ShowSettingsIni();
+
                 if (cmd != "reload")
-                    return (false, "cmd desconhecido (use reload|clearlogs|togglelog)");
+                    return (false, "cmd desconhecido (use reload|clearlogs|togglelog|settings)");
 
                 switch (target)
                 {
@@ -96,6 +99,55 @@ namespace Server.Game.StatusFeed
             string mode = ConfigLoader.ShowMoreInfo ? "Alto" : "Padrão";
             CLogger.Print($"[StatusFeedControl] log mode = {mode}", LoggerType.Command);
             return (true, $"Modo de log: {mode}");
+        }
+
+        /// <summary>
+        /// Conteúdo do Settings.ini para o Discord (senhas/salts mascarados).
+        /// Prefixo SETTINGS_FILE\n para o bot anexar como arquivo.
+        /// </summary>
+        private static (bool, string) ShowSettingsIni()
+        {
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config", "Settings.ini");
+            if (!File.Exists(path))
+                return (false, "Arquivo Config/Settings.ini não encontrado");
+
+            string[] lines = File.ReadAllLines(path);
+            var sb = new StringBuilder(lines.Length * 40);
+            sb.Append("SETTINGS_FILE\n");
+            sb.Append("# FrontLine Settings.ini (senhas/tokens mascarados)\n");
+            sb.Append("# Gerado em ").Append(DateTime.UtcNow.ToString("u")).Append(" UTC\n\n");
+
+            foreach (string raw in lines)
+            {
+                string line = raw ?? "";
+                int eq = line.IndexOf('=');
+                if (eq > 0)
+                {
+                    string key = line.Substring(0, eq).Trim();
+                    if (IsSensitiveIniKey(key))
+                    {
+                        sb.Append(key).Append(" = ***\n");
+                        continue;
+                    }
+                }
+                sb.Append(line).Append('\n');
+            }
+
+            CLogger.Print("[StatusFeedControl] settings.ini enviado ao Discord (redacted)", LoggerType.Command);
+            return (true, sb.ToString());
+        }
+
+        private static bool IsSensitiveIniKey(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return false;
+            string k = key.Trim();
+            return k.Equals("Pass", StringComparison.OrdinalIgnoreCase)
+                || k.Equals("Password", StringComparison.OrdinalIgnoreCase)
+                || k.Equals("CryptedPasswordSalt", StringComparison.OrdinalIgnoreCase)
+                || k.IndexOf("Password", StringComparison.OrdinalIgnoreCase) >= 0
+                || k.IndexOf("Token", StringComparison.OrdinalIgnoreCase) >= 0
+                || k.IndexOf("Secret", StringComparison.OrdinalIgnoreCase) >= 0
+                || k.IndexOf("Salt", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static (bool, string) ReloadConfig()

@@ -140,12 +140,12 @@ namespace Server.Game.StatusFeed
                         return;
 
                     var (ok, msg) = StatusFeedControl.Run(cmd, target);
-                    string safe = (msg ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"");
+                    string safe = EscapeJson(msg ?? "");
                     long ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                     socket.Send(
                         "{\"type\":\"cmd_result\",\"ok\":" + (ok ? "true" : "false") +
-                        ",\"cmd\":\"" + cmd.Replace("\"", "") +
-                        "\",\"target\":\"" + target.Replace("\"", "") +
+                        ",\"cmd\":\"" + EscapeJson(cmd) +
+                        "\",\"target\":\"" + EscapeJson(target) +
                         "\",\"message\":\"" + safe +
                         "\",\"ts\":" + ts + "}");
                 }
@@ -163,6 +163,28 @@ namespace Server.Game.StatusFeed
                 }
                 catch { /* ignore */ }
             }
+        }
+
+        private static string EscapeJson(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            var sb = new System.Text.StringBuilder(s.Length + 16);
+            foreach (char c in s)
+            {
+                switch (c)
+                {
+                    case '\\': sb.Append("\\\\"); break;
+                    case '"': sb.Append("\\\""); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\r': sb.Append("\\r"); break;
+                    case '\t': sb.Append("\\t"); break;
+                    default:
+                        if (c < 0x20) sb.AppendFormat("\\u{0:x4}", (int)c);
+                        else sb.Append(c);
+                        break;
+                }
+            }
+            return sb.ToString();
         }
 
         private bool TryAuthFromPath(string path)
