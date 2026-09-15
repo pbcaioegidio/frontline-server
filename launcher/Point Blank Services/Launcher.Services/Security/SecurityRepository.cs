@@ -423,6 +423,48 @@ namespace Launcher.Services.Security
             }
         }
 
+        /// <summary>FileCheck do launcher → integrity_events (staff/IA).</summary>
+        public void InsertIntegrityEvent(
+            long playerId,
+            string username,
+            string ip,
+            bool ok,
+            bool? restored,
+            string invalidFilesJson,
+            string extrasRemovedJson,
+            string launcherVer,
+            string message)
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(_cs))
+                {
+                    conn.Open();
+                    using (var cmd = new NpgsqlCommand(@"
+                        INSERT INTO integrity_events
+                            (player_id, username, ip, ok, restored, invalid_files, extras_removed, launcher_ver, message)
+                        VALUES
+                            (@p, @u, @ip, @ok, @restored, @inv::jsonb, @ext::jsonb, @ver, @msg)", conn))
+                    {
+                        cmd.Parameters.AddWithValue("p", playerId);
+                        cmd.Parameters.AddWithValue("u", Trunc(username ?? "", 64));
+                        cmd.Parameters.AddWithValue("ip", Trunc(ip ?? "", 64));
+                        cmd.Parameters.AddWithValue("ok", ok);
+                        cmd.Parameters.AddWithValue("restored", (object)restored ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("inv", string.IsNullOrWhiteSpace(invalidFilesJson) ? "[]" : invalidFilesJson);
+                        cmd.Parameters.AddWithValue("ext", string.IsNullOrWhiteSpace(extrasRemovedJson) ? "[]" : extrasRemovedJson);
+                        cmd.Parameters.AddWithValue("ver", Trunc(launcherVer ?? "", 32));
+                        cmd.Parameters.AddWithValue("msg", Trunc(message ?? "", 512));
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[Security] integrity_events falhou: " + ex.Message);
+            }
+        }
+
         public void LogEvent(long playerId, string username, string action, string category, string reason,
             string evidenceJson, int severity, string clientCode, long banId = 0, bool auto = true, long gmId = 0)
         {

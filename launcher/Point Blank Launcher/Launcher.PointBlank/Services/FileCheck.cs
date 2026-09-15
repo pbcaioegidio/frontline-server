@@ -108,6 +108,7 @@ namespace Launcher.PointBlank.Services
             }
 
             result.InvalidFiles = invalid.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+            result.RemovedExtras = removedExtras;
             result.Success = result.InvalidFiles.Count == 0;
             if (result.Success)
             {

@@ -7,9 +7,12 @@ namespace Launcher.PointBlank.Models
         public bool Success { get; set; }
         public string Message { get; set; }
         public List<string> InvalidFiles { get; set; }
+        public List<string> RemovedExtras { get; set; }
+
         public FileCheckResult()
         {
             InvalidFiles = new List<string>();
+            RemovedExtras = new List<string>();
         }
     }
 }

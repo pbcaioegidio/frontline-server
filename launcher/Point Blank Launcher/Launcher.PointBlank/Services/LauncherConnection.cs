@@ -158,6 +158,30 @@ namespace Launcher.PointBlank.Services
             }
         }
 
+        /// <summary>Reporta resultado do FileCheck ao Socket (integrity_events). Falha de rede é ignorada.</summary>
+        public async Task SendIntegrityReportAsync(object payload)
+        {
+            try
+            {
+                if (_client == null) return;
+                string json = JsonConvert.SerializeObject(payload);
+                await _client.SendAsync(LAUNCHER_OPCODE_REQ.LAUNCHER_INTEGRITY_REPORT_REQ, Encoding.UTF8.GetBytes(json));
+                // ACK opcional — não bloqueia o jogador se o servidor estiver lento
+                try
+                {
+                    await _client.ReceiveAsync();
+                }
+                catch
+                {
+                    /* ignore */
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine("integrity report falhou: " + ex.Message);
+            }
+        }
+
         public void Dispose()
         {
             _client?.Dispose();

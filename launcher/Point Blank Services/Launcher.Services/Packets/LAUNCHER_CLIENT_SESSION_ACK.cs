@@ -77,6 +77,10 @@ namespace Launcher.Server.Network
                     HandleCaptureUpload(packet);
                     break;
 
+                case LAUNCHER_OPCODE_ACK.LAUNCHER_INTEGRITY_REPORT_REQ:
+                    HandleIntegrityReport(packet);
+                    break;
+
                 default:
                     SendString(
                         LAUNCHER_OPCODE_ACK.LAUNCHER_ERROR_ACK,
@@ -437,6 +441,66 @@ namespace Launcher.Server.Network
                 Console.WriteLine("[FL GUARD] capture upload: " + ex.Message);
                 SendJson(LAUNCHER_OPCODE_ACK.LAUNCHER_CAPTURE_ACK, new { ok = false, message = ex.Message });
             }
+        }
+
+        private void HandleIntegrityReport(LAUNCHER_PACKET_ACK packet)
+        {
+            try
+            {
+                string json = Encoding.UTF8.GetString(packet.Payload ?? new byte[0]);
+                JObject req = string.IsNullOrWhiteSpace(json) ? new JObject() : JObject.Parse(json);
+                long playerId = req.Value<long?>("player_id") ?? 0;
+                string username = req.Value<string>("username") ?? "";
+                bool ok = req.Value<bool?>("ok") ?? false;
+                bool? restored = req.Value<bool?>("restored");
+                string launcherVer = req.Value<string>("launcher_ver") ?? "";
+                string message = req.Value<string>("message") ?? "";
+
+                string invalidJson = "[]";
+                string extrasJson = "[]";
+                if (req["invalid"] is JArray inv)
+                    invalidJson = inv.ToString(Formatting.None);
+                if (req["extras_removed"] is JArray ext)
+                    extrasJson = ext.ToString(Formatting.None);
+
+                string ip = "";
+                try
+                {
+                    ip = (_client.Client.RemoteEndPoint as System.Net.IPEndPoint)?.Address?.ToString() ?? "";
+                }
+                catch { /* ignore */ }
+
+                var repo = new SecurityRepository(_config.DbHost, _config.DbPort, _config.DbName, _config.DbUser, _config.DbPassword);
+                repo.InsertIntegrityEvent(playerId, username, ip, ok, restored, invalidJson, extrasJson, launcherVer, message);
+
+                // Também um breadcrumb curto em security_events (action=info) se falhou
+                if (!ok)
+                {
+                    string filesPreview = invalidJson.Length > 180 ? invalidJson.Substring(0, 180) + "…" : invalidJson;
+                    repo.LogEvent(
+                        playerId,
+                        username,
+                        "info",
+                        "INTEGRITY",
+                        TruncReason("FileCheck fail: " + filesPreview),
+                        "{\"invalid\":" + invalidJson + ",\"extras\":" + extrasJson + ",\"restored\":" + (restored.HasValue ? restored.Value.ToString().ToLowerInvariant() : "null") + "}",
+                        3,
+                        "FG-INT");
+                }
+
+                SendJson(LAUNCHER_OPCODE_ACK.LAUNCHER_INTEGRITY_REPORT_ACK, new { ok = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[FL GUARD] integrity report: " + ex.Message);
+                SendJson(LAUNCHER_OPCODE_ACK.LAUNCHER_INTEGRITY_REPORT_ACK, new { ok = false, message = ex.Message });
+            }
+        }
+
+        private static string TruncReason(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            return s.Length <= 255 ? s : s.Substring(0, 255);
         }
 
         private void Disconnect()

@@ -416,6 +416,7 @@ namespace Launcher.PointBlank
                     if (choice == DialogResult.Yes)
                     {
                         bool restored = await RestoreIntegrityFilesAsync(result.InvalidFiles);
+                        await ReportIntegrityAsync(result, restored);
                         if (restored)
                         {
                             TEXT_STATUS.Text = "FL Guard: conferindo de novo após restaurar...";
@@ -423,17 +424,60 @@ namespace Launcher.PointBlank
                             return;
                         }
                     }
+                    else
+                    {
+                        await ReportIntegrityAsync(result, restored: false);
+                    }
                 }
                 else
                 {
                     MessageBox.Show(result.Message, "FRONTLINE", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    await ReportIntegrityAsync(result, restored: null);
                 }
 
                 FinishCheckFailed(result.Message);
                 return;
             }
 
+            await ReportIntegrityAsync(result, restored: null);
             FinishCheckSuccess();
+        }
+
+        /// <summary>Envia FileCheck ao Socket para staff/IA (integrity_events).</summary>
+        private async Task ReportIntegrityAsync(FileCheckResult result, bool? restored)
+        {
+            if (result == null || _connection == null) return;
+            // Só reporta se falhou, removeu extras, ou restaurou — evita spam em check limpo
+            bool hasExtras = result.RemovedExtras != null && result.RemovedExtras.Count > 0;
+            if (result.Success && !hasExtras && restored != true) return;
+
+            string launcherVer = "";
+            try
+            {
+                launcherVer = _connectionResult?.LauncherVersion
+                    ?? LauncherConfigService.FromFolder(Application.StartupPath).Load()?.LauncherVersion
+                    ?? "";
+            }
+            catch { /* ignore */ }
+
+            try
+            {
+                await _connection.SendIntegrityReportAsync(new
+                {
+                    player_id = _loggedPlayerId,
+                    username = _loggedUsername ?? "",
+                    ok = result.Success,
+                    restored,
+                    invalid = result.InvalidFiles ?? new System.Collections.Generic.List<string>(),
+                    extras_removed = result.RemovedExtras ?? new System.Collections.Generic.List<string>(),
+                    launcher_ver = launcherVer,
+                    message = result.Message ?? ""
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("ReportIntegrity: " + ex.Message);
+            }
         }
 
         /// <summary>

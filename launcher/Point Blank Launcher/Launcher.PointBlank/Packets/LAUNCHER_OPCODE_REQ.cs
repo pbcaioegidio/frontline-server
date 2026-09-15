@@ -35,6 +35,10 @@ namespace Launcher.PointBlank.Network
         LAUNCHER_CAPTURE_POLL_REQ = 5004,
         LAUNCHER_CAPTURE_POLL_ACK = 5005,
 
+        /// <summary>Report FileCheck (arquivos inválidos / extras) → integrity_events.</summary>
+        LAUNCHER_INTEGRITY_REPORT_REQ = 5100,
+        LAUNCHER_INTEGRITY_REPORT_ACK = 5101,
+
         LAUNCHER_ERROR_ACK = 9000
     }
 }
