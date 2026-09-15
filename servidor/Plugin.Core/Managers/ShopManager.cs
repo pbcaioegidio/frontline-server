@@ -941,9 +941,12 @@ namespace Plugin.Core.Managers
 
         private static bool IsMatchingEligible(GoodsItem item, HashSet<int> pricedItems)
         {
-            // Visibility 4 fica fora do matching normal, EXCETO recompensas de caixa:
-            // sem matching o packed good nao resolve ShopItem e o client crasha.
-            if (item.Visibility == 4 && !RandomBoxRewardGoodIds.Contains(item.Id))
+            // Odds de caixa: SEMPRE matching, mesmo Visibility=4 e preço 0.
+            // Variants 04 adicionadas com cash/gold 0 caíam no filtro de "junk" e o
+            // client recebia o good sem ShopItem → Please Wait / 0xC0000005.
+            if (RandomBoxRewardGoodIds.Contains(item.Id))
+                return true;
+            if (item.Visibility == 4)
                 return false;
             return item.PriceCash > 0 || item.PriceGold > 0 || !pricedItems.Contains(item.Item.Id);
         }
