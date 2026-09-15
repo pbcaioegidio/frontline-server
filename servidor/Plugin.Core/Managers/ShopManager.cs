@@ -1068,10 +1068,14 @@ namespace Plugin.Core.Managers
             {
                 list = new List<GoodsItem>(ShopBuyableList);
             }
-            // NAO forcar goods de evento (item_visible=false) no packed catalog:
-            // o client recebe o GoodsID mas sem ShopItem/SHOP_ITEM_BASE e crasha
-            // (Please Wait / 0xC0000005) ao abrir a presença. Recompensas de visita
-            // precisam usar goods ja compraveis (IsPackedGood=true de verdade).
+            // NAO forcar goods de evento "soltos" (sem ShopItem) no packed catalog:
+            // o client recebe o GoodsID mas sem SHOP_ITEM_BASE e crasha
+            // (Please Wait / 0xC0000005) ao abrir a presença.
+            // Excecao: recompensas de system_random_boxes — o preview da caixa no client
+            // faz FindGoods em cada good_id do RANDOMBOX_LIST; se faltar no packed,
+            // trava em Please Wait. Esses goods ja existem em ShopAllList (mesmo com
+            // Visibility=4 / item_visible=false) e tem ShopItem na unique list.
+            int boxExtras = AppendRandomBoxRewardGoods(list);
             if (list.Count > MAX_SHOP_GOODS)
                 list = list.GetRange(0, MAX_SHOP_GOODS);
 
@@ -1087,7 +1091,57 @@ namespace Plugin.Core.Managers
             PackedGoodsCount = list.Count;
             PackedGoodsBuffer = ZlibUtil.Compress(raw);
 
-            CLogger.Print($"Plugin carregado: packed goods {list.Count} recs ({raw.Length}B raw -> {PackedGoodsBuffer.Length}B zlib)", LoggerType.Info);
+            CLogger.Print(
+                $"Plugin carregado: packed goods {list.Count} recs ({raw.Length}B raw -> {PackedGoodsBuffer.Length}B zlib)" +
+                (boxExtras > 0 ? $", +{boxExtras} randombox" : string.Empty),
+                LoggerType.Info);
+        }
+
+        /// <summary>
+        /// Inclui no packed catalog os goods referenciados por caixas aleatorias que
+        /// ainda nao estao em ShopBuyableList (tipicamente item_visible=false).
+        /// Sem isso o client trava em Please Wait ao abrir o preview da caixa.
+        /// </summary>
+        private static int AppendRandomBoxRewardGoods(List<GoodsItem> list)
+        {
+            SortedList<int, RandomBoxModel> boxes = DaoManagerSQL.GetRandomBoxes();
+            if (boxes == null || boxes.Count == 0)
+                return 0;
+
+            HashSet<int> already = new HashSet<int>();
+            foreach (GoodsItem g in list)
+                already.Add(g.Id);
+
+            int added = 0;
+            int missing = 0;
+            foreach (KeyValuePair<int, RandomBoxModel> entry in boxes)
+            {
+                if (entry.Value?.Items == null)
+                    continue;
+                foreach (RandomBoxItem reward in entry.Value.Items)
+                {
+                    if (reward == null || reward.GoodsId == 0 || already.Contains(reward.GoodsId))
+                        continue;
+
+                    GoodsItem good = GetGood(reward.GoodsId);
+                    if (good == null)
+                    {
+                        missing++;
+                        CLogger.Print(
+                            $"randombox {entry.Key}: good {reward.GoodsId} ausente em system_shop (variant?)",
+                            LoggerType.Warning);
+                        continue;
+                    }
+
+                    list.Add(good);
+                    already.Add(good.Id);
+                    added++;
+                }
+            }
+
+            if (missing > 0)
+                CLogger.Print($"randombox packed: {missing} goods sem entrada na shop", LoggerType.Warning);
+            return added;
         }
 
         /// <summary>
