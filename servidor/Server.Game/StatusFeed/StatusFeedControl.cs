@@ -161,7 +161,9 @@ namespace Server.Game.StatusFeed
             Directory.CreateDirectory(Path.Combine(logs, "events"));
 
             CLogger.Print($"[StatusFeedControl] clearlogs files={files} dirs={dirs}", LoggerType.Command);
-            return (true, $"Logs limpos ({files} arquivo(s), {dirs} pasta(s)) — pastas recriadas");
+            string arq = files == 1 ? "1 arquivo" : $"{files} arquivos";
+            string pas = dirs == 1 ? "1 pasta" : $"{dirs} pastas";
+            return (true, $"Logs limpos: {arq}, {pas} — pastas recriadas");
         }
     }
 }
