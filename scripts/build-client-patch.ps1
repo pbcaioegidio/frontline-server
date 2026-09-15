@@ -137,17 +137,18 @@ else {
         $list = $xml.SelectSingleNode("/list")
         if (-not $list) { throw "UserFileList.dat invalido (sem /list)" }
 
-        # Remove lixo que nao pode ir pro jogador (mesma ideia do IntegrityRules.ShouldSkip)
+        # Remove lixo / prefs locais (mesma ideia do IntegrityRules.ShouldSkip)
         $removed = 0
         foreach ($n in @($list.SelectNodes("file"))) {
             $rel = Normalize-Rel $n.GetAttribute("local")
             $name = [IO.Path]::GetFileName($rel)
-            if ($name -match '(?i)\.bak|\.bad_sig$' -or $name -eq 'LEIA-ME.txt') {
+            $isEnvPref = ($rel -match '(?i)^EnvSet\\') -and ($name -ieq 'env_settings.ini' -or $name -ieq 'DXVersion.ini')
+            if ($isEnvPref -or $name -match '(?i)\.bak|\.bad_sig$' -or $name -eq 'LEIA-ME.txt') {
                 [void]$list.RemoveChild($n)
                 $removed++
             }
         }
-        if ($removed -gt 0) { Write-Host "  removidos $removed entradas lixo (.bak/.bad_sig)" }
+        if ($removed -gt 0) { Write-Host "  removidos $removed entradas (prefs EnvSet / .bak/.bad_sig)" }
 
         foreach ($f in $copied) {
             $rel = $f.Path
