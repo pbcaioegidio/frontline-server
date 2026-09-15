@@ -34,8 +34,10 @@ namespace Launcher.PointBlank.Services
             if (name.Equals("UserFileList.sig", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("ufl-md5.txt", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("config.zpt", StringComparison.OrdinalIgnoreCase)) return true;
-            // Preferencias do jogador (resolucao, etc.) — FLConfig/jogo reescrevem
+            // Preferencias do jogador (resolucao, DX9/11, etc.) — FLConfig/jogo reescrevem
             if (name.Equals("env_settings.ini", StringComparison.OrdinalIgnoreCase)
+                && StartsWithFolder(local, "EnvSet")) return true;
+            if (name.Equals("DXVersion.ini", StringComparison.OrdinalIgnoreCase)
                 && StartsWithFolder(local, "EnvSet")) return true;
             // Versao/config local — mudam no Update / por maquina
             if (name.Equals("launcher.svl", StringComparison.OrdinalIgnoreCase)) return true;
