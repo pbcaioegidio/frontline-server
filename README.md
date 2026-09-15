@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/frontline-logo.png" alt="FrontLine" width="220" />
+  <img src="docs/fl-mark-sem-fundo.png" alt="FrontLine" width="220" />
 </p>
 
 <h1 align="center">FrontLine Server</h1>
