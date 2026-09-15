@@ -112,48 +112,76 @@ if ($ClientRoot -and (Test-Path $ClientRoot) -and (Test-Path (Join-Path $ClientR
     $usedFullBuilder = $true
 }
 else {
-    # Merge na lista existente
-    if (-not $ExistingFileList -or -not (Test-Path $ExistingFileList)) {
-        throw "Sem client completo e sem -ExistingFileList. Baixe UserFileList.dat da VPS ou rode com -ClientRoot."
+    # Se o delta ja traz UserFileList.dat limpa/assinada, substitui a da VPS (nao merge).
+    # Serve pra tirar lixo (.bad_sig, .bak) que o merge sozinho nao remove.
+    $patchDat = Join-Path $PatchRoot "UserFileList.dat"
+    $patchSig = Join-Path $PatchRoot "UserFileList.sig"
+    if ((Test-Path $patchDat) -and (Test-Path $patchSig)) {
+        Write-Host "==> Substituindo FileList pela do patch (UserFileList.dat/.sig)"
+        Copy-Item $patchDat $datOut -Force
+        Copy-Item $patchSig $sigOut -Force
+        $md5 = Get-Md5Hex $datOut
+        [IO.File]::WriteAllText($uflTxt, $md5.ToLowerInvariant() + "`r`n", (New-Object Text.UTF8Encoding $false))
+        # tira da lista de "copied" generica — entram de novo abaixo como FileList oficial
+        $copied = @($copied | Where-Object { $_.Path -notin @("UserFileList.dat", "UserFileList.sig", "ufl-md5.txt") })
     }
-    Write-Host "==> Merge FileList: $ExistingFileList"
-    $xml = New-Object System.Xml.XmlDocument
-    $xml.PreserveWhitespace = $true
-    $xml.Load($ExistingFileList)
-    $list = $xml.SelectSingleNode("/list")
-    if (-not $list) { throw "UserFileList.dat invalido (sem /list)" }
+    else {
+        # Merge na lista existente
+        if (-not $ExistingFileList -or -not (Test-Path $ExistingFileList)) {
+            throw "Sem client completo e sem -ExistingFileList. Baixe UserFileList.dat da VPS ou rode com -ClientRoot."
+        }
+        Write-Host "==> Merge FileList: $ExistingFileList"
+        $xml = New-Object System.Xml.XmlDocument
+        $xml.PreserveWhitespace = $true
+        $xml.Load($ExistingFileList)
+        $list = $xml.SelectSingleNode("/list")
+        if (-not $list) { throw "UserFileList.dat invalido (sem /list)" }
 
-    foreach ($f in $copied) {
-        $rel = $f.Path
-        $node = $null
-        foreach ($n in $list.SelectNodes("file")) {
-            if ((Normalize-Rel $n.GetAttribute("local")) -eq $rel) { $node = $n; break }
+        # Remove lixo que nao pode ir pro jogador (mesma ideia do IntegrityRules.ShouldSkip)
+        $removed = 0
+        foreach ($n in @($list.SelectNodes("file"))) {
+            $rel = Normalize-Rel $n.GetAttribute("local")
+            $name = [IO.Path]::GetFileName($rel)
+            if ($name -match '(?i)\.bak|\.bad_sig$' -or $name -eq 'LEIA-ME.txt') {
+                [void]$list.RemoveChild($n)
+                $removed++
+            }
         }
-        if (-not $node) {
-            $node = $xml.CreateElement("file")
-            [void]$list.AppendChild($node)
+        if ($removed -gt 0) { Write-Host "  removidos $removed entradas lixo (.bak/.bad_sig)" }
+
+        foreach ($f in $copied) {
+            $rel = $f.Path
+            if ($rel -in @("UserFileList.dat", "UserFileList.sig", "ufl-md5.txt")) { continue }
+            $node = $null
+            foreach ($n in $list.SelectNodes("file")) {
+                if ((Normalize-Rel $n.GetAttribute("local")) -eq $rel) { $node = $n; break }
+            }
+            if (-not $node) {
+                $node = $xml.CreateElement("file")
+                [void]$list.AppendChild($node)
+            }
+            $node.SetAttribute("local", $rel)
+            $node.SetAttribute("hash", $f.Md5)
+            Write-Host "  hash $rel = $($f.Md5)"
         }
-        $node.SetAttribute("local", $rel)
-        $node.SetAttribute("hash", $f.Md5)
-        Write-Host "  hash $rel = $($f.Md5)"
+
+        # Sempre inclui UserFileList na pasta de patch? O launcher ja tem local — atualizamos apos download.
+        # Incluir dat/sig no patch para o Update aplicar a lista nova.
+        $settings = New-Object System.Xml.XmlWriterSettings
+        $settings.Encoding = New-Object System.Text.UTF8Encoding $false
+        $settings.Indent = $true
+        $settings.IndentChars = "  "
+        $w = [System.Xml.XmlWriter]::Create($datOut, $settings)
+        try { $xml.Save($w) } finally { $w.Dispose() }
+
+        # Assina com ferramenta .NET (ManifestTrust) — funciona no PS 5 e no PS 7
+        $signProj = Join-Path $root "launcher\tools\SignFileList\SignFileList.csproj"
+        dotnet run --project $signProj -c Release --no-launch-profile -- $datOut $sigOut $pemPath
+        if ($LASTEXITCODE -ne 0) { throw "Assinatura FileList falhou" }
+
+        $md5 = Get-Md5Hex $datOut
+        [IO.File]::WriteAllText($uflTxt, $md5.ToLowerInvariant() + "`r`n", (New-Object Text.UTF8Encoding $false))
     }
-
-    # Sempre inclui UserFileList na pasta de patch? O launcher ja tem local — atualizamos apos download.
-    # Incluir dat/sig no patch para o Update aplicar a lista nova.
-    $settings = New-Object System.Xml.XmlWriterSettings
-    $settings.Encoding = New-Object System.Text.UTF8Encoding $false
-    $settings.Indent = $true
-    $settings.IndentChars = "  "
-    $w = [System.Xml.XmlWriter]::Create($datOut, $settings)
-    try { $xml.Save($w) } finally { $w.Dispose() }
-
-    # Assina com ferramenta .NET (ManifestTrust) — funciona no PS 5 e no PS 7
-    $signProj = Join-Path $root "launcher\tools\SignFileList\SignFileList.csproj"
-    dotnet run --project $signProj -c Release --no-launch-profile -- $datOut $sigOut $pemPath
-    if ($LASTEXITCODE -ne 0) { throw "Assinatura FileList falhou" }
-
-    $md5 = Get-Md5Hex $datOut
-    [IO.File]::WriteAllText($uflTxt, $md5.ToLowerInvariant() + "`r`n", (New-Object Text.UTF8Encoding $false))
 }
 
 # Copia FileList para files/ (Update aplica no client)

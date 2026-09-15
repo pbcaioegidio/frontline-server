@@ -87,6 +87,9 @@ namespace Launcher.PointBlank.Services
             if (name.StartsWith("FLLauncher.exe.bak", StringComparison.OrdinalIgnoreCase)) return true;
             // Qualquer backup local (.bak, .bak-admin, .bak-20260907...) e so do dev — o jogador nao tem
             if (name.IndexOf(".bak", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            // Lixo de assinatura quebrada — nunca na lista publica (EXTRA/ausente no Guard)
+            if (name.EndsWith(".bad_sig", StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.Equals("LEIA-ME.txt", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.EndsWith(".new", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("_apply_launcher_update.cmd", StringComparison.OrdinalIgnoreCase)) return true;
             if (StartsWithFolder(local, "_DownloadPatchFiles")) return true;

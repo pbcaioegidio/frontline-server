@@ -45,6 +45,10 @@ client/_fl_publish_tmp/
 **/ufl-md5.txt
 **/UserFileList.dat
 **/UserFileList.sig
+# Lista limpa no delta do Actions (substitui a da VPS)
+!client-patch/UserFileList.dat
+!client-patch/UserFileList.sig
+!client-patch/ufl-md5.txt
 **/Evidence/
 servidor/binary/
 servidor/linux/out/
