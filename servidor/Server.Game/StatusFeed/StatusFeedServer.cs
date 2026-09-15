@@ -108,11 +108,60 @@ namespace Server.Game.StatusFeed
                 }
 
                 if (string.Equals(message, "ping", StringComparison.OrdinalIgnoreCase))
+                {
                     socket.Send("{\"type\":\"pong\",\"ts\":" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "}");
+                    return;
+                }
+
+                // Owner ops (bot Discord #ai): {"cmd":"reload","target":"shop"} | {"cmd":"clearlogs"}
+                if (!string.IsNullOrWhiteSpace(message) && message.TrimStart().StartsWith("{"))
+                {
+                    TryHandleControl(socket, message);
+                }
             }
             catch (Exception ex)
             {
                 CLogger.Print("StatusFeed message: " + ex.Message, LoggerType.Warning);
+            }
+        }
+
+        private void TryHandleControl(IWebSocketConnection socket, string message)
+        {
+            try
+            {
+                using (var doc = System.Text.Json.JsonDocument.Parse(message))
+                {
+                    var root = doc.RootElement;
+                    if (!root.TryGetProperty("cmd", out var cmdEl))
+                        return;
+                    string cmd = cmdEl.GetString() ?? "";
+                    string target = root.TryGetProperty("target", out var tEl) ? (tEl.GetString() ?? "") : "";
+                    if (string.IsNullOrWhiteSpace(cmd))
+                        return;
+
+                    var (ok, msg) = StatusFeedControl.Run(cmd, target);
+                    string safe = (msg ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"");
+                    long ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    socket.Send(
+                        "{\"type\":\"cmd_result\",\"ok\":" + (ok ? "true" : "false") +
+                        ",\"cmd\":\"" + cmd.Replace("\"", "") +
+                        "\",\"target\":\"" + target.Replace("\"", "") +
+                        "\",\"message\":\"" + safe +
+                        "\",\"ts\":" + ts + "}");
+                }
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                /* ignore non-control JSON */
+            }
+            catch (Exception ex)
+            {
+                CLogger.Print("StatusFeed control: " + ex.Message, LoggerType.Warning);
+                try
+                {
+                    socket.Send("{\"type\":\"cmd_result\",\"ok\":false,\"message\":\"erro interno\"}");
+                }
+                catch { /* ignore */ }
             }
         }
 
