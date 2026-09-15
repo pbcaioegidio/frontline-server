@@ -3672,11 +3672,14 @@ namespace Server.Game.Data.Utils
 
         /// <summary>
         /// Anti-burst no modo bot/desafio (kills via BATTLE_DEATH_REQ, não pelo Match).
-        /// Mesmos limiares KillBurst* do Settings.ini → FG-124 + clip + kick.
+        /// Desligado por padrão (KillBurstInBotMode=false): treino/desafio AI gera burst legítimo.
+        /// Com KillBurstInBotMode=true → mesmos limiares KillBurst* → FG-124 + clip + kick.
         /// </summary>
         public static void TrackBotKillBurst(Account player, SlotModel slot, FragInfos info)
         {
             if (player == null || slot == null || info == null || !ConfigLoader.AntiScript)
+                return;
+            if (!ConfigLoader.KillBurstInBotMode)
                 return;
 
             int kills = info.Frags != null && info.Frags.Count > 0

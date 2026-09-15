@@ -137,6 +137,8 @@ namespace Plugin.Core
         public static int KillBurstWindowSeconds;
         /// <summary>Kills na janela que disparam flag/clip/kick na partida.</summary>
         public static int KillBurstMaxKills;
+        /// <summary>Se false (padrão), não aplica FG-124/clip/kick no modo bot/desafio.</summary>
+        public static bool KillBurstInBotMode;
         /// <summary>Heurísticas aimbot/FOV no Match (FG-130/132).</summary>
         public static bool AimbotDetect;
         /// <summary>Amostras mínimas de hit em jogador antes de avaliar HS%.</summary>
@@ -255,6 +257,7 @@ namespace Plugin.Core
             SpeedBanViolations = configEngine.ReadD("SpeedBanViolations", 20, "Security");
             KillBurstWindowSeconds = configEngine.ReadD("KillBurstWindowSeconds", 8, "Security");
             KillBurstMaxKills = configEngine.ReadD("KillBurstMaxKills", 5, "Security");
+            KillBurstInBotMode = configEngine.ReadX("KillBurstInBotMode", false, "Security");
             AimbotDetect = configEngine.ReadX("AimbotDetect", true, "Security");
             AimbotHsMinHits = configEngine.ReadD("AimbotHsMinHits", 14, "Security");
             AimbotHsRatioFlag = configEngine.ReadT("AimbotHsRatioFlag", 0.88f, "Security");
