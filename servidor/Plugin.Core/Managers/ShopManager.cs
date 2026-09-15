@@ -32,6 +32,11 @@ namespace Plugin.Core.Managers
         // pacote com good_id tem que consultar este conjunto, nao ShopAllList.
         private static HashSet<int> PackedGoodsIds = new HashSet<int>();
 
+        // good_id das odds de system_random_boxes — precisam de MATCHING + packed goods
+        // mesmo com Visibility=4, senao o client crasha (Please Wait / 0xC0000005) ao
+        // aplicar GoodsList sem ShopItem/SHOP_ITEM_BASE.
+        private static HashSet<int> RandomBoxRewardGoodIds = new HashSet<int>();
+
         public static List<ShopData> ShopDataMt1 = new List<ShopData>();
         public static List<ShopData> ShopDataMt2 = new List<ShopData>();
         public static List<ShopData> ShopDataGoods = new List<ShopData>();
@@ -118,6 +123,7 @@ namespace Plugin.Core.Managers
 
             try
             {
+                LoadRandomBoxRewardGoodIds();
                 BuildMatchingAndGoodsData(0);
                 BuildMatchingData2(1);
                 BuildUniqueItemsData();
@@ -935,9 +941,32 @@ namespace Plugin.Core.Managers
 
         private static bool IsMatchingEligible(GoodsItem item, HashSet<int> pricedItems)
         {
-            if (item.Visibility == 4)
+            // Visibility 4 fica fora do matching normal, EXCETO recompensas de caixa:
+            // sem matching o packed good nao resolve ShopItem e o client crasha.
+            if (item.Visibility == 4 && !RandomBoxRewardGoodIds.Contains(item.Id))
                 return false;
             return item.PriceCash > 0 || item.PriceGold > 0 || !pricedItems.Contains(item.Item.Id);
+        }
+
+        private static void LoadRandomBoxRewardGoodIds()
+        {
+            RandomBoxRewardGoodIds.Clear();
+            SortedList<int, RandomBoxModel> boxes = DaoManagerSQL.GetRandomBoxes();
+            if (boxes == null)
+                return;
+
+            foreach (KeyValuePair<int, RandomBoxModel> entry in boxes)
+            {
+                if (entry.Value?.Items == null)
+                    continue;
+                foreach (RandomBoxItem reward in entry.Value.Items)
+                {
+                    if (reward != null && reward.GoodsId != 0)
+                        RandomBoxRewardGoodIds.Add(reward.GoodsId);
+                }
+            }
+
+            CLogger.Print($"Plugin carregado: {RandomBoxRewardGoodIds.Count} goods de randombox (matching/packed)", LoggerType.Info);
         }
 
         /// <summary>
@@ -1100,12 +1129,11 @@ namespace Plugin.Core.Managers
         /// <summary>
         /// Inclui no packed catalog os goods referenciados por caixas aleatorias que
         /// ainda nao estao em ShopBuyableList (tipicamente item_visible=false).
-        /// Sem isso o client trava em Please Wait ao abrir o preview da caixa.
+        /// Sem matching (IsMatchingEligible) + ShopItem o client crasha ao aplicar o GoodsList.
         /// </summary>
         private static int AppendRandomBoxRewardGoods(List<GoodsItem> list)
         {
-            SortedList<int, RandomBoxModel> boxes = DaoManagerSQL.GetRandomBoxes();
-            if (boxes == null || boxes.Count == 0)
+            if (RandomBoxRewardGoodIds.Count == 0)
                 return 0;
 
             HashSet<int> already = new HashSet<int>();
@@ -1114,29 +1142,22 @@ namespace Plugin.Core.Managers
 
             int added = 0;
             int missing = 0;
-            foreach (KeyValuePair<int, RandomBoxModel> entry in boxes)
+            foreach (int goodId in RandomBoxRewardGoodIds)
             {
-                if (entry.Value?.Items == null)
+                if (already.Contains(goodId))
                     continue;
-                foreach (RandomBoxItem reward in entry.Value.Items)
+
+                GoodsItem good = GetGood(goodId);
+                if (good == null)
                 {
-                    if (reward == null || reward.GoodsId == 0 || already.Contains(reward.GoodsId))
-                        continue;
-
-                    GoodsItem good = GetGood(reward.GoodsId);
-                    if (good == null)
-                    {
-                        missing++;
-                        CLogger.Print(
-                            $"randombox {entry.Key}: good {reward.GoodsId} ausente em system_shop (variant?)",
-                            LoggerType.Warning);
-                        continue;
-                    }
-
-                    list.Add(good);
-                    already.Add(good.Id);
-                    added++;
+                    missing++;
+                    CLogger.Print($"randombox good {goodId} ausente em system_shop (variant?)", LoggerType.Warning);
+                    continue;
                 }
+
+                list.Add(good);
+                already.Add(good.Id);
+                added++;
             }
 
             if (missing > 0)
@@ -1443,6 +1464,7 @@ namespace Plugin.Core.Managers
             ShopTagList.Clear();
             ShopTagData = null;
             PackedGoodsIds.Clear();
+            RandomBoxRewardGoodIds.Clear();
             FlashSaleGoodIds = new int[0];
             FlashSaleStartDate = 0;
             FlashSaleEndMinute = 0;
