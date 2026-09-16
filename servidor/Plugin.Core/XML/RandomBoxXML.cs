@@ -52,49 +52,15 @@ public class RandomBoxXML
 
     private static void BuildPackedRandomBoxData()
     {
-        // So envia ao client caixas visiveis na loja. Odds de caixas ocultas
-        // (skins sem PEF / Point Up oculto) crasham o preview (Please Wait).
-        HashSet<int> visibleBoxIds = new HashSet<int>();
-        lock (ShopManager.ShopAllList)
-        {
-            foreach (GoodsItem good in ShopManager.ShopAllList)
-            {
-                if (good != null && good.Visibility != 4 && RBoxes.ContainsKey(good.Item.Id))
-                    visibleBoxIds.Add(good.Item.Id);
-            }
-        }
-
-        List<KeyValuePair<int, RandomBoxModel>> boxes = new List<KeyValuePair<int, RandomBoxModel>>();
-        foreach (KeyValuePair<int, RandomBoxModel> entry in RBoxes)
-        {
-            if (entry.Value == null)
-                continue;
-            if (visibleBoxIds.Count > 0 && !visibleBoxIds.Contains(entry.Key))
-                continue;
-
-            boxes.Add(entry);
-            if (boxes.Count == MAX_RANDOMBOX_RECORDS)
-                break;
-        }
-
-        PackedRandomBoxCount = boxes.Count;
-        if (PackedRandomBoxCount == 0)
-        {
-            PackedRandomBoxBuffer = null;
-            return;
-        }
-
-        byte[] raw = new byte[PackedRandomBoxCount * RANDOMBOX_RECORD_SIZE];
-        for (int i = 0; i < boxes.Count; i++)
-        {
-            int off = i * RANDOMBOX_RECORD_SIZE;
-            int boxId = boxes[i].Key;
-            WriteRandomBoxRecord(boxId, boxes[i].Value, raw, off);
-        }
-
-        PackedRandomBoxBuffer = ZlibUtil.Compress(raw);
+        // Client 121: ao CLICAR a caixa na loja, le este packed e Resolve/FindGoods em
+        // cada odd. Com Point Up (e com armas) isso vira Please Wait / 0xC0000005 —
+        // mesmo com RandomBox.dat byte-identico ao retail. No Shop.dat retail a Point
+        // Bomb NAO aparece como good 180012051/65; ao coloca-la a venda o preview quebra.
+        // Nao enviamos odds pela loja. Abertura real (inventario/ITEM_AUTH) usa RBoxes.
+        PackedRandomBoxCount = 0;
+        PackedRandomBoxBuffer = null;
         CLogger.Print(
-            $"Plugin carregado: packed random boxes {PackedRandomBoxCount} recs ({raw.Length}B raw -> {PackedRandomBoxBuffer.Length}B zlib)",
+            "Plugin carregado: packed random boxes 0 (odds omitidas na loja; open via server)",
             LoggerType.Info);
     }
 
@@ -103,9 +69,6 @@ public class RandomBoxXML
         raw[off + 0] = 3;
         WriteIntLE(raw, off + 4, boxId);
 
-        // Espelha o retail: grava o good_id das odds mesmo se NAO estiver no Shop.dat packed.
-        // Point Bomb (1800120) no client original referencia Point Up que nao entram no
-        // catalogo de 426 goods; filtrar por IsPackedGood esvaziava/alterava o preview.
         List<RandomBoxItem> packedRewards = new List<RandomBoxItem>();
         if (box.Items != null)
         {
