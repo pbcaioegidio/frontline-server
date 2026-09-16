@@ -103,15 +103,34 @@ public class RandomBoxXML
         raw[off + 0] = 3;
         WriteIntLE(raw, off + 4, boxId);
 
-        int rewardCount = box.Items == null ? 0 : Math.Min(box.Items.Count, MAX_RANDOMBOX_REWARDS);
+        // So inclui rewards que o client consegue resolver (IsPackedGood).
+        // Good dangling no RANDOMBOX_LIST → FindGoods NULL → Please Wait / AV no clique.
+        List<RandomBoxItem> packedRewards = new List<RandomBoxItem>();
+        if (box.Items != null)
+        {
+            foreach (RandomBoxItem item in box.Items)
+            {
+                if (item == null || item.GoodsId == 0)
+                    continue;
+                if (!ShopManager.IsPackedGood(item.GoodsId))
+                {
+                    CLogger.Print(
+                        $"randombox {boxId}: skip good {item.GoodsId} (nao packed)",
+                        LoggerType.Warning);
+                    continue;
+                }
+                packedRewards.Add(item);
+                if (packedRewards.Count == MAX_RANDOMBOX_REWARDS)
+                    break;
+            }
+        }
+
+        int rewardCount = packedRewards.Count;
         raw[off + 524] = (byte)rewardCount;
 
         for (int i = 0; i < rewardCount; i++)
         {
-            RandomBoxItem item = box.Items[i];
-            if (item == null)
-                continue;
-
+            RandomBoxItem item = packedRewards[i];
             int rewardOff = off + (i * RANDOMBOX_REWARD_STRIDE);
             raw[rewardOff + 529] = 1;
             WriteIntLE(raw, rewardOff + 532, item.GoodsId);
