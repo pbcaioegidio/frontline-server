@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <list>
   <file local="api-ms-win-core-console-l1-1-0.dll" hash="B7F9BE4A47FFB86D9C1DF7ECD0D9D4D3" />
   <file local="api-ms-win-core-datetime-l1-1-0.dll" hash="DE572ADA584D8D8CF29BAFBD62A59E97" />
@@ -9397,7 +9397,6 @@
   <file local="PresentationNative_cor3.dll" hash="B43C09FD1EAB8FEB0D9D87E6EEB8FA95" />
   <file local="public.pem" hash="206B827F497EBAC40A8E383EFC648F79" />
   <file local="Quest.dat" hash="4ABB2B214D98FE11E58E05D329E83255" />
-  <file local="RandomBox.dat" hash="DFEAD00C3DFE33065D201AE0FBA23B66" />
   <file local="Script\Etc\dummy" hash="FC9B32627FEF2B7D39BFAB25D8101542" />
   <file local="Script\uiLuaString\Brazil\String_Brazil.lua" hash="A919E94620CEC665CC51CDC4B975BB4D" />
   <file local="Script\uiLuaString\extractdefine.lua" hash="16D34E0503B7BE19FC0A23CAC240B375" />
@@ -9450,6 +9449,5 @@
   <file local="v8_context_snapshot.bin" hash="9477550636BD1908E37DBE3A2B4F7517" />
   <file local="vcruntime140.dll" hash="F492D722DFD5C67732D849026C82B353" />
   <file local="vcruntime140_cor3.dll" hash="6CA4EDB2B52EC46C7FCA3FD372CA6C00" />
-  <file local="WebtoolSetBox.dat" hash="A29202D5735EB7A321A43FBFAE4866A0" />
   <file local="wpfgfx_cor3.dll" hash="A3DE08B2853C72B4923558E1794F5272" />
 </list>

@@ -42,9 +42,12 @@ namespace Launcher.PointBlank.Services
             // Versao/config local — mudam no Update / por maquina
             if (name.Equals("launcher.svl", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("LocalConfig.json", StringComparison.OrdinalIgnoreCase)) return true;
-            // Catalogos sincronizados com o server (Data/Raws) — o client reescreve no login
+            // Catalogos sincronizados com o server (Data/Raws) — o client reescreve no login/loja
             if (name.Equals("Shop.dat", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("EventPortal.dat", StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.Equals("RandomBox.dat", StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.Equals("WebtoolSetBox.dat", StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.Equals("WebtoolSetBox.bin", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("Thumbs.db", StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals("FLSetup.exe", StringComparison.OrdinalIgnoreCase)) return true;

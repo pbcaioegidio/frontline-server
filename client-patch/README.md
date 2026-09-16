@@ -7,7 +7,7 @@
 #
 # NAO coloque aqui:
 #   - filelist-private.pem (vai no secret FILELIST_PRIVATE_PEM)
-#   - Shop.dat / EventPortal.dat (sincronizados pelo jogo; fora do FL Guard)
+#   - Shop.dat / EventPortal.dat / RandomBox.dat / WebtoolSetBox.dat (sync pelo jogo; fora do FL Guard)
 #   - packs enormes sem necessidade (prefira patch minimo)
 #
 # Depois: git tag client-vYYYYMMDD && git push origin client-vYYYYMMDD

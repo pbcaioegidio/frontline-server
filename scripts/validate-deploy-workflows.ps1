@@ -38,13 +38,13 @@ foreach ($rel in $scripts) {
     if (Test-Path $p) { Ok $rel } else { Bad "ausente: $rel" }
 }
 
-# IntegrityRules deve pular Shop/EventPortal
+# IntegrityRules deve pular catalogos reescritos pelo client
 $rules = Join-Path $root "launcher\Point Blank Launcher\Launcher.PointBlank\Services\IntegrityRules.cs"
 $rt = Get-Content $rules -Raw
-if ($rt -match 'Shop\.dat' -and $rt -match 'EventPortal\.dat') {
-    Ok "IntegrityRules ignora Shop.dat / EventPortal.dat"
+if ($rt -match 'Shop\.dat' -and $rt -match 'EventPortal\.dat' -and $rt -match 'RandomBox\.dat') {
+    Ok "IntegrityRules ignora Shop / EventPortal / RandomBox"
 } else {
-    Bad "IntegrityRules sem skip de Shop/EventPortal"
+    Bad "IntegrityRules sem skip de Shop/EventPortal/RandomBox"
 }
 
 # Checklist E2E (manual)
