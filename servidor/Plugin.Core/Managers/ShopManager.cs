@@ -941,8 +941,13 @@ namespace Plugin.Core.Managers
 
         private static bool IsMatchingEligible(GoodsItem item, HashSet<int> pricedItems)
         {
-            // Nao forcar odds de caixa no matching: o Shop.dat retail tambem nao as tem.
-            // Forcar Visibility=4 / Point Up no matching inchava o catalogo e crashava o preview.
+            // Odds de caixa (exceto Point Up cat 20): precisam de matching p/ CAPSULE FindGoods.
+            if (RandomBoxRewardGoodIds.Contains(item.Id))
+            {
+                int cat = ComDiv.GetIdStatics(item.Item.Id, 1);
+                if (cat != 20)
+                    return true;
+            }
             if (item.Visibility == 4)
                 return false;
             return item.PriceCash > 0 || item.PriceGold > 0 || !pricedItems.Contains(item.Item.Id);
@@ -1114,11 +1119,10 @@ namespace Plugin.Core.Managers
             }
             // NAO forcar goods de evento "soltos" (sem ShopItem) no packed catalog:
             // o client recebe o GoodsID mas sem SHOP_ITEM_BASE e crasha
-            // NAO injeta odds de randombox no Shop.dat.
-            // O retail (goods=426) referencia Point Up no RandomBox.dat SEM esses good_ids
-            // no catalogo packed; injeta-los (+11) faz FindGoods devolver ShopItem quebrado
-            // e o client crasha (Please Wait / 0xC0000005) no clique da caixa.
-            int boxExtras = 0;
+            // Odds de caixas visiveis precisam estar no Shop.dat: o popup CAPSULE (1067)
+            // faz FindGoods pelo good_id do RANDOMBOX_LIST. Sem packed → popup vazio.
+            // Nao incluir category 20 (Point Up): injeta-los no catalogo crashava o client.
+            int boxExtras = AppendRandomBoxRewardGoods(list);
             if (list.Count > MAX_SHOP_GOODS)
                 list = list.GetRange(0, MAX_SHOP_GOODS);
 
@@ -1168,6 +1172,11 @@ namespace Plugin.Core.Managers
                     CLogger.Print($"randombox good {goodId} ausente em system_shop (variant?)", LoggerType.Warning);
                     continue;
                 }
+
+                // Point Up / cupons cat 20: nao empacotar (ShopItem quebrado → crash no preview).
+                int cat = ComDiv.GetIdStatics(good.Item.Id, 1);
+                if (cat == 20)
+                    continue;
 
                 list.Add(good);
                 already.Add(good.Id);

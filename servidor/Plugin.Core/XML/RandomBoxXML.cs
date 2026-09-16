@@ -52,15 +52,50 @@ public class RandomBoxXML
 
     private static void BuildPackedRandomBoxData()
     {
-        // Client 121: ao CLICAR a caixa na loja, le este packed e Resolve/FindGoods em
-        // cada odd. Com Point Up (e com armas) isso vira Please Wait / 0xC0000005 —
-        // mesmo com RandomBox.dat byte-identico ao retail. No Shop.dat retail a Point
-        // Bomb NAO aparece como good 180012051/65; ao coloca-la a venda o preview quebra.
-        // Nao enviamos odds pela loja. Abertura real (inventario/ITEM_AUTH) usa RBoxes.
-        PackedRandomBoxCount = 0;
-        PackedRandomBoxBuffer = null;
+        // CAPSULE (1067) resolve indices contra este packed — sem ele o popup fica vazio.
+        // So empacota caixas VISIVEIS. Odds com FindGoods OK (goods packed no Shop.dat);
+        // Point Up / goods sem ShopItem crasham o preview no clique da loja.
+        HashSet<int> visibleBoxIds = new HashSet<int>();
+        lock (ShopManager.ShopAllList)
+        {
+            foreach (GoodsItem good in ShopManager.ShopAllList)
+            {
+                if (good != null && good.Visibility != 4 && RBoxes.ContainsKey(good.Item.Id))
+                    visibleBoxIds.Add(good.Item.Id);
+            }
+        }
+
+        List<KeyValuePair<int, RandomBoxModel>> boxes = new List<KeyValuePair<int, RandomBoxModel>>();
+        foreach (KeyValuePair<int, RandomBoxModel> entry in RBoxes)
+        {
+            if (entry.Value == null)
+                continue;
+            if (visibleBoxIds.Count == 0 || !visibleBoxIds.Contains(entry.Key))
+                continue;
+
+            boxes.Add(entry);
+            if (boxes.Count == MAX_RANDOMBOX_RECORDS)
+                break;
+        }
+
+        PackedRandomBoxCount = boxes.Count;
+        if (PackedRandomBoxCount == 0)
+        {
+            PackedRandomBoxBuffer = null;
+            CLogger.Print("Plugin carregado: packed random boxes 0", LoggerType.Info);
+            return;
+        }
+
+        byte[] raw = new byte[PackedRandomBoxCount * RANDOMBOX_RECORD_SIZE];
+        for (int i = 0; i < boxes.Count; i++)
+        {
+            int off = i * RANDOMBOX_RECORD_SIZE;
+            WriteRandomBoxRecord(boxes[i].Key, boxes[i].Value, raw, off);
+        }
+
+        PackedRandomBoxBuffer = ZlibUtil.Compress(raw);
         CLogger.Print(
-            "Plugin carregado: packed random boxes 0 (odds omitidas na loja; open via server)",
+            $"Plugin carregado: packed random boxes {PackedRandomBoxCount} recs ({raw.Length}B raw -> {PackedRandomBoxBuffer.Length}B zlib)",
             LoggerType.Info);
     }
 
