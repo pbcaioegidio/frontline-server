@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml;
 using Plugin.Core;
 using Plugin.Core.Enums;
+using Plugin.Core.Managers;
 using Plugin.Core.Models;
 using Plugin.Core.SQL;
 using Plugin.Core.Utility;
@@ -51,10 +52,24 @@ public class RandomBoxXML
 
     private static void BuildPackedRandomBoxData()
     {
+        // So envia ao client caixas visiveis na loja. Odds de caixas ocultas
+        // (skins sem PEF / Point Up oculto) crasham o preview (Please Wait).
+        HashSet<int> visibleBoxIds = new HashSet<int>();
+        lock (ShopManager.ShopAllList)
+        {
+            foreach (GoodsItem good in ShopManager.ShopAllList)
+            {
+                if (good != null && good.Visibility != 4 && RBoxes.ContainsKey(good.Item.Id))
+                    visibleBoxIds.Add(good.Item.Id);
+            }
+        }
+
         List<KeyValuePair<int, RandomBoxModel>> boxes = new List<KeyValuePair<int, RandomBoxModel>>();
         foreach (KeyValuePair<int, RandomBoxModel> entry in RBoxes)
         {
             if (entry.Value == null)
+                continue;
+            if (visibleBoxIds.Count > 0 && !visibleBoxIds.Contains(entry.Key))
                 continue;
 
             boxes.Add(entry);
