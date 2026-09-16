@@ -37,9 +37,12 @@ namespace Server.Game.Network.ClientPacket
                     return;
                 player.FindClanId = this.Field0;
                 ClanModel clan = ClanManager.GetClan(player.FindClanId);
-                if (clan.Id <= 0)
-                    return;
-                this.Client.SendPacket(new PROTOCOL_CS_DETAIL_INFO_ACK(this.Field1, clan));
+                // Sempre ACK: se clan invalido, manda blob vazio (Clan=null).
+                // Antes retornava sem ACK → Please Wait no client.
+                if (clan == null || clan.Id <= 0)
+                    this.Client.SendPacket(new PROTOCOL_CS_DETAIL_INFO_ACK(this.Field1, null));
+                else
+                    this.Client.SendPacket(new PROTOCOL_CS_DETAIL_INFO_ACK(this.Field1, clan));
             }
             catch (Exception ex)
             {

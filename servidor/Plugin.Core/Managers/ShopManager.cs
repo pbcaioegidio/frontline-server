@@ -958,9 +958,21 @@ namespace Plugin.Core.Managers
             if (boxes == null)
                 return;
 
+            // So empacota odds de caixas VISIVEIS na loja. Gachas ocultas (skins sem PEF
+            // no client) nao devem entrar no packed/matching — evita crash ao abrir a loja.
+            HashSet<int> visibleBoxIds = new HashSet<int>();
+            lock (ShopAllList)
+            {
+                foreach (GoodsItem good in ShopAllList)
+                {
+                    if (good.Visibility != 4 && boxes.ContainsKey(good.Item.Id))
+                        visibleBoxIds.Add(good.Item.Id);
+                }
+            }
+
             foreach (KeyValuePair<int, RandomBoxModel> entry in boxes)
             {
-                if (entry.Value?.Items == null)
+                if (!visibleBoxIds.Contains(entry.Key) || entry.Value?.Items == null)
                     continue;
                 foreach (RandomBoxItem reward in entry.Value.Items)
                 {
@@ -969,7 +981,10 @@ namespace Plugin.Core.Managers
                 }
             }
 
-            CLogger.Print($"Plugin carregado: {RandomBoxRewardGoodIds.Count} goods de randombox (matching/packed)", LoggerType.Info);
+            CLogger.Print(
+                $"Plugin carregado: {RandomBoxRewardGoodIds.Count} goods de randombox " +
+                $"({visibleBoxIds.Count} caixas visiveis)",
+                LoggerType.Info);
         }
 
         /// <summary>
