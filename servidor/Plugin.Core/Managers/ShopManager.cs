@@ -1208,6 +1208,10 @@ namespace Plugin.Core.Managers
             if (TotalMatching2 > MAX_SHOP_MATCHING)
                 CLogger.Print($"packed matching2 CLAMPED {TotalMatching2} -> {MAX_SHOP_MATCHING} recs (client cap), tail entries dropped", LoggerType.Warning);
 
+            // Contadores do catalogo: o Shop.dat gravado pelo client espelha estes numeros,
+            // entao servem para comparar o tamanho da vitrine entre deploys.
+            CLogger.Print($"packed catalog: items={PackedItemsCount} goods={PackedGoodsCount} repairs={PackedRepairsCount} mt1={PackedMatching1Count} mt2={PackedMatching2Count}", LoggerType.Info);
+
             byte[] rawItems = BuildPackedRowsFromChunks(ShopDataItems, PackedItemsCount, ITEM_RECORD_SIZE);
             byte[] rawRepairs = BuildPackedRowsFromChunks(ShopDataItemRepairs, PackedRepairsCount, REPAIR_RECORD_SIZE);
             byte[] raw1 = BuildPackedRowsFromChunks(ShopDataMt1, PackedMatching1Count, MATCHING_RECORD_SIZE);

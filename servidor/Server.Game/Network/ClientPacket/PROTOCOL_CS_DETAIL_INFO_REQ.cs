@@ -37,6 +37,10 @@ namespace Server.Game.Network.ClientPacket
                     return;
                 player.FindClanId = this.Field0;
                 ClanModel clan = ClanManager.GetClan(player.FindClanId);
+                // O client dispara este REQ tambem ao abrir a loja; se o blob de resposta
+                // estiver errado o sintoma e Please Wait/crash na loja, nao na aba de cla.
+                // Log para separar os dois casos ao investigar.
+                CLogger.Print($"CS_DETAIL_INFO clanId={this.Field0} echo={this.Field1} found={(clan != null && clan.Id > 0)}", LoggerType.Info);
                 // Sempre ACK: se clan invalido, manda blob vazio (Clan=null).
                 // Antes retornava sem ACK → Please Wait no client.
                 if (clan == null || clan.Id <= 0)

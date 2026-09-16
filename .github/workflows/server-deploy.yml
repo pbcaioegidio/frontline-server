@@ -140,6 +140,7 @@ jobs:
           apply_mig /tmp/fl-deploy/migration_shop_box_safe_only_20260915.sql
           apply_mig /tmp/fl-deploy/migration_shop_box_one_safe_20260915.sql
           apply_mig /tmp/fl-deploy/migration_shop_box_pointup_odds_20260915.sql
+          apply_mig /tmp/fl-deploy/migration_shop_rollback_box_emote_20260915.sql
 
           if [ -d /tmp/fl-deploy/events-seed ]; then
             mkdir -p "\$ROOT/runtime/Data/Events"
