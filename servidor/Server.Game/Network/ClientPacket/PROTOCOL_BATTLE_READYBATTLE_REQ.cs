@@ -102,6 +102,8 @@ namespace Server.Game.Network.ClientPacket
                                 Slot.SetMissionsClone(player.Mission);
                                 this.Client.SendPacket(new PROTOCOL_BATTLE_READYBATTLE_ACK((uint)Slot.State));
                                 this.Client.SendPacket(new PROTOCOL_BATTLE_START_GAME_ACK(room));
+                                // START_GAME omits emoticon slots; refresh loadout+164 for battle Alt+1..6
+                                this.Client.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(player));
 
                                 using (PROTOCOL_BATTLE_START_GAME_TRANS_ACK Packet = new PROTOCOL_BATTLE_START_GAME_TRANS_ACK(room, Slot, player.Title))
                                     room.SendPacketToPlayers(Packet, SlotState.READY, 1, Slot.Id);

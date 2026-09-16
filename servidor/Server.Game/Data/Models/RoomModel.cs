@@ -645,6 +645,9 @@ namespace Server.Game.Data.Models
                                 && allPlayer.ClanId != allPlayer.Match.Clan.Id;
                             slot.SetMissionsClone(allPlayer.Mission);
                             allPlayer.SendCompletePacket(completeBytes, battleStartGameAck.GetType().Name);
+                            // START_GAME does not carry ITEM_INFO[6] (emote wheel / loadout+164).
+                            // Re-push 3082 so Alt+1..6 still resolve in battle (esp. desafio bot).
+                            allPlayer.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(allPlayer));
                         }
                     }
                 }

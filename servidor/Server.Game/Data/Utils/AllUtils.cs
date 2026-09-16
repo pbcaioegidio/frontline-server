@@ -3551,6 +3551,11 @@ namespace Server.Game.Data.Utils
         /// <returns>Equipamiento validado</returns>
         public static PlayerEquipment ValidateRespawnEQ(SlotModel slot, int[] itemIds)
         {
+            // Preserve emoticon wheel / cosmetics across respawn. New PlayerEquipment() zeros
+            // Emoticons[6]; BATTLE_RESPAWN then replaces slot.Equipment — without this copy the
+            // battle loadout loses Alt+1..6 (BringUsedEmotionItemID / loadout+164) after first death.
+            PlayerEquipment prev = slot?.Equipment;
+            int[] prevEmotes = prev?.Emoticons;
             PlayerEquipment equipment = new PlayerEquipment()
             {
                 WeaponPrimary = itemIds[0],
@@ -3568,9 +3573,15 @@ namespace Server.Game.Data.Utils
                 PartSkin = itemIds[13],
                 BeretItem = itemIds[14],
                 AccessoryId = itemIds[15],
-                CharaRedId = slot.Equipment.CharaRedId,
-                CharaBlueId = slot.Equipment.CharaBlueId,
-                DinoItem = slot.Equipment.DinoItem
+                CharaRedId = prev != null ? prev.CharaRedId : 0,
+                CharaBlueId = prev != null ? prev.CharaBlueId : 0,
+                DinoItem = prev != null ? prev.DinoItem : 0,
+                SprayId = prev != null ? prev.SprayId : 0,
+                NameCardId = prev != null ? prev.NameCardId : 0,
+                OwnerId = prev != null ? prev.OwnerId : 0,
+                Emoticons = prevEmotes != null && prevEmotes.Length >= 6
+                    ? (int[])prevEmotes.Clone()
+                    : new int[6]
             };
 
             int itemType = ComDiv.GetIdStatics(itemIds[5], 1);
