@@ -52,50 +52,13 @@ public class RandomBoxXML
 
     private static void BuildPackedRandomBoxData()
     {
-        // CAPSULE (1067) resolve indices contra este packed — sem ele o popup fica vazio.
-        // So empacota caixas VISIVEIS. Odds com FindGoods OK (goods packed no Shop.dat);
-        // Point Up / goods sem ShopItem crasham o preview no clique da loja.
-        HashSet<int> visibleBoxIds = new HashSet<int>();
-        lock (ShopManager.ShopAllList)
-        {
-            foreach (GoodsItem good in ShopManager.ShopAllList)
-            {
-                if (good != null && good.Visibility != 4 && RBoxes.ContainsKey(good.Item.Id))
-                    visibleBoxIds.Add(good.Item.Id);
-            }
-        }
-
-        List<KeyValuePair<int, RandomBoxModel>> boxes = new List<KeyValuePair<int, RandomBoxModel>>();
-        foreach (KeyValuePair<int, RandomBoxModel> entry in RBoxes)
-        {
-            if (entry.Value == null)
-                continue;
-            if (visibleBoxIds.Count == 0 || !visibleBoxIds.Contains(entry.Key))
-                continue;
-
-            boxes.Add(entry);
-            if (boxes.Count == MAX_RANDOMBOX_RECORDS)
-                break;
-        }
-
-        PackedRandomBoxCount = boxes.Count;
-        if (PackedRandomBoxCount == 0)
-        {
-            PackedRandomBoxBuffer = null;
-            CLogger.Print("Plugin carregado: packed random boxes 0", LoggerType.Info);
-            return;
-        }
-
-        byte[] raw = new byte[PackedRandomBoxCount * RANDOMBOX_RECORD_SIZE];
-        for (int i = 0; i < boxes.Count; i++)
-        {
-            int off = i * RANDOMBOX_RECORD_SIZE;
-            WriteRandomBoxRecord(boxes[i].Key, boxes[i].Value, raw, off);
-        }
-
-        PackedRandomBoxBuffer = ZlibUtil.Compress(raw);
+        // Loja: qualquer odd no packed (arma/Point Up) → Please Wait no clique.
+        // Inventario/abertura: CAPSULE (1067) precisa do packed; sem ele o popup fica vazio.
+        // Compromisso: packed=0 (loja segura) + NEW_REWARD_POPUP no AUTH ao abrir a caixa.
+        PackedRandomBoxCount = 0;
+        PackedRandomBoxBuffer = null;
         CLogger.Print(
-            $"Plugin carregado: packed random boxes {PackedRandomBoxCount} recs ({raw.Length}B raw -> {PackedRandomBoxBuffer.Length}B zlib)",
+            "Plugin carregado: packed random boxes 0 (loja sem odds; premio via REWARD_POPUP)",
             LoggerType.Info);
     }
 

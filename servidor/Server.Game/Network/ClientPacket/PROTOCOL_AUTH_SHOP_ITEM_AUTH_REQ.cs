@@ -257,7 +257,12 @@ namespace Server.Game.Network.ClientPacket
                                     }
                                     this.Client.SendPacket(new PROTOCOL_AUTH_SHOP_CAPSULE_ACK(wonIndices, this.Field1));
                                     if (itemsModelList.Count > 0)
+                                    {
+                                        // Cria no inventario primeiro; CAPSULE sem RandomBox.dat fica vazio.
                                         this.Client.SendPacket(new PROTOCOL_INVENTORY_GET_INFO_ACK(0, player, itemsModelList));
+                                        foreach (ItemsModel won in itemsModelList)
+                                            this.Client.SendPacket(new PROTOCOL_BASE_NEW_REWARD_POPUP_ACK(player, won));
+                                    }
                                 }
                                 else
                                     this.Field3 = 2147483648U /*0x80000000*/;

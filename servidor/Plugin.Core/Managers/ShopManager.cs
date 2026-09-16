@@ -1119,10 +1119,8 @@ namespace Plugin.Core.Managers
             }
             // NAO forcar goods de evento "soltos" (sem ShopItem) no packed catalog:
             // o client recebe o GoodsID mas sem SHOP_ITEM_BASE e crasha
-            // Odds de caixas visiveis precisam estar no Shop.dat: o popup CAPSULE (1067)
-            // faz FindGoods pelo good_id do RANDOMBOX_LIST. Sem packed → popup vazio.
-            // Nao incluir category 20 (Point Up): injeta-los no catalogo crashava o client.
-            int boxExtras = AppendRandomBoxRewardGoods(list);
+            // Sem RandomBox packed na loja: nao precisa injetar odds no Shop.dat.
+            int boxExtras = 0;
             if (list.Count > MAX_SHOP_GOODS)
                 list = list.GetRange(0, MAX_SHOP_GOODS);
 
