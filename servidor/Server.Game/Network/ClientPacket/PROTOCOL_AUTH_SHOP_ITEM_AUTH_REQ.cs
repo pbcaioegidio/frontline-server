@@ -255,10 +255,13 @@ namespace Server.Game.Network.ClientPacket
                                                 GameXender.BroadcastToAll(Packet);
                                         }
                                     }
-                                    this.Client.SendPacket(new PROTOCOL_AUTH_SHOP_CAPSULE_ACK(wonIndices, this.Field1));
+                                    // CAPSULE (1067) resolve indices no RandomBox.dat do client.
+                                    // Sem odds packed o popup abre vazio ("Item utilizado" sem icone).
+                                    // Premios ja vao no NEW_REWARD_POPUP (2430).
+                                    if (RandomBoxXML.PackedRandomBoxCount > 0)
+                                        this.Client.SendPacket(new PROTOCOL_AUTH_SHOP_CAPSULE_ACK(wonIndices, this.Field1));
                                     if (itemsModelList.Count > 0)
                                     {
-                                        // Cria no inventario primeiro; CAPSULE sem RandomBox.dat fica vazio.
                                         this.Client.SendPacket(new PROTOCOL_INVENTORY_GET_INFO_ACK(0, player, itemsModelList));
                                         foreach (ItemsModel won in itemsModelList)
                                             this.Client.SendPacket(new PROTOCOL_BASE_NEW_REWARD_POPUP_ACK(player, won));

@@ -85,7 +85,8 @@ jobs:
             database/migrations/migration_shop_restore_emote_box_20260915.sql \
             database/migrations/migration_shop_box_only_bisect_20260915.sql \
             database/migrations/migration_shop_emote_aug_box_20260915.sql \
-            database/migrations/migration_shop_aug_box_capsule_fix_20260915.sql
+            database/migrations/migration_shop_aug_box_capsule_fix_20260915.sql \
+            database/migrations/migration_shop_aug_box_named_20260915.sql
           do
             if [ -f "$mig" ]; then
               scp "$mig" "$REMOTE:/tmp/fl-deploy/$(basename "$mig")"
@@ -150,6 +151,7 @@ jobs:
           apply_mig /tmp/fl-deploy/migration_shop_box_only_bisect_20260915.sql
           apply_mig /tmp/fl-deploy/migration_shop_emote_aug_box_20260915.sql
           apply_mig /tmp/fl-deploy/migration_shop_aug_box_capsule_fix_20260915.sql
+          apply_mig /tmp/fl-deploy/migration_shop_aug_box_named_20260915.sql
 
           if [ -d /tmp/fl-deploy/events-seed ]; then
             mkdir -p "\$ROOT/runtime/Data/Events"
