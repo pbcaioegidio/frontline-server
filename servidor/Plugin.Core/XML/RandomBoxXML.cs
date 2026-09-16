@@ -103,8 +103,9 @@ public class RandomBoxXML
         raw[off + 0] = 3;
         WriteIntLE(raw, off + 4, boxId);
 
-        // So inclui rewards que o client consegue resolver (IsPackedGood).
-        // Good dangling no RANDOMBOX_LIST → FindGoods NULL → Please Wait / AV no clique.
+        // Espelha o retail: grava o good_id das odds mesmo se NAO estiver no Shop.dat packed.
+        // Point Bomb (1800120) no client original referencia Point Up que nao entram no
+        // catalogo de 426 goods; filtrar por IsPackedGood esvaziava/alterava o preview.
         List<RandomBoxItem> packedRewards = new List<RandomBoxItem>();
         if (box.Items != null)
         {
@@ -112,13 +113,6 @@ public class RandomBoxXML
             {
                 if (item == null || item.GoodsId == 0)
                     continue;
-                if (!ShopManager.IsPackedGood(item.GoodsId))
-                {
-                    CLogger.Print(
-                        $"randombox {boxId}: skip good {item.GoodsId} (nao packed)",
-                        LoggerType.Warning);
-                    continue;
-                }
                 packedRewards.Add(item);
                 if (packedRewards.Count == MAX_RANDOMBOX_REWARDS)
                     break;

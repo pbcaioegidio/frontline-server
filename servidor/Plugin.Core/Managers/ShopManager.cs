@@ -941,11 +941,8 @@ namespace Plugin.Core.Managers
 
         private static bool IsMatchingEligible(GoodsItem item, HashSet<int> pricedItems)
         {
-            // Odds de caixa: SEMPRE matching, mesmo Visibility=4 e preço 0.
-            // Variants 04 adicionadas com cash/gold 0 caíam no filtro de "junk" e o
-            // client recebia o good sem ShopItem → Please Wait / 0xC0000005.
-            if (RandomBoxRewardGoodIds.Contains(item.Id))
-                return true;
+            // Nao forcar odds de caixa no matching: o Shop.dat retail tambem nao as tem.
+            // Forcar Visibility=4 / Point Up no matching inchava o catalogo e crashava o preview.
             if (item.Visibility == 4)
                 return false;
             return item.PriceCash > 0 || item.PriceGold > 0 || !pricedItems.Contains(item.Item.Id);
@@ -1117,12 +1114,11 @@ namespace Plugin.Core.Managers
             }
             // NAO forcar goods de evento "soltos" (sem ShopItem) no packed catalog:
             // o client recebe o GoodsID mas sem SHOP_ITEM_BASE e crasha
-            // (Please Wait / 0xC0000005) ao abrir a presença.
-            // Excecao: recompensas de system_random_boxes — o preview da caixa no client
-            // faz FindGoods em cada good_id do RANDOMBOX_LIST; se faltar no packed,
-            // trava em Please Wait. Esses goods ja existem em ShopAllList (mesmo com
-            // Visibility=4 / item_visible=false) e tem ShopItem na unique list.
-            int boxExtras = AppendRandomBoxRewardGoods(list);
+            // NAO injeta odds de randombox no Shop.dat.
+            // O retail (goods=426) referencia Point Up no RandomBox.dat SEM esses good_ids
+            // no catalogo packed; injeta-los (+11) faz FindGoods devolver ShopItem quebrado
+            // e o client crasha (Please Wait / 0xC0000005) no clique da caixa.
+            int boxExtras = 0;
             if (list.Count > MAX_SHOP_GOODS)
                 list = list.GetRange(0, MAX_SHOP_GOODS);
 
