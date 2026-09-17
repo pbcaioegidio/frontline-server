@@ -646,8 +646,8 @@ namespace Server.Game.Data.Models
                             slot.SetMissionsClone(allPlayer.Mission);
                             allPlayer.SendCompletePacket(completeBytes, battleStartGameAck.GetType().Name);
                             // START_GAME does not carry ITEM_INFO[6] (emote wheel / loadout+164).
-                            // Re-push 3082 so Alt+1..6 still resolve in battle (esp. desafio bot).
-                            allPlayer.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(allPlayer));
+                            // Re-push 3082 com MATCH_VERSION=1 (batalha) para Alt+1..6.
+                            allPlayer.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(allPlayer, 1));
                         }
                     }
                 }

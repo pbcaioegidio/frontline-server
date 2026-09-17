@@ -1808,7 +1808,9 @@ namespace Server.Game.Data.Utils
                     ComDiv.UpdateItems(player.Equipment, query);
 
                 ComDiv.UpdateDB("player_equipments", "owner_id", (object)player.PlayerId, query.GetTables(), query.GetValues());
-                player.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(player, slot));
+                // Em partida: MATCH_VERSION=1 para nao tratar o 3082 como lobby.
+                byte mv = player.Room != null ? (byte)1 : (byte)0;
+                player.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(player, slot, mv));
                 slot.Equipment = player.Equipment;
             }
         }

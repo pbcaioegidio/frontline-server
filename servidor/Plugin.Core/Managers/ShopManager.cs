@@ -317,13 +317,15 @@ namespace Plugin.Core.Managers
                                             buyableEmitted++;
                                         }
                                     }
-                                    if (!ShopUniqueList.ContainsKey(good.Item.Id) && good.AuthType > 0)
+                                    // Emotes (41): sempre no packed ShopItem mesmo ocultos na vitrine,
+                                    // senao ValidateEmoticonResourceForBattle falha com item so no inventario.
+                                    bool isEmote = itemType == 41;
+                                    if (!ShopUniqueList.ContainsKey(good.Item.Id) && (good.AuthType > 0 || isEmote))
                                     {
                                         ShopUniqueList.Add(good.Item.Id, good);
                                         if (good.Visibility == 4)
                                         {
                                             Set4p++;
-                                            //CLogger.Print($"[LIMITED-LOAD] GoodId={good.Id} ItemId={good.Item.Id} Cash={good.PriceCash} Gold={good.PriceGold} Visibility={good.Visibility}", LoggerType.Debug);
                                         }
                                     }
                                     break;

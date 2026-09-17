@@ -24,9 +24,16 @@ namespace Server.Game.Network.ServerPacket
         private readonly List<int> Field5;
         private readonly List<int> Field6;
         private readonly int Field7;
+        /// <summary>
+        /// MATCH_VERSION no wire (byte). 0 = lobby; 1 = batalha.
+        /// Gate do client: &lt;2 aplica char-equip / loadout+164 (emotes). START_GAME nao manda
+        /// ITEM_INFO[6]; o 3082 de batalha precisa version!=lobby para Alt+1..6 resolver.
+        /// </summary>
+        private readonly byte MatchVersion;
 
-        public PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(Account A_1)
+        public PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(Account A_1, byte matchVersion = 0)
         {
+            this.MatchVersion = matchVersion;
             this.Field6 = new List<int>();
             this.Field5 = new List<int>();
             if (A_1 == null)
@@ -44,8 +51,9 @@ namespace Server.Game.Network.ServerPacket
             this.Field7 = this.Field3.CharaRedId;
         }
 
-        public PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(Account A_1, SlotModel A_2)
+        public PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(Account A_1, SlotModel A_2, byte matchVersion = 0)
         {
+            this.MatchVersion = matchVersion;
             this.Field6 = new List<int>();
             this.Field5 = new List<int>();
             if (A_1 == null)
@@ -78,7 +86,10 @@ namespace Server.Game.Network.ServerPacket
         // (same as the working 2453). 6-byte sub-header consumed by the packet base vf before any member.
         public override void Write()
         {
-            CLogger.Print($"[3082 CHANGE_INV] handles={this.Field6.Count} red={this.Field3.CharaRedId} blue={this.Field3.CharaBlueId} field7={this.Field7}", LoggerType.Info);
+            int[] emoticons = this.Field3?.Emoticons;
+            string emoLog = emoticons == null ? "null"
+                : string.Join(",", emoticons);
+            CLogger.Print($"[3082 CHANGE_INV] mv={this.MatchVersion} handles={this.Field6.Count} red={this.Field3.CharaRedId} blue={this.Field3.CharaBlueId} field7={this.Field7} emo=[{emoLog}]", LoggerType.Info);
 
             // --- header: opcode + reserved only. The client base vf consumes 6 bytes starting at
             // the 2-byte length prefix that GetCompleteBytes prepends ([length][opcode][reserved]),
@@ -95,7 +106,6 @@ namespace Server.Game.Network.ServerPacket
             //     does NOT affect the weapon preview. Old code wrote [primary..special,char] here, which
             //     is why the emoticon panel showed the equipped guns.
             this.WriteC((byte)6);
-            int[] emoticons = this.Field3.Emoticons;
             for (int i = 0; i < 6; i++)
                 this.WriteB(this.Field0.EquipmentDataChara(emoticons != null && i < emoticons.Length ? emoticons[i] : 0)); // +164 + 8*i  [Id][ObjId]
 
@@ -104,8 +114,9 @@ namespace Server.Game.Network.ServerPacket
             foreach (int slot in this.Field6)
                 this.WriteD((uint)slot);
 
-            // [3] S2MOValue<enum MATCH_VERSION,1> = gate. <2 applies the char-equip path. 0 = lobby.
-            this.WriteC((byte)0);
+            // [3] S2MOValue<enum MATCH_VERSION,1> = gate. <2 applies the char-equip path.
+            //     0 = lobby; 1 = batalha (re-push apos START_GAME / respawn).
+            this.WriteC(this.MatchVersion);
 
             // [4] S2MOValue<ITEM_INFO,1> = accessory (no count, fixed 8 bytes)
             this.WriteB(this.Field0.EquipmentDataChara(this.Field3.AccessoryId));
