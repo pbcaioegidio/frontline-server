@@ -289,6 +289,10 @@ namespace Plugin.Core.Managers
                             good.AuthType = int.Parse($"{reader["item_consume"]}");
                             good.BuyType2 = good.AuthType == 2 ? 1 : (IsRepairableItem(itemId) ? 2 : 1);
                             good.BuyType3 = good.AuthType == 1 ? 2 : 1;
+                            // Emotes (41xxxxx): Shop.dat oficial (Zepetto) grava AuthType=2 + BuyType3=2.
+                            // Com BuyType3=1 o client valida texturas mas UseEmotion rejeita ("emocao invalida").
+                            if (ComDiv.GetIdStatics(itemId, 1) == 41)
+                                good.BuyType3 = 2;
 
                             good.Item.SetItemId(itemId);
                             good.Item.Name = good.AuthType == 1
@@ -1459,7 +1463,9 @@ namespace Plugin.Core.Managers
             packet.WriteD(item.Item.Id);
             packet.WriteC((byte)item.AuthType);
             packet.WriteC((byte)item.BuyType2);
-            packet.WriteC((byte)item.BuyType3);
+            // Emotes: oficial usa BuyType3=2 mesmo com AuthType=2 (ver Shop.dat Zepetto).
+            byte buyType3 = ComDiv.GetIdStatics(item.Item.Id, 1) == 41 ? (byte)2 : (byte)item.BuyType3;
+            packet.WriteC(buyType3);
             packet.WriteC((byte)item.Title);
             packet.WriteC(item.Title != 0 ? (byte)2 : (byte)0);
             packet.WriteH((short)0);
