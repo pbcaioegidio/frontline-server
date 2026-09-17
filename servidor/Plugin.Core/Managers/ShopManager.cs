@@ -950,6 +950,9 @@ namespace Plugin.Core.Managers
                 if (cat != 20)
                     return true;
             }
+            // Emotes: matching mesmo ocultos — FindGoods / ValidateEmoticonResourceForBattle.
+            if (ComDiv.GetIdStatics(item.Item.Id, 1) == 41)
+                return true;
             if (item.Visibility == 4)
                 return false;
             return item.PriceCash > 0 || item.PriceGold > 0 || !pricedItems.Contains(item.Item.Id);
@@ -1119,6 +1122,9 @@ namespace Plugin.Core.Managers
             {
                 list = new List<GoodsItem>(ShopBuyableList);
             }
+            // Emotes ocultos (Visibility=4) ficam fora da vitrine, mas PRECISAM ir no PackedGoods:
+            // senao ValidateEmoticonResourceForBattle falha e Alt+1..6 nao faz nada em combate.
+            int emoteExtras = AppendHiddenEmoteGoods(list);
             // NAO forcar goods de evento "soltos" (sem ShopItem) no packed catalog:
             // o client recebe o GoodsID mas sem SHOP_ITEM_BASE e crasha
             // Sem RandomBox packed na loja: nao precisa injetar odds no Shop.dat.
@@ -1140,8 +1146,44 @@ namespace Plugin.Core.Managers
 
             CLogger.Print(
                 $"Plugin carregado: packed goods {list.Count} recs ({raw.Length}B raw -> {PackedGoodsBuffer.Length}B zlib)" +
+                (emoteExtras > 0 ? $", +{emoteExtras} emotes ocultos" : string.Empty) +
                 (boxExtras > 0 ? $", +{boxExtras} randombox" : string.Empty),
                 LoggerType.Info);
+        }
+
+        /// <summary>
+        /// Empacota 1 good por item_id de emote (41xxxxx) mesmo com item_visible=false.
+        /// Vitrine continua sem eles (ShopBuyableList); so o catalogo packed do client recebe.
+        /// </summary>
+        private static int AppendHiddenEmoteGoods(List<GoodsItem> list)
+        {
+            HashSet<int> alreadyGoodIds = new HashSet<int>();
+            HashSet<int> alreadyItemIds = new HashSet<int>();
+            foreach (GoodsItem g in list)
+            {
+                alreadyGoodIds.Add(g.Id);
+                alreadyItemIds.Add(g.Item.Id);
+            }
+
+            int added = 0;
+            lock (ShopAllList)
+            {
+                foreach (GoodsItem good in ShopAllList)
+                {
+                    if (good == null || good.Item == null)
+                        continue;
+                    if (ComDiv.GetIdStatics(good.Item.Id, 1) != 41)
+                        continue;
+                    if (alreadyItemIds.Contains(good.Item.Id) || alreadyGoodIds.Contains(good.Id))
+                        continue;
+
+                    list.Add(good);
+                    alreadyGoodIds.Add(good.Id);
+                    alreadyItemIds.Add(good.Item.Id);
+                    added++;
+                }
+            }
+            return added;
         }
 
         /// <summary>
