@@ -119,7 +119,17 @@ namespace Server.Game.Network.ServerPacket
             //     is why the emoticon panel showed the equipped guns.
             this.WriteC((byte)6);
             for (int i = 0; i < 6; i++)
-                this.WriteB(this.Field0.EquipmentDataChara(emoticons != null && i < emoticons.Length ? emoticons[i] : 0)); // +164 + 8*i  [Id][ObjId]
+            {
+                int emoId = emoticons != null && i < emoticons.Length ? emoticons[i] : 0;
+                // Teste A/B: alguns builds leem ITEM_INFO da roda como [ObjId][Id]
+                // (EquipmentData), nao [Id][ObjId] (EquipmentDataChara). Armas no bloco 18
+                // continuam Chara. Se Alt+1 animar, a ordem da roda era o bug do servidor.
+                byte[] pair = this.Field0.EquipmentData(emoId);
+                CLogger.Print(
+                    $"[3082 EMO] slot={i} id={emoId} wire={BitConverter.ToString(pair)}",
+                    LoggerType.Info);
+                this.WriteB(pair); // +164 + 8*i
+            }
 
             // [2] S2MOValue<int,2> = equipped char handles -> loadout+36 (FR) / +40 (CT), count 1 byte
             this.WriteC((byte)this.Field6.Count);
