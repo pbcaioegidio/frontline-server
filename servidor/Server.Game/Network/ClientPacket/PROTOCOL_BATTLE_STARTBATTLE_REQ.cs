@@ -34,9 +34,8 @@ namespace Server.Game.Network.ClientPacket
                     {
                         room.ChangeSlotState(slot1, SlotState.BATTLE_READY, true);
                         slot1.StopTiming();
-                        // Emotes: 3082 com mv=1 no LOAD pode ser ignorado antes do match ctx.
-                        // Reenvia ao entrar BATTLE_READY para Alt+1..6 no desafio/treino.
-                        this.Client.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(player, 1));
+                        // Emotes: re-push mv=0+1 ao entrar BATTLE_READY (treino/desafio).
+                        PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK.SendBattleEmoteLoadout(player);
                         if (flag1)
                         {
                             room.SetBotLevel();

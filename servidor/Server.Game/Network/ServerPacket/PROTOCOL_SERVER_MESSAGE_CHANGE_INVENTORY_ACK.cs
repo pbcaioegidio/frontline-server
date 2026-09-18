@@ -27,9 +27,21 @@ namespace Server.Game.Network.ServerPacket
         /// <summary>
         /// MATCH_VERSION no wire (byte). 0 = lobby; 1 = batalha.
         /// Gate do client: &lt;2 aplica char-equip / loadout+164 (emotes). START_GAME nao manda
-        /// ITEM_INFO[6]; o 3082 de batalha precisa version!=lobby para Alt+1..6 resolver.
+        /// ITEM_INFO[6]. Em combate mandamos 0 e depois 1 — alguns builds so aplicam a roda
+        /// no path de lobby (mv=0); mv=1 sozinho deixava BringUsedEmotionItemID=0.
         /// </summary>
         private readonly byte MatchVersion;
+
+        /// <summary>
+        /// Re-push da roda de emotes apos START_GAME / spawn (mv=0 + mv=1).
+        /// </summary>
+        public static void SendBattleEmoteLoadout(Account player)
+        {
+            if (player == null)
+                return;
+            player.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(player, 0));
+            player.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(player, 1));
+        }
 
         public PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(Account A_1, byte matchVersion = 0)
         {

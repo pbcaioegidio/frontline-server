@@ -172,8 +172,8 @@ namespace Server.Game.Network.ClientPacket
                     slot.FirstRespawn = false;
                     if (!slot.SpecGM)
                     {
-                        // Roda de emotes: re-push 3082 (mv=1) no 1º spawn — Alt+1..6 em combate.
-                        player.SendPacket(new PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK(player, 1));
+                        // Roda de emotes: re-push 3082 (mv=0+1) no 1º spawn — Alt+1..6 em combate.
+                        PROTOCOL_SERVER_MESSAGE_CHANGE_INVENTORY_ACK.SendBattleEmoteLoadout(player);
                         // Only send EquipmentSync for normal players, never for observers
                         EquipmentSync.SendUDPPlayerSync(room, slot, player.Effects, 0);
                         CLogger.Print($"[RESPAWN DEBUG] Sent EquipmentSync (Type 0) for {player.Nickname}", LoggerType.Debug);
