@@ -122,10 +122,9 @@ namespace Server.Game.Network.ServerPacket
             for (int i = 0; i < 6; i++)
             {
                 int emoId = emoticons != null && i < emoticons.Length ? emoticons[i] : 0;
-                // Teste A/B: alguns builds leem ITEM_INFO da roda como [ObjId][Id]
-                // (EquipmentData), nao [Id][ObjId] (EquipmentDataChara). Armas no bloco 18
-                // continuam Chara. Se Alt+1 animar, a ordem da roda era o bug do servidor.
-                byte[] pair = this.Field0.EquipmentData(emoId);
+                // dump121: ITEM_INFO = EquipmentDataChara [Id][ObjId] (igual bloco 18 / 2453).
+                // EquipmentData [ObjId][Id] invertia Id/ObjId e BringUsedEmotionItemID ficava lixo.
+                byte[] pair = this.Field0.EquipmentDataChara(emoId);
                 CLogger.Print(
                     $"[3082 EMO] slot={i} id={emoId} wire={BitConverter.ToString(pair)}",
                     LoggerType.Info);

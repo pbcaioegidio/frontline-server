@@ -76,13 +76,13 @@ namespace Server.Auth.Network.ServerPacket
             WriteB(new byte[127]);      // 04 USER_INFO_P_QUEST
             // 05 ITEM_INFO[6] = roda de emotes (loadout+164). Antes ia count=0 → Alt+1..6
             // sempre "emocao invalida" mesmo com 3082 em batalha (BringUsedEmotionItemID=0).
-            // Mesma ordem do 3082: EquipmentData = [ObjId][Id] (teste A/B da roda).
+            // dump121: mesma ordem do 3082 = EquipmentDataChara [Id][ObjId].
             int[] emoticons = playerEquipment?.Emoticons;
             WriteC((byte)6);
             for (int i = 0; i < 6; i++)
             {
                 int emoId = emoticons != null && i < emoticons.Length ? emoticons[i] : 0;
-                WriteB(playerInventory.EquipmentData(emoId));
+                WriteB(playerInventory.EquipmentDataChara(emoId));
             }
             // 06 USER_INFO_FLASHSALE (15B) — drives the lobby flash-sale card + 24H countdown.
             // Client 122 handler for 2317 @0xEC10C9 copies these 15B verbatim into the shop clock
