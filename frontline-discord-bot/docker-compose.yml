@@ -1,0 +1,60 @@
+services:
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    container_name: frontline-lavalink
+    restart: unless-stopped
+    environment:
+      _JAVA_OPTIONS: "-Xmx512M"
+      LAVALINK_SERVER_PASSWORD: ${LAVALINK_PASS:-changeme}
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID:-}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET:-}
+      APPLE_MUSIC_TOKEN: ${APPLE_MUSIC_TOKEN:-}
+      DEEZER_MASTER_KEY: ${DEEZER_MASTER_KEY:-}
+    volumes:
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
+      - ./lavalink/plugins:/opt/Lavalink/plugins
+    # Porta só na rede Docker (bot usa host `lavalink`). Não publica no host.
+    expose:
+      - "2333"
+    networks:
+      - default
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- --header=\"Authorization: $$LAVALINK_SERVER_PASSWORD\" http://127.0.0.1:2333/version >/dev/null || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  frontline-bot:
+    build: .
+    container_name: frontline-discord-bot
+    restart: unless-stopped
+    depends_on:
+      lavalink:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - YOUTUBE_COOKIES=/app/cookies.txt
+      - LAVALINK_HOST=lavalink
+      - LAVALINK_PORT=2333
+      - LAVALINK_PASS=${LAVALINK_PASS:?defina LAVALINK_PASS no .env}
+      - LAVALINK_SECURE=false
+    volumes:
+      # Gere no PC (extensão Get cookies.txt LOCALLY) e copie para a VPS
+      # RW: yt-dlp precisa gravar cookies atualizados
+      - ./cookies.txt:/app/cookies.txt
+      # Painel: logs ao vivo dos containers do jogo
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - default
+      - servidor_default
+
+networks:
+  servidor_default:
+    external: true
