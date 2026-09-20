@@ -1,5 +1,7 @@
 services:
+  # Opcional — só se quiser nó privado: docker compose --profile private-lava up -d
   lavalink:
+    profiles: ["private-lava"]
     image: ghcr.io/lavalink-devs/lavalink:4
     container_name: frontline-lavalink
     restart: unless-stopped
@@ -13,7 +15,6 @@ services:
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
       - ./lavalink/plugins:/opt/Lavalink/plugins
-    # Porta só na rede Docker (bot usa host `lavalink`). Não publica no host.
     expose:
       - "2333"
     networks:
@@ -33,18 +34,11 @@ services:
     build: .
     container_name: frontline-discord-bot
     restart: unless-stopped
-    depends_on:
-      lavalink:
-        condition: service_started
     env_file:
       - .env
     environment:
       - NODE_ENV=production
       - YOUTUBE_COOKIES=/app/cookies.txt
-      - LAVALINK_HOST=lavalink
-      - LAVALINK_PORT=2333
-      - LAVALINK_PASS=${LAVALINK_PASS:?defina LAVALINK_PASS no .env}
-      - LAVALINK_SECURE=false
     volumes:
       # Gere no PC (extensão Get cookies.txt LOCALLY) e copie para a VPS
       # RW: yt-dlp precisa gravar cookies atualizados

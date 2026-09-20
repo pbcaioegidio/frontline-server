@@ -3,10 +3,10 @@ from pathlib import Path
 p = Path(".env")
 text = p.read_text(encoding="utf-8")
 pairs = {
-  "LAVALINK_HOST": "lavalink",
-  "LAVALINK_PORT": "2333",
-  "LAVALINK_PASS": "LavalinkSeguroFrontline2026",
-  "LAVALINK_SECURE": "false",
+  "LAVALINK_HOST": "lava-v4.ajieblogs.eu.org",
+  "LAVALINK_PORT": "443",
+  "LAVALINK_PASS": "https://dsc.gg/ajidevserver",
+  "LAVALINK_SECURE": "true",
 }
 lines = text.splitlines()
 keys = set()
@@ -23,4 +23,4 @@ for k, v in pairs.items():
   if k not in keys:
     out.append(f"{k}={v}")
 p.write_text("\n".join(out) + "\n", encoding="utf-8")
-print("env lavalink updated")
+print("env lavalink -> publico ajieblogs")
