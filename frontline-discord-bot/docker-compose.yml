@@ -45,10 +45,3 @@ services:
       - ./cookies.txt:/app/cookies.txt
       # Painel: logs ao vivo dos containers do jogo
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - default
-      - servidor_default
-
-networks:
-  servidor_default:
-    external: true
